@@ -56,7 +56,7 @@ export function setupAfkRoutes(app: Express) {
       return res.status(401).json({ message: "Unauthorized" });
     }
     
-    const { minutes } = req.body;
+    const { minutes, isTabActive, isPaused } = req.body;
     
     // Enhanced validation on minutes value
     if (!minutes || typeof minutes !== "number" || minutes <= 0) {
@@ -69,6 +69,18 @@ export function setupAfkRoutes(app: Express) {
       });
     }
     
+    // Block earnings if tab is inactive or paused (server-side verification)
+    if (isPaused === true || isTabActive === false) {
+      console.log("Server prevented earnings - tab inactive or paused");
+      return res.json({
+        earned: 0,
+        dailyEarned: req.user.dailyAfkEarned || 0,
+        dailyLimit: 200,
+        remainingDaily: 200 - (req.user.dailyAfkEarned || 0),
+        message: "Tab inactive or paused"
+      });
+    }
+
     // Anti-cheat: Cap the maximum minutes that can be earned in one request
     // This prevents attempting to submit large time periods at once
     const cappedMinutes = Math.min(minutes, 1.2); // Maximum slightly more than 1 minute

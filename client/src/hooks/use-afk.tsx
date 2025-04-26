@@ -65,7 +65,7 @@ export function AfkProvider({ children }: { children: ReactNode }) {
   // Submit earned coins
   const earnMutation = useMutation({
     mutationFn: async (minutes: number) => {
-      // Only check tab active status and pause state
+      // Only check tab active status and pause state - strict check
       if (isPaused || !isTabActive) {
         console.log("Prevented earning during paused state");
         return { earned: 0, dailyEarned: dailyEarned, dailyLimit, captchaRequired: false };
@@ -74,7 +74,12 @@ export function AfkProvider({ children }: { children: ReactNode }) {
       // Normalize minutes to prevent exploits
       const cappedMinutes = Math.min(minutes, 1.2); // Cap at slightly more than 1 minute
       
-      const res = await apiRequest('POST', '/api/afk/earn', { minutes: cappedMinutes });
+      // Add isPaused flag to API request to ensure server-side validation
+      const res = await apiRequest('POST', '/api/afk/earn', { 
+        minutes: cappedMinutes,
+        isTabActive: isTabActive, // Send tab state to server
+        isPaused: isPaused // Send pause state to server
+      });
       return res.json();
     },
     onSuccess: (data) => {
@@ -148,7 +153,9 @@ export function AfkProvider({ children }: { children: ReactNode }) {
           const timeElapsedSinceCaptcha = (now - lastCaptchaTime) / 1000;
           
           // Show captcha only at specific intervals (every captchaInterval seconds)
-          if (timeElapsedSinceCaptcha >= captchaInterval) {
+          // FOR TESTING: Use 60 seconds instead of captchaInterval
+          if (timeElapsedSinceCaptcha >= 60) { // Temporary change for testing
+            console.log("Showing verification captcha after 60 seconds");
             setCaptchaNeeded(true);
             
             // Only show notification if cooldown passed

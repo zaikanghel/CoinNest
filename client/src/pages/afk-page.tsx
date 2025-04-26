@@ -216,7 +216,7 @@ function AfkEarningContent() {
           <Alert className="mt-4 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300">
             <Info className="h-4 w-4 mr-2" />
             <AlertDescription>
-              Stay active to earn coins. Verification may be required every {Math.floor(dailyLimit / afkRate / 60)} minutes.
+              Keep this tab open to earn coins. Verification required every minute (during testing).
             </AlertDescription>
           </Alert>
         </CardContent>
