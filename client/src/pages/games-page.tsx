@@ -18,6 +18,7 @@ type GameData = {
   difficulty: string;
   category: string;
   maxEarning: number;
+  baseReward: number;
   isNew: boolean;
   isPopular: boolean;
   imageUrl: string;
