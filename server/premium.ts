@@ -298,18 +298,24 @@ export function setupPremiumRoutes(app: Express) {
     }
     
     const { userId } = req.params;
+    console.log(`[PREMIUM REVOKE] Admin revoking premium for user ${userId}`);
     
     const user = await storage.getUser(parseInt(userId));
     
     if (!user) {
+      console.log(`[PREMIUM REVOKE] User ${userId} not found`);
       return res.status(404).json({ message: "User not found" });
     }
+    
+    console.log(`[PREMIUM REVOKE] Current premium status for user ${userId}: isPremium=${user.isPremium}, premiumUntil=${user.premiumUntil}`);
     
     // Remove premium status
     const updatedUser = await storage.updateUser(user.id, {
       isPremium: false,
       premiumUntil: new Date() // Set expiry to now (expired)
     });
+    
+    console.log(`[PREMIUM REVOKE] Premium status updated for user ${userId}: isPremium=${updatedUser?.isPremium}, premiumUntil=${updatedUser?.premiumUntil}`);
     
     // Add activity record
     await storage.createActivity({
@@ -318,6 +324,8 @@ export function setupPremiumRoutes(app: Express) {
       amount: 0,
       description: "Premium subscription revoked by admin"
     });
+    
+    console.log(`[PREMIUM REVOKE] Added activity record for user ${userId}`);
     
     res.json({
       success: true,

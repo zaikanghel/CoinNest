@@ -164,9 +164,15 @@ export default function DashboardPage() {
                     <Crown className="h-5 w-5 mr-2" /> 
                     Premium Features Testing Panel
                   </h3>
-                  <p className="text-sm text-amber-700 dark:text-amber-400">
-                    This panel is only visible to administrators for testing purposes.
-                  </p>
+                  <div className="p-3 bg-white dark:bg-gray-800 rounded border border-amber-200 dark:border-amber-800">
+                    <h4 className="font-medium text-amber-800 dark:text-amber-300">How to Test Premium Notification Popup:</h4>
+                    <ol className="list-decimal ml-5 mt-2 text-sm text-amber-700 dark:text-amber-400 space-y-2">
+                      <li>First click "Set Premium (1 min)" to add premium status with short expiry</li>
+                      <li>Wait for 1 minute for automatic expiration <strong>OR</strong> click "Revoke Premium" to immediately remove premium</li>
+                      <li>The popup should appear automatically when premium status changes</li>
+                      <li>You can also manually trigger the popup with "Test Premium Dialog" for immediate feedback</li>
+                    </ol>
+                  </div>
                   <div className="flex flex-wrap gap-3 mt-2">
                     <Button 
                       variant="outline" 
@@ -174,7 +180,7 @@ export default function DashboardPage() {
                       className="bg-white dark:bg-gray-800 border-amber-200 dark:border-amber-800"
                     >
                       <Crown className="h-4 w-4 mr-2 text-amber-500" />
-                      Test Premium Expired Dialog
+                      Test Premium Dialog
                     </Button>
                     
                     <Button 
@@ -194,7 +200,7 @@ export default function DashboardPage() {
                       className="bg-white dark:bg-gray-800 border-amber-200 dark:border-amber-800"
                     >
                       <Crown className="h-4 w-4 mr-2 text-amber-500" />
-                      Simulate Premium Expiration
+                      Simulate Expired Premium
                     </Button>
                     
                     <Button 
@@ -226,6 +232,26 @@ export default function DashboardPage() {
                     >
                       <Crown className="h-4 w-4 mr-2 text-green-500" />
                       Set Premium (1 min)
+                    </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      onClick={async () => {
+                        try {
+                          const res = await fetch(`/api/admin/premium/${user?.id}`, {
+                            method: 'DELETE',
+                            credentials: 'include'
+                          });
+                          const data = await res.json();
+                          alert(`Premium status revoked. The popup should appear shortly.`);
+                        } catch (error) {
+                          alert('Error: ' + (error as Error).message);
+                        }
+                      }}
+                      className="bg-white dark:bg-gray-800 border-red-200 dark:border-red-900 text-red-700 dark:text-red-300"
+                    >
+                      <Crown className="h-4 w-4 mr-2 text-red-500" />
+                      Revoke Premium
                     </Button>
                   </div>
                 </div>

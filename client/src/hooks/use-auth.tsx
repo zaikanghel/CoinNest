@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext } from "react";
+import { createContext, ReactNode, useContext, useState, useEffect } from "react";
 import {
   useQuery,
   useMutation,
@@ -21,6 +21,9 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
+  // Track premium status changes for notifications
+  const [previousPremiumStatus, setPreviousPremiumStatus] = useState<boolean | null>(null);
+  
   const {
     data: user,
     error,
@@ -28,7 +31,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   } = useQuery<SelectUser | undefined, Error>({
     queryKey: ["/api/user"],
     queryFn: getQueryFn({ on401: "returnNull" }),
+    refetchInterval: 60000, // Check every minute
   });
+  
+  // Track premium status changes
+  useEffect(() => {
+    if (user) {
+      // If we have a previous state to compare against
+      if (previousPremiumStatus !== null) {
+        // If premium status changed from true to false
+        if (previousPremiumStatus === true && !user.isPremium) {
+          console.log("Premium status change detected in auth hook: true → false");
+          
+          // Trigger premium status check
+          queryClient.invalidateQueries({ queryKey: ["/api/premium/status"] });
+        }
+      }
+      
+      // Update previous status
+      setPreviousPremiumStatus(!!user.isPremium);
+    } else {
+      // Reset when user is null
+      setPreviousPremiumStatus(null);
+    }
+  }, [user?.isPremium]);
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
