@@ -10,6 +10,9 @@ import LeaderboardPage from "@/pages/leaderboard-page";
 import WalletPage from "@/pages/wallet-page";
 import ReferralsPage from "@/pages/referrals-page";
 import AdminPage from "@/pages/admin-page";
+import ProfilePage from "@/pages/profile-page";
+import SettingsPage from "@/pages/settings-page";
+import HelpPage from "@/pages/help-page";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { AfkProvider } from "@/hooks/use-afk";
 import { useAuth } from "@/hooks/use-auth";
@@ -31,6 +34,9 @@ function App() {
             <ProtectedRoute path="/wallet" component={WalletPage} />
             <ProtectedRoute path="/referrals" component={ReferralsPage} />
             <ProtectedRoute path="/admin" component={AdminPage} />
+            <ProtectedRoute path="/profile" component={ProfilePage} />
+            <ProtectedRoute path="/settings" component={SettingsPage} />
+            <ProtectedRoute path="/help" component={HelpPage} />
             <Route component={NotFound} />
           </Switch>
         </div>
