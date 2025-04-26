@@ -246,6 +246,17 @@ export class MongoStorage implements IStorage {
     
     return withdrawals.map(withdrawal => this.mapToWithdrawal(withdrawal));
   }
+  
+  async getAllWithdrawals(): Promise<Withdrawal[]> {
+    if (!this.withdrawalsCollection) throw new Error("Database not initialized");
+    
+    const withdrawals = await this.withdrawalsCollection
+      .find({})
+      .sort({ createdAt: -1 })
+      .toArray();
+    
+    return withdrawals.map(withdrawal => this.mapToWithdrawal(withdrawal));
+  }
 
   async updateWithdrawalStatus(
     id: number,

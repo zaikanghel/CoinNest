@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -54,11 +55,17 @@ export default function AdminPage() {
     }
   });
 
-  // Fetch pending withdrawals
+  // State for showing all withdrawals or only pending
+  const [showAllWithdrawals, setShowAllWithdrawals] = useState(false);
+
+  // Fetch withdrawals (pending only or all)
   const { data: withdrawals, isLoading: isLoadingWithdrawals } = useQuery({
-    queryKey: ["/api/admin/withdrawals"],
+    queryKey: ["/api/admin/withdrawals", showAllWithdrawals],
     queryFn: async () => {
-      const res = await fetch("/api/admin/withdrawals", { credentials: "include" });
+      const url = showAllWithdrawals 
+        ? "/api/admin/withdrawals?all=true" 
+        : "/api/admin/withdrawals";
+      const res = await fetch(url, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch withdrawals");
       return res.json();
     }
@@ -212,10 +219,23 @@ export default function AdminPage() {
             <TabsContent value="withdrawals">
               <Card>
                 <CardHeader>
-                  <CardTitle>Pending Withdrawals</CardTitle>
-                  <CardDescription>
-                    Review and approve or reject withdrawal requests
-                  </CardDescription>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <CardTitle>{showAllWithdrawals ? "All Withdrawals" : "Pending Withdrawals"}</CardTitle>
+                      <CardDescription>
+                        {showAllWithdrawals 
+                          ? "View complete withdrawal history with user details" 
+                          : "Review and approve or reject withdrawal requests"}
+                      </CardDescription>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-500">Show All</span>
+                      <Switch 
+                        checked={showAllWithdrawals}
+                        onCheckedChange={setShowAllWithdrawals}
+                      />
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {withdrawals && withdrawals.length > 0 ? (
@@ -226,6 +246,8 @@ export default function AdminPage() {
                           <TableHead>Amount</TableHead>
                           <TableHead>Method</TableHead>
                           <TableHead>Requested</TableHead>
+                          {showAllWithdrawals && <TableHead>Status</TableHead>}
+                          {showAllWithdrawals && <TableHead>Processed</TableHead>}
                           <TableHead>Actions</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -233,21 +255,68 @@ export default function AdminPage() {
                         {withdrawals.map((withdrawal: any) => (
                           <TableRow key={withdrawal.id}>
                             <TableCell>
-                              {users?.find((u: any) => u.id === withdrawal.userId)?.username || `User #${withdrawal.userId}`}
+                              <div className="flex items-center">
+                                {users?.find((u: any) => u.id === withdrawal.userId) && (
+                                  <Avatar className="h-6 w-6 mr-2">
+                                    <AvatarFallback className={getColorFromString(users?.find((u: any) => u.id === withdrawal.userId)?.username || '')}>
+                                      {getUserInitials(users?.find((u: any) => u.id === withdrawal.userId)?.username || '')}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                )}
+                                <span className="font-medium">
+                                  {users?.find((u: any) => u.id === withdrawal.userId)?.username || `User #${withdrawal.userId}`}
+                                </span>
+                              </div>
                             </TableCell>
                             <TableCell>
                               <span className="font-medium">{withdrawal.amount.toLocaleString()}</span> coins
                             </TableCell>
                             <TableCell className="capitalize">{withdrawal.method}</TableCell>
                             <TableCell>{new Date(withdrawal.createdAt).toLocaleDateString()}</TableCell>
+                            
+                            {showAllWithdrawals && (
+                              <TableCell>
+                                {withdrawal.status === 'pending' ? (
+                                  <Badge variant="outline" className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 border-none">
+                                    Pending
+                                  </Badge>
+                                ) : withdrawal.status === 'approved' ? (
+                                  <Badge variant="outline" className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-none">
+                                    Approved
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-none">
+                                    Rejected
+                                  </Badge>
+                                )}
+                              </TableCell>
+                            )}
+                            
+                            {showAllWithdrawals && (
+                              <TableCell>
+                                {withdrawal.processedAt ? new Date(withdrawal.processedAt).toLocaleDateString() : '-'}
+                              </TableCell>
+                            )}
+                            
                             <TableCell>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => openWithdrawalModal(withdrawal)}
-                              >
-                                Process
-                              </Button>
+                              {withdrawal.status === 'pending' && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => openWithdrawalModal(withdrawal)}
+                                >
+                                  Process
+                                </Button>
+                              )}
+                              {withdrawal.status !== 'pending' && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => openWithdrawalModal(withdrawal)}
+                                >
+                                  View
+                                </Button>
+                              )}
                             </TableCell>
                           </TableRow>
                         ))}

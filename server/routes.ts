@@ -145,8 +145,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(403).send("Forbidden");
     }
     
-    const pendingWithdrawals = await storage.getPendingWithdrawals();
-    res.json(pendingWithdrawals);
+    const showAll = req.query.all === "true";
+    
+    if (showAll) {
+      const allWithdrawals = await storage.getAllWithdrawals();
+      res.json(allWithdrawals);
+    } else {
+      const pendingWithdrawals = await storage.getPendingWithdrawals();
+      res.json(pendingWithdrawals);
+    }
   });
   
   app.post("/api/admin/withdrawals/:id", async (req, res) => {
