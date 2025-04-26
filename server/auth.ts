@@ -98,30 +98,60 @@ export function setupAuth(app: Express) {
       const referralCode = nanoid(8);
       
       // Process referrer if provided
-      let referredBy: number | undefined;
+      let referredBy: number | null = null;
       if (userData.referredBy) {
-        const referrer = await storage.getUserByReferralCode(userData.referredBy);
-        if (referrer) {
-          referredBy = referrer.id;
-          
-          // Get referral bonus amount from settings
-          const referralBonusStr = await storage.getSetting("referral_bonus");
-          const referralBonus = parseInt(referralBonusStr || "75");
-          
-          // Add bonus to referrer
-          await storage.updateUser(referrer.id, {
-            balance: referrer.balance + referralBonus,
-            totalEarned: referrer.totalEarned + referralBonus,
-            referralEarned: referrer.referralEarned + referralBonus
-          });
-          
-          // Record the referral activity
-          await storage.createActivity({
-            userId: referrer.id,
-            type: "referral",
-            amount: referralBonus,
-            description: `Referral bonus from new user: ${userData.username}`
-          });
+        // Handle both string and number referredBy values
+        const referralCode = typeof userData.referredBy === 'string' ? userData.referredBy : undefined;
+        
+        if (referralCode) {
+          const referrer = await storage.getUserByReferralCode(referralCode);
+          if (referrer) {
+            referredBy = referrer.id;
+            
+            // Get referral bonus amount from settings
+            const referralBonusStr = await storage.getSetting("referral_bonus");
+            const referralBonus = parseInt(referralBonusStr || "75");
+            
+            // Add bonus to referrer
+            await storage.updateUser(referrer.id, {
+              balance: referrer.balance + referralBonus,
+              totalEarned: referrer.totalEarned + referralBonus,
+              referralEarned: referrer.referralEarned + referralBonus
+            });
+            
+            // Record the referral activity
+            await storage.createActivity({
+              userId: referrer.id,
+              type: "referral",
+              amount: referralBonus,
+              description: `Referral bonus from new user: ${userData.username}`
+            });
+          }
+        } else if (typeof userData.referredBy === 'number') {
+          // If referredBy is already a number (user ID), use it directly
+          const referrer = await storage.getUser(userData.referredBy);
+          if (referrer) {
+            referredBy = referrer.id;
+            
+            // Get referral bonus amount from settings
+            const referralBonusStr = await storage.getSetting("referral_bonus");
+            const referralBonus = parseInt(referralBonusStr || "75");
+            
+            // Add bonus to referrer
+            await storage.updateUser(referrer.id, {
+              balance: referrer.balance + referralBonus,
+              totalEarned: referrer.totalEarned + referralBonus,
+              referralEarned: referrer.referralEarned + referralBonus
+            });
+            
+            // Record the referral activity
+            await storage.createActivity({
+              userId: referrer.id,
+              type: "referral",
+              amount: referralBonus,
+              description: `Referral bonus from new user: ${userData.username}`
+            });
+          }
         }
       }
       
