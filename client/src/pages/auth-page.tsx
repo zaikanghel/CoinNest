@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,26 +10,24 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { loginSchema, registerSchema } from "@shared/schema";
 
-const loginSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
-
-const registerSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  email: z.string().email("Please enter a valid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  referredBy: z.string().optional(),
-});
-
-// Completely standalone AuthPage for debugging
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<string>("login");
-  const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [registerError, setRegisterError] = useState<string | null>(null);
   const [, navigate] = useLocation();
+  
+  // Get authentication context
+  const { user, isLoading, loginMutation, registerMutation } = useAuth();
+  
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, [user, navigate]);
 
   // Login form
   const loginForm = useForm<z.infer<typeof loginSchema>>({
@@ -51,24 +49,30 @@ export default function AuthPage() {
     },
   });
 
-  // Handle login submit - just console log for debugging
+  // Handle login submit
   const onLoginSubmit = (values: z.infer<typeof loginSchema>) => {
-    console.log("Login attempt:", values);
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      navigate("/");
-    }, 1500);
+    setLoginError(null);
+    loginMutation.mutate(values, {
+      onError: (error) => {
+        setLoginError(error.message);
+      },
+      onSuccess: () => {
+        navigate("/");
+      }
+    });
   };
 
-  // Handle register submit - just console log for debugging
+  // Handle register submit
   const onRegisterSubmit = (values: z.infer<typeof registerSchema>) => {
-    console.log("Register attempt:", values);
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      navigate("/");
-    }, 1500);
+    setRegisterError(null);
+    registerMutation.mutate(values, {
+      onError: (error) => {
+        setRegisterError(error.message);
+      },
+      onSuccess: () => {
+        navigate("/");
+      }
+    });
   };
 
   if (isLoading) {
