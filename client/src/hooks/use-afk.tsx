@@ -1,7 +1,7 @@
-import { createContext, ReactNode, useState, useEffect, useContext, useRef } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { createContext, ReactNode, useContext, useEffect, useRef, useState } from "react";
+import { useToast } from "./use-toast";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 
 interface AfkContextType {
   isAfkActive: boolean;
@@ -20,7 +20,6 @@ interface AfkContextType {
     timestamp: number;
   } | null;
   isTabActive: boolean;
-  lastMouseMovement: number;
   isPaused: boolean;
 }
 
@@ -40,9 +39,8 @@ export function AfkProvider({ children }: { children: ReactNode }) {
   const [afkStartTime, setAfkStartTime] = useState(0);
   const [lastEarning, setLastEarning] = useState<{amount: number, timestamp: number} | null>(null);
   const [isTabActive, setIsTabActive] = useState(true);
-  const [lastMouseMovement, setLastMouseMovement] = useState(Date.now());
   
-  // Anti-cheat and timer pausing
+  // Anti-cheat and timer pausing - only tab activity tracking
   const [isPaused, setIsPaused] = useState(false);
   const [pauseStartTime, setPauseStartTime] = useState(0);
   const [totalPausedTime, setTotalPausedTime] = useState(0);
@@ -51,7 +49,6 @@ export function AfkProvider({ children }: { children: ReactNode }) {
   const lastResumeToastRef = useRef(0);
   
   // Constants for anti-cheat
-  const MOUSE_MOVEMENT_TIMEOUT = 120000; // 2 minutes
   const RESUME_TOAST_COOLDOWN = 3000; // 3 seconds cooldown between resume notifications
   
   // Start AFK session
@@ -68,13 +65,13 @@ export function AfkProvider({ children }: { children: ReactNode }) {
   // Submit earned coins
   const earnMutation = useMutation({
     mutationFn: async (minutes: number) => {
-      // Multiple safety checks to prevent earning during pause
-      if (isPaused || !isTabActive || Date.now() - lastMouseMovement > MOUSE_MOVEMENT_TIMEOUT) {
+      // Only check tab active status and pause state
+      if (isPaused || !isTabActive) {
         console.log("Prevented earning during paused state");
         return { earned: 0, dailyEarned: dailyEarned, dailyLimit, captchaRequired: false };
       }
       
-      // Normalize minutes to prevent exploits (just in case)
+      // Normalize minutes to prevent exploits
       const cappedMinutes = Math.min(minutes, 1.2); // Cap at slightly more than 1 minute
       
       const res = await apiRequest('POST', '/api/afk/earn', { minutes: cappedMinutes });
@@ -142,60 +139,61 @@ export function AfkProvider({ children }: { children: ReactNode }) {
       interval = setInterval(() => {
         const now = Date.now();
         
-        // Check for active conditions (tab active + recent mouse movement)
-        const timeSinceLastMovement = now - lastMouseMovement;
-        const isUserActive = timeSinceLastMovement < MOUSE_MOVEMENT_TIMEOUT;
-        const shouldBePaused = !isTabActive || !isUserActive;
+        // Only check if tab is inactive
+        const shouldBePaused = !isTabActive;
         
-        // Check if captcha should be shown based on time
-        if (captchaInterval > 0 && now - lastCaptchaTime > captchaInterval * 1000) {
-          setCaptchaNeeded(true);
+        // Check if captcha should be shown based on time - improved consistency
+        if (captchaInterval > 0) {
+          // Calculate exact elapsed time in seconds
+          const timeElapsedSinceCaptcha = (now - lastCaptchaTime) / 1000;
+          
+          // Show captcha only at specific intervals (every captchaInterval seconds)
+          if (timeElapsedSinceCaptcha >= captchaInterval) {
+            setCaptchaNeeded(true);
+            
+            // Only show notification if cooldown passed
+            if (now - lastResumeToastRef.current > RESUME_TOAST_COOLDOWN) {
+              toast({
+                title: "Verification required",
+                description: "Please verify that you're still active",
+                variant: "destructive"
+              });
+              lastResumeToastRef.current = now;
+            }
+          }
         }
         
-        // Handle pausing and resuming - this is a backup to the direct handling in visibility and mouse events
-        // Only enter pause state if not already paused
+        // Handle pausing - only for tab inactive
         if (shouldBePaused && !isPaused) {
           // Just entered paused state
           setIsPaused(true);
           setPauseStartTime(now);
           
-          // Show appropriate warning (only if not already shown by direct handlers)
-          // Check cooldown to avoid duplicate messages
+          // Show tab inactive warning
           if (now - lastResumeToastRef.current > RESUME_TOAST_COOLDOWN) {
-            if (!isTabActive) {
-              toast({
-                title: "Tab inactive",
-                description: "AFK timer paused. Keep this tab active to earn coins",
-                variant: "destructive"
-              });
-            } else if (!isUserActive) {
-              toast({
-                title: "Inactivity detected",
-                description: "AFK timer paused. Move your mouse to continue earning",
-                variant: "destructive"
-              });
-            }
+            toast({
+              title: "Tab inactive",
+              description: "AFK timer paused. Keep this tab active to earn coins",
+              variant: "destructive"
+            });
             lastResumeToastRef.current = now;
           }
         } 
-        // Only resume if conditions are met and we're paused
+        // Resume AFK when tab becomes active again
         else if (!shouldBePaused && isPaused) {
-          // Only update state if conditions actually match - prevents race conditions
-          if (isTabActive && isUserActive) {
-            // Just resumed from paused state
-            setIsPaused(false);
-            const pauseDuration = now - pauseStartTime;
-            setTotalPausedTime(prev => prev + pauseDuration);
-            
-            // Show resume toast with cooldown to prevent spam
-            if (now - lastResumeToastRef.current > RESUME_TOAST_COOLDOWN) {
-              toast({
-                title: "Activity resumed",
-                description: "AFK timer and earnings have resumed",
-                variant: "default"
-              });
-              lastResumeToastRef.current = now;
-            }
+          // Just resumed from paused state
+          setIsPaused(false);
+          const pauseDuration = now - pauseStartTime;
+          setTotalPausedTime(prev => prev + pauseDuration);
+          
+          // Show resume toast with cooldown to prevent spam
+          if (now - lastResumeToastRef.current > RESUME_TOAST_COOLDOWN) {
+            toast({
+              title: "Activity resumed",
+              description: "AFK timer and earnings have resumed",
+              variant: "default"
+            });
+            lastResumeToastRef.current = now;
           }
         }
         
@@ -217,7 +215,7 @@ export function AfkProvider({ children }: { children: ReactNode }) {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isAfkActive, captchaNeeded, afkStartTime, lastCaptchaTime, lastEarningSubmit, captchaInterval, isTabActive, lastMouseMovement]);
+  }, [isAfkActive, captchaNeeded, afkStartTime, lastCaptchaTime, lastEarningSubmit, captchaInterval, isTabActive]);
 
   // Function to start AFK earning
   const startAfkEarning = async () => {
@@ -266,7 +264,7 @@ export function AfkProvider({ children }: { children: ReactNode }) {
     captchaMutation.mutate({ answer, expected });
   };
 
-  // Tab visibility change detection
+  // Tab visibility change detection - simplified
   useEffect(() => {
     const handleVisibilityChange = () => {
       const isVisible = document.visibilityState === 'visible';
@@ -286,11 +284,15 @@ export function AfkProvider({ children }: { children: ReactNode }) {
           const effectiveElapsed = Math.floor((now - afkStartTime - totalPausedTime) / 1000);
           setAfkTime(effectiveElapsed); // Freeze time at current value
           
-          toast({
-            title: "Tab inactive",
-            description: "AFK earnings will be paused until you return to this tab",
-            variant: "destructive"
-          });
+          // Only show toast if cooldown has passed
+          if (now - lastResumeToastRef.current > RESUME_TOAST_COOLDOWN) {
+            toast({
+              title: "Tab inactive",
+              description: "AFK earnings will be paused until you return to this tab",
+              variant: "destructive"
+            });
+            lastResumeToastRef.current = now;
+          }
         } 
         // When tab becomes active again
         else if (isVisible && isAfkActive && isPaused) {
@@ -303,20 +305,17 @@ export function AfkProvider({ children }: { children: ReactNode }) {
             setTotalPausedTime(prev => prev + pauseDuration);
           }
           
-          // If we were paused because of tab inactivity (not mouse), resume
-          const timeSinceLastMovement = now - lastMouseMovement;
-          if (timeSinceLastMovement < MOUSE_MOVEMENT_TIMEOUT) {
-            setIsPaused(false);
-            
-            // Only show resume toast if cooldown has passed
-            if (now - lastResumeToastRef.current > RESUME_TOAST_COOLDOWN) {
-              toast({
-                title: "Tab active",
-                description: "AFK timer and earnings have resumed",
-                variant: "default"
-              });
-              lastResumeToastRef.current = now;
-            }
+          // Resume AFK earning - always resume on tab focus
+          setIsPaused(false);
+          
+          // Only show resume toast if cooldown has passed
+          if (now - lastResumeToastRef.current > RESUME_TOAST_COOLDOWN) {
+            toast({
+              title: "Tab active",
+              description: "AFK timer and earnings have resumed",
+              variant: "default"
+            });
+            lastResumeToastRef.current = now;
           }
         }
       }
@@ -329,120 +328,7 @@ export function AfkProvider({ children }: { children: ReactNode }) {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [isAfkActive, isTabActive, isPaused, afkStartTime, totalPausedTime, lastMouseMovement, pauseStartTime]);
-  
-  // Mouse movement detection - debounced to prevent excessive updates
-  useEffect(() => {
-    let moveTimeout: NodeJS.Timeout | null = null;
-    let lastProcessedTime = 0;
-    
-    const handleMouseMove = () => {
-      const now = Date.now();
-      
-      // Debounce mouse movements to avoid excessive state updates
-      // Only process if 200ms have passed since last processed movement
-      if (now - lastProcessedTime > 200) {
-        // Clear any pending timeout
-        if (moveTimeout) {
-          clearTimeout(moveTimeout);
-        }
-        
-        // Set a timeout to process this movement
-        moveTimeout = setTimeout(() => {
-          const currentTime = Date.now();
-          setLastMouseMovement(currentTime);
-          lastProcessedTime = currentTime;
-          
-          // If we're paused due to mouse inactivity and user moves mouse, resume
-          if (isPaused && isTabActive && isAfkActive && !captchaNeeded) {
-            // Calculate how long we've been paused
-            const pauseDuration = currentTime - pauseStartTime;
-            
-            // Only resume if we were paused for less than the full timeout
-            // (if it's beyond the full timeout, a captcha is required)
-            if (pauseDuration < MOUSE_MOVEMENT_TIMEOUT) {
-              setIsPaused(false);
-              setTotalPausedTime(prev => prev + pauseDuration);
-              
-              // Only show toast if cooldown has passed
-              if (currentTime - lastResumeToastRef.current > RESUME_TOAST_COOLDOWN) {
-                toast({
-                  title: "Activity detected",
-                  description: "AFK timer and earnings have resumed",
-                  variant: "default"
-                });
-                lastResumeToastRef.current = currentTime;
-              }
-            }
-          }
-        }, 50); // Small delay to batch movements
-      }
-    };
-    
-    // Adding both mousemove and mousedown for better activity detection
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mousedown', handleMouseMove);
-    
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mousedown', handleMouseMove);
-      if (moveTimeout) {
-        clearTimeout(moveTimeout);
-      }
-    };
-  }, [isPaused, isTabActive, isAfkActive, captchaNeeded, pauseStartTime]);
-  
-  // Check for mouse inactivity
-  useEffect(() => {
-    let inactivityCheck: NodeJS.Timeout;
-    
-    if (isAfkActive && !captchaNeeded && isTabActive) { // Only check if tab is active
-      inactivityCheck = setInterval(() => {
-        const now = Date.now();
-        const timeSinceLastMovement = now - lastMouseMovement;
-        
-        // If mouse hasn't moved in a while, pause earnings first
-        if (timeSinceLastMovement > MOUSE_MOVEMENT_TIMEOUT / 2 && !isPaused) {
-          // Immediately pause and freeze time
-          setIsPaused(true);
-          setPauseStartTime(now);
-          
-          // Set time at current value (ensures immediate visual feedback)
-          const effectiveElapsed = Math.floor((now - afkStartTime - totalPausedTime) / 1000);
-          setAfkTime(effectiveElapsed);
-          
-          // Only show toast if cooldown has passed
-          if (now - lastResumeToastRef.current > RESUME_TOAST_COOLDOWN) {
-            toast({
-              title: "Mouse inactivity detected",
-              description: "AFK earnings paused. Move your mouse to continue earning",
-              variant: "destructive"
-            });
-            lastResumeToastRef.current = now;
-          }
-        }
-        
-        // If mouse hasn't moved for the full timeout period, prompt captcha
-        if (timeSinceLastMovement > MOUSE_MOVEMENT_TIMEOUT) {
-          setCaptchaNeeded(true);
-          
-          // Only show toast if cooldown has passed
-          if (now - lastResumeToastRef.current > RESUME_TOAST_COOLDOWN) {
-            toast({
-              title: "Verification required",
-              description: "Please verify you're still active",
-              variant: "destructive"
-            });
-            lastResumeToastRef.current = now;
-          }
-        }
-      }, 10000); // Check more frequently (every 10 seconds)
-    }
-    
-    return () => {
-      if (inactivityCheck) clearInterval(inactivityCheck);
-    };
-  }, [isAfkActive, captchaNeeded, lastMouseMovement, isPaused, isTabActive, afkStartTime, totalPausedTime]);
+  }, [isAfkActive, isTabActive, isPaused, afkStartTime, totalPausedTime, pauseStartTime]);
   
   // Clean up on unmount
   useEffect(() => {
@@ -469,7 +355,6 @@ export function AfkProvider({ children }: { children: ReactNode }) {
         isLoading,
         lastEarning,
         isTabActive,
-        lastMouseMovement,
         isPaused
       }}
     >
