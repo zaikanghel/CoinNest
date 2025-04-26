@@ -119,13 +119,30 @@ export function AfkProvider({ children }: { children: ReactNode }) {
       return res.json();
     },
     onSuccess: () => {
+      // Reset captcha state
       setCaptchaNeeded(false);
-      setLastCaptchaTime(Date.now());
-      toast({
-        title: "Verification successful",
-        description: "You can continue earning coins.",
-        variant: "default"
-      });
+      const now = Date.now();
+      setLastCaptchaTime(now);
+      
+      // Resume AFK earnings after successful verification
+      if (isPaused) {
+        // Calculate the pause duration and add it to the total paused time
+        const pauseDuration = now - pauseStartTime;
+        setTotalPausedTime(prev => prev + pauseDuration);
+        
+        // Resume timer and earning
+        setIsPaused(false);
+        
+        // Update the lastEarningSubmit to now so we don't immediately try to earn
+        setLastEarningSubmit(now);
+        
+        // Show success message
+        toast({
+          title: "Verification successful",
+          description: "AFK earnings have resumed.",
+          variant: "default"
+        });
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -140,15 +157,15 @@ export function AfkProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let interval: NodeJS.Timeout;
     
-    if (isAfkActive && !captchaNeeded) {
+    if (isAfkActive) {
       interval = setInterval(() => {
         const now = Date.now();
         
-        // Only check if tab is inactive
-        const shouldBePaused = !isTabActive;
+        // Consider both tab inactive and captcha needed for pausing
+        const shouldBePaused = !isTabActive || captchaNeeded;
         
         // Check if captcha should be shown based on time - improved consistency
-        if (captchaInterval > 0) {
+        if (!captchaNeeded && captchaInterval > 0) {
           // Calculate exact elapsed time in seconds
           const timeElapsedSinceCaptcha = (now - lastCaptchaTime) / 1000;
           
@@ -157,12 +174,15 @@ export function AfkProvider({ children }: { children: ReactNode }) {
           if (timeElapsedSinceCaptcha >= 60) { // Temporary change for testing
             console.log("Showing verification captcha after 60 seconds");
             setCaptchaNeeded(true);
+            // Pause timer immediately when captcha appears
+            setIsPaused(true);
+            setPauseStartTime(now);
             
             // Only show notification if cooldown passed
             if (now - lastResumeToastRef.current > RESUME_TOAST_COOLDOWN) {
               toast({
                 title: "Verification required",
-                description: "Please verify that you're still active",
+                description: "Please verify that you're still active. Timer paused until verified.",
                 variant: "destructive"
               });
               lastResumeToastRef.current = now;
@@ -170,8 +190,8 @@ export function AfkProvider({ children }: { children: ReactNode }) {
           }
         }
         
-        // Handle pausing - only for tab inactive
-        if (shouldBePaused && !isPaused) {
+        // Handle pausing due to tab inactivity
+        if (!isTabActive && !isPaused) {
           // Just entered paused state
           setIsPaused(true);
           setPauseStartTime(now);
@@ -186,8 +206,8 @@ export function AfkProvider({ children }: { children: ReactNode }) {
             lastResumeToastRef.current = now;
           }
         } 
-        // Resume AFK when tab becomes active again
-        else if (!shouldBePaused && isPaused) {
+        // Resume AFK when tab becomes active again (only if captcha is not needed)
+        else if (isTabActive && isPaused && !captchaNeeded) {
           // Just resumed from paused state
           setIsPaused(false);
           const pauseDuration = now - pauseStartTime;
@@ -204,13 +224,13 @@ export function AfkProvider({ children }: { children: ReactNode }) {
           }
         }
         
-        // IMPORTANT: Only update time if NOT paused - critical fix for tab inactive issue
+        // IMPORTANT: Only update time if NOT paused - critical fix for tab inactive issue and captcha
         if (!isPaused) {
           const effectiveElapsed = Math.floor((now - afkStartTime - totalPausedTime) / 1000);
           setAfkTime(effectiveElapsed);
           
-          // Only submit earnings if active and it's time AND not paused
-          if (now - lastEarningSubmit >= 60000) {
+          // Only submit earnings if active and it's time AND not paused AND no captcha needed
+          if (now - lastEarningSubmit >= 60000 && !captchaNeeded) {
             const minutesElapsed = (now - lastEarningSubmit) / 60000;
             earnMutation.mutate(minutesElapsed);
             setLastEarningSubmit(now);
