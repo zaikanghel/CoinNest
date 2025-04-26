@@ -1,0 +1,247 @@
+import type { Express } from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage";
+import { setupAuth } from "./auth";
+import { setupAfkRoutes } from "./afk";
+import { setupGameRoutes } from "./games";
+import { z } from "zod";
+import { withdrawalSchema } from "@shared/schema";
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup authentication routes
+  setupAuth(app);
+  
+  // Setup AFK earning routes
+  setupAfkRoutes(app);
+  
+  // Setup game routes
+  setupGameRoutes(app);
+  
+  // Wallet and withdrawals routes
+  app.get("/api/wallet", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).send("Unauthorized");
+    
+    const user = req.user;
+    const withdrawals = await storage.getWithdrawalsByUser(user.id);
+    
+    const minWithdrawalStr = await storage.getSetting("min_withdrawal");
+    const conversionRateStr = await storage.getSetting("conversion_rate");
+    
+    const minWithdrawal = parseInt(minWithdrawalStr || "1000");
+    const conversionRate = parseInt(conversionRateStr || "100");
+    
+    res.json({
+      balance: user.balance,
+      withdrawals,
+      minWithdrawal,
+      conversionRate
+    });
+  });
+  
+  app.post("/api/withdrawals", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).send("Unauthorized");
+    
+    try {
+      const validatedData = withdrawalSchema.parse(req.body);
+      const user = req.user;
+      
+      // Check minimum withdrawal amount
+      const minWithdrawalStr = await storage.getSetting("min_withdrawal");
+      const minWithdrawal = parseInt(minWithdrawalStr || "1000");
+      
+      if (validatedData.amount < minWithdrawal) {
+        return res.status(400).json({ 
+          message: `Minimum withdrawal amount is ${minWithdrawal} coins` 
+        });
+      }
+      
+      // Check if user has enough balance
+      if (user.balance < validatedData.amount) {
+        return res.status(400).json({ 
+          message: "Insufficient balance" 
+        });
+      }
+      
+      // Create withdrawal request
+      const withdrawal = await storage.createWithdrawal({
+        userId: user.id,
+        amount: validatedData.amount,
+        method: validatedData.method,
+        accountDetails: validatedData.accountDetails
+      });
+      
+      // Update user balance
+      await storage.updateUser(user.id, {
+        balance: user.balance - validatedData.amount
+      });
+      
+      // Create activity record
+      await storage.createActivity({
+        userId: user.id,
+        type: "withdrawal",
+        amount: -validatedData.amount,
+        description: `Withdrawal request (${validatedData.method})`
+      });
+      
+      res.status(201).json(withdrawal);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Referral routes
+  app.get("/api/referrals", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).send("Unauthorized");
+    
+    const user = req.user;
+    const referredUsers = await storage.listUsers()
+      .then(users => users.filter(u => u.referredBy === user.id));
+    
+    const referralBonusStr = await storage.getSetting("referral_bonus");
+    const referralPercentStr = await storage.getSetting("referral_percent");
+    
+    const referralBonus = parseInt(referralBonusStr || "75");
+    const referralPercent = parseInt(referralPercentStr || "5");
+    
+    res.json({
+      referralCode: user.referralCode,
+      referralBonus,
+      referralPercent,
+      referredUsers: referredUsers.map(u => ({
+        id: u.id,
+        username: u.username,
+        totalEarned: u.totalEarned
+      })),
+      totalReferrals: referredUsers.length,
+      referralEarnings: user.referralEarned
+    });
+  });
+  
+  // User activity routes
+  app.get("/api/activities", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).send("Unauthorized");
+    
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+    const activities = await storage.getActivitiesByUser(req.user.id, limit);
+    
+    res.json(activities);
+  });
+  
+  // Admin routes
+  app.get("/api/admin/users", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) {
+      return res.status(403).send("Forbidden");
+    }
+    
+    const users = await storage.listUsers();
+    res.json(users);
+  });
+  
+  app.get("/api/admin/withdrawals", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) {
+      return res.status(403).send("Forbidden");
+    }
+    
+    const pendingWithdrawals = await storage.getPendingWithdrawals();
+    res.json(pendingWithdrawals);
+  });
+  
+  app.post("/api/admin/withdrawals/:id", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) {
+      return res.status(403).send("Forbidden");
+    }
+    
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    if (!["approved", "rejected"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+    
+    const withdrawal = await storage.updateWithdrawalStatus(
+      parseInt(id), 
+      status,
+      new Date()
+    );
+    
+    if (!withdrawal) {
+      return res.status(404).json({ message: "Withdrawal not found" });
+    }
+    
+    // If rejected, refund the user
+    if (status === "rejected") {
+      const user = await storage.getUser(withdrawal.userId);
+      if (user) {
+        await storage.updateUser(user.id, {
+          balance: user.balance + withdrawal.amount
+        });
+        
+        await storage.createActivity({
+          userId: user.id,
+          type: "refund",
+          amount: withdrawal.amount,
+          description: "Withdrawal request rejected (refunded)"
+        });
+      }
+    }
+    
+    res.json(withdrawal);
+  });
+  
+  app.get("/api/admin/settings", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) {
+      return res.status(403).send("Forbidden");
+    }
+    
+    const settings = await storage.getSettings();
+    res.json(settings);
+  });
+  
+  app.post("/api/admin/settings", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) {
+      return res.status(403).send("Forbidden");
+    }
+    
+    const { key, value } = req.body;
+    
+    if (!key || value === undefined) {
+      return res.status(400).json({ message: "Key and value are required" });
+    }
+    
+    await storage.updateSetting(key, value.toString());
+    res.json({ success: true });
+  });
+  
+  // Stats route for dashboard
+  app.get("/api/stats", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).send("Unauthorized");
+    
+    const user = req.user;
+    
+    // Calculate daily progress
+    const dailyAfkLimitStr = await storage.getSetting("afk_daily_limit");
+    const dailyAfkLimit = parseInt(dailyAfkLimitStr || "200");
+    
+    // Convert user balance to monetary value
+    const conversionRateStr = await storage.getSetting("conversion_rate");
+    const conversionRate = parseInt(conversionRateStr || "100");
+    const monetaryValue = (user.totalEarned / conversionRate).toFixed(2);
+    
+    res.json({
+      totalEarnings: monetaryValue,
+      dailyEarnings: user.dailyAfkEarned,
+      dailyLimit: dailyAfkLimit,
+      dailyProgress: `${user.dailyAfkEarned}/${dailyAfkLimit}`,
+      dailyProgressPercent: Math.min(100, Math.round((user.dailyAfkEarned / dailyAfkLimit) * 100)),
+      gameEarnings: user.gamesEarned,
+      referralEarnings: user.referralEarned,
+      totalReferrals: (await storage.listUsers().then(users => users.filter(u => u.referredBy === user.id))).length
+    });
+  });
+
+  const httpServer = createServer(app);
+  return httpServer;
+}
