@@ -47,8 +47,12 @@ export function AfkProvider({ children }: { children: ReactNode }) {
   const [pauseStartTime, setPauseStartTime] = useState(0);
   const [totalPausedTime, setTotalPausedTime] = useState(0);
   
+  // Toast notification debounce
+  const lastResumeToastRef = useRef(0);
+  
   // Constants for anti-cheat
   const MOUSE_MOVEMENT_TIMEOUT = 120000; // 2 minutes
+  const RESUME_TOAST_COOLDOWN = 3000; // 3 seconds cooldown between resume notifications
   
   // Start AFK session
   const { isLoading, refetch: refetchAfkSettings } = useQuery({
@@ -64,6 +68,11 @@ export function AfkProvider({ children }: { children: ReactNode }) {
   // Submit earned coins
   const earnMutation = useMutation({
     mutationFn: async (minutes: number) => {
+      // Don't earn coins if timer is paused
+      if (isPaused) {
+        return { earned: 0, dailyEarned: dailyEarned };
+      }
+      
       const res = await apiRequest('POST', '/api/afk/earn', { minutes });
       return res.json();
     },
@@ -163,11 +172,15 @@ export function AfkProvider({ children }: { children: ReactNode }) {
           const pauseDuration = now - pauseStartTime;
           setTotalPausedTime(prev => prev + pauseDuration);
           
-          toast({
-            title: "Activity resumed",
-            description: "AFK timer and earnings have resumed",
-            variant: "default"
-          });
+          // Show resume toast with cooldown to prevent spam
+          if (now - lastResumeToastRef.current > RESUME_TOAST_COOLDOWN) {
+            toast({
+              title: "Activity resumed",
+              description: "AFK timer and earnings have resumed",
+              variant: "default"
+            });
+            lastResumeToastRef.current = now;
+          }
         }
         
         // Update AFK time with pause compensation
@@ -181,6 +194,10 @@ export function AfkProvider({ children }: { children: ReactNode }) {
             earnMutation.mutate(minutesElapsed);
             setLastEarningSubmit(now);
           }
+        } else {
+          // When paused, just update the time display without earning
+          const effectiveElapsed = Math.floor((now - afkStartTime - totalPausedTime) / 1000);
+          setAfkTime(effectiveElapsed);
         }
       }, 1000);
     }
@@ -221,11 +238,13 @@ export function AfkProvider({ children }: { children: ReactNode }) {
     if (isAfkActive) {
       setIsAfkActive(false);
       
-      // Submit final earnings if needed
-      const now = Date.now();
-      const minutesElapsed = (now - lastEarningSubmit) / 60000;
-      if (minutesElapsed > 0.2) { // Only submit if more than 12 seconds have passed
-        earnMutation.mutate(minutesElapsed);
+      // Submit final earnings if needed and not paused
+      if (!isPaused) {
+        const now = Date.now();
+        const minutesElapsed = (now - lastEarningSubmit) / 60000;
+        if (minutesElapsed > 0.2) { // Only submit if more than 12 seconds have passed
+          earnMutation.mutate(minutesElapsed);
+        }
       }
     }
   };
