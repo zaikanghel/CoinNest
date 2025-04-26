@@ -54,25 +54,36 @@ export function setupGameRoutes(app: Express) {
     
     const user = req.user;
     
-    // Calculate coins earned based on game, score and time spent
-    // This would normally be more sophisticated
+    // Calculate coins earned based on game, score and time spent using admin-configurable settings
     let coinsEarned = 0;
+    
+    // Get reward settings from the database
+    const memoryRewardStr = await storage.getSetting("game_memory_reward");
+    const clickerRewardStr = await storage.getSetting("game_clicker_reward");
+    
+    // Default values if settings aren't configured
+    const memoryReward = parseInt(memoryRewardStr || "10");
+    const clickerReward = parseInt(clickerRewardStr || "5");
     
     if (gameId === "memory-match") {
       // For memory match, earn coins based on score and time
       // Higher score in less time = more coins
-      const baseReward = Math.floor(score / 10);
+      const baseReward = Math.floor(score * (memoryReward / 10));
       const timeMultiplier = Math.max(0.5, 1 - (timeSpent / 180)); // Lower time = higher multiplier
       coinsEarned = Math.round(baseReward * timeMultiplier);
     } else if (gameId === "clicker-quest") {
-      // For clicker, earn coins proportional to score
-      coinsEarned = Math.floor(score / 5);
+      // For clicker, earn coins proportional to score using the admin setting
+      coinsEarned = Math.floor(score * (clickerReward / 5));
     } else {
       return res.status(404).json({ message: "Game not found" });
     }
     
-    // Impose reasonable limits
-    coinsEarned = Math.min(coinsEarned, 200); // Cap at 200 coins per game
+    // Get max earnings cap from settings
+    const maxEarningsStr = await storage.getSetting("game_max_earnings");
+    const maxEarnings = parseInt(maxEarningsStr || "200");
+    
+    // Impose reasonable limits based on admin settings
+    coinsEarned = Math.min(coinsEarned, maxEarnings);
     
     // Save the game score
     const gameScore = await storage.saveGameScore({
