@@ -49,17 +49,18 @@ export default function Sidebar({ isMobile, isOpen, onClose }: SidebarProps) {
       
       <aside 
         className={cn(
-          "fixed top-0 left-0 z-40 w-64 h-screen transition-transform bg-white dark:bg-dark-900 border-r border-gray-200 dark:border-gray-700",
+          "fixed top-0 left-0 z-40 w-64 h-screen transition-transform bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800",
           isMobile && !isOpen && "-translate-x-full",
-          !isMobile && "sm:translate-x-0"
+          isMobile && isOpen && "translate-x-0",
+          !isMobile && "translate-x-0"
         )}
       >
         <div className="h-full px-3 py-6 flex flex-col">
           <div className="flex items-center justify-center mb-8">
             <Link href="/dashboard">
-              <a className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent font-poppins">
+              <div className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent font-poppins cursor-pointer">
                 <i className="ri-money-dollar-circle-line mr-2"></i>IdleCash
-              </a>
+              </div>
             </Link>
           </div>
           
@@ -68,15 +69,19 @@ export default function Sidebar({ isMobile, isOpen, onClose }: SidebarProps) {
               {navItems.map((item) => (
                 <li key={item.href}>
                   <Link href={item.href}>
-                    <a 
+                    <div 
                       className={cn(
-                        "flex items-center p-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/50 group",
-                        location === item.href && "bg-primary-50 dark:bg-primary-900 text-primary-600 dark:text-primary-400"
+                        "flex items-center p-2 rounded-lg cursor-pointer",
+                        location === item.href 
+                          ? "bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400" 
+                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-primary-600 dark:hover:text-primary-400"
                       )}
                     >
-                      <i className={cn(item.icon, "text-xl mr-3")}></i>
+                      <i className={cn(item.icon, "text-xl mr-3", 
+                        location === item.href ? "text-primary-600 dark:text-primary-400" : ""
+                      )}></i>
                       <span className="font-medium">{item.label}</span>
-                    </a>
+                    </div>
                   </Link>
                 </li>
               ))}
@@ -85,16 +90,16 @@ export default function Sidebar({ isMobile, isOpen, onClose }: SidebarProps) {
           
           <div className="mt-auto border-t border-gray-200 dark:border-gray-700 pt-4">
             <Link href="/settings">
-              <a className="flex items-center p-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/50 group">
+              <div className="flex items-center p-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer">
                 <i className="ri-settings-3-line text-xl mr-3"></i>
                 <span className="font-medium">Settings</span>
-              </a>
+              </div>
             </Link>
             <Link href="/help">
-              <a className="flex items-center p-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/50 group">
+              <div className="flex items-center p-2 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer">
                 <i className="ri-question-line text-xl mr-3"></i>
                 <span className="font-medium">Help</span>
-              </a>
+              </div>
             </Link>
           </div>
 

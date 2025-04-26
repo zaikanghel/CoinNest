@@ -52,26 +52,26 @@ export default function Header({ toggleSidebar, pageTitle }: HeaderProps) {
   };
 
   return (
-    <header className="bg-white dark:bg-dark-900 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30">
+    <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800 sticky top-0 z-30">
       <div className="flex items-center justify-between h-16 px-4 sm:px-6">
         <div className="flex items-center">
           <Button
             variant="ghost"
             size="icon"
-            className="sm:hidden text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="sm:hidden text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
             onClick={toggleSidebar}
           >
             <Menu className="h-5 w-5" />
             <span className="sr-only">Toggle sidebar</span>
           </Button>
           <div className="hidden sm:block">
-            <h2 className="text-xl font-poppins font-semibold">{pageTitle}</h2>
+            <h2 className="text-xl font-poppins font-semibold text-gray-900 dark:text-gray-100">{pageTitle}</h2>
           </div>
         </div>
 
         <div className="flex items-center space-x-3">
           {/* User balance */}
-          <div className="hidden md:flex items-center bg-primary-50 dark:bg-primary-900/50 text-primary-600 dark:text-primary-300 px-3 py-1.5 rounded-full">
+          <div className="hidden md:flex items-center bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-300 px-3 py-1.5 rounded-full">
             <i className="ri-coin-line mr-1.5"></i>
             <span className="font-medium">{userData?.balance?.toLocaleString() || user?.balance?.toLocaleString() || 0}</span>
             <span className="text-xs ml-1">coins</span>
@@ -81,7 +81,7 @@ export default function Header({ toggleSidebar, pageTitle }: HeaderProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="relative text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="relative text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
           >
             <Bell className="h-5 w-5" />
             {notificationCount > 0 && (
@@ -95,7 +95,7 @@ export default function Header({ toggleSidebar, pageTitle }: HeaderProps) {
             variant="ghost"
             size="icon"
             onClick={toggleTheme}
-            className="text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
           >
             <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -120,7 +120,7 @@ export default function Header({ toggleSidebar, pageTitle }: HeaderProps) {
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium">{user?.username}</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{user?.username}</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
                 </div>
               </DropdownMenuLabel>
@@ -128,24 +128,24 @@ export default function Header({ toggleSidebar, pageTitle }: HeaderProps) {
               <DropdownMenuGroup>
                 <DropdownMenuItem>
                   <Link href="/profile">
-                    <a className="flex w-full">Profile</a>
+                    <div className="flex w-full cursor-pointer">Profile</div>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <Link href="/settings">
-                    <a className="flex w-full">Settings</a>
+                    <div className="flex w-full cursor-pointer">Settings</div>
                   </Link>
                 </DropdownMenuItem>
                 {user?.isAdmin && (
                   <DropdownMenuItem>
                     <Link href="/admin">
-                      <a className="flex w-full">Admin Dashboard</a>
+                      <div className="flex w-full cursor-pointer">Admin Dashboard</div>
                     </Link>
                   </DropdownMenuItem>
                 )}
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-500 focus:text-red-500" onClick={handleLogout}>
+              <DropdownMenuItem className="text-red-500 focus:text-red-500 cursor-pointer" onClick={handleLogout}>
                 Logout
               </DropdownMenuItem>
             </DropdownMenuContent>

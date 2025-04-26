@@ -44,10 +44,10 @@ export default function MainLayout({ children, pageTitle }: MainLayoutProps) {
   return (
     <>
       <Head>
-        <title>{pageTitle} | EarnPlay</title>
+        <title>{pageTitle} | IdleCash</title>
       </Head>
 
-      <div className="min-h-screen flex bg-gray-50 dark:bg-dark-800 text-gray-800 dark:text-gray-200">
+      <div className="min-h-screen flex bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
         <Sidebar
           isMobile={isMobile}
           isOpen={sidebarOpen}
