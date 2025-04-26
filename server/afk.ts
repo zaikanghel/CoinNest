@@ -105,16 +105,41 @@ export function setupAfkRoutes(app: Express) {
       });
     }
     
-    // Get earning rate from settings
+    // Get base earning rate from settings
     const afkRateStr = await storage.getSetting("afk_rate");
-    const afkRate = parseInt(afkRateStr || "2");
+    const baseAfkRate = parseFloat(afkRateStr || "2");
+    
+    // Check for premium multiplier if user is premium
+    let afkRate = baseAfkRate;
+    let dailyLimitBonus = 0;
+    let appliedPremiumMultiplier = 1;
+    
+    if (user.isPremium && user.premiumUntil && new Date(user.premiumUntil) > new Date()) {
+      // User has active premium - get premium settings
+      const premiumAfkMultiplierStr = await storage.getSetting("premium_afk_multiplier");
+      const premiumDailyLimitBonusStr = await storage.getSetting("premium_daily_limit_bonus");
+      
+      // Get multiplier (default to 2x if not set)
+      appliedPremiumMultiplier = parseFloat(premiumAfkMultiplierStr || "2");
+      
+      // Apply multiplier to base rate
+      afkRate = baseAfkRate * appliedPremiumMultiplier;
+      
+      // Get daily limit bonus (default to 200 if not set)
+      dailyLimitBonus = parseInt(premiumDailyLimitBonusStr || "200");
+      
+      console.log(`[AFK] Premium user ${user.id} gets ${appliedPremiumMultiplier}x earnings: ${baseAfkRate} → ${afkRate}`);
+    }
     
     // Calculate earned coins (using capped minutes)
     const earnedCoins = Math.floor(cappedMinutes * afkRate);
     
-    // Get daily limit from settings
-    const dailyLimitStr = await storage.getSetting("afk_daily_limit");
-    const dailyLimit = parseInt(dailyLimitStr || "200");
+    // Get base daily limit from settings
+    const baseDailyLimitStr = await storage.getSetting("afk_daily_limit");
+    const baseDailyLimit = parseInt(baseDailyLimitStr || "200");
+    
+    // Apply premium bonus if applicable
+    const dailyLimit = baseDailyLimit + dailyLimitBonus;
     
     // Check if user has reached daily limit
     const remainingDaily = Math.max(0, dailyLimit - user.dailyAfkEarned);
@@ -228,17 +253,50 @@ export function setupAfkRoutes(app: Express) {
         });
         
         // Return success with the AFK rate and daily info to resume correctly
+        // Get base rate and limit
         const afkRateStr = await storage.getSetting("afk_rate");
-        const afkRate = parseInt(afkRateStr || "2");
+        const baseAfkRate = parseFloat(afkRateStr || "2");
         
         const dailyLimitStr = await storage.getSetting("afk_daily_limit");
-        const dailyLimit = parseInt(dailyLimitStr || "200");
+        const baseDailyLimit = parseInt(dailyLimitStr || "200");
         
+        // Apply premium benefits if user is premium
+        let afkRate = baseAfkRate;
+        let dailyLimit = baseDailyLimit;
+        let isPremiumActive = false;
+        let premiumMultiplier = 1;
+        
+        if (req.user.isPremium && req.user.premiumUntil && new Date(req.user.premiumUntil) > new Date()) {
+          isPremiumActive = true;
+          
+          // Get premium settings
+          const premiumAfkMultiplierStr = await storage.getSetting("premium_afk_multiplier");
+          const premiumDailyLimitBonusStr = await storage.getSetting("premium_daily_limit_bonus");
+          
+          // Apply premium multiplier
+          premiumMultiplier = parseFloat(premiumAfkMultiplierStr || "2");
+          afkRate = baseAfkRate * premiumMultiplier;
+          
+          // Apply daily limit bonus
+          const dailyLimitBonus = parseInt(premiumDailyLimitBonusStr || "200"); 
+          dailyLimit = baseDailyLimit + dailyLimitBonus;
+          
+          console.log(`[AFK-VERIFY] Premium user ${req.user.id} gets ${premiumMultiplier}x earnings: ${baseAfkRate} → ${afkRate}`);
+        }
+        
+        // Check premium setting for captcha disabling
+        const captchaDisabled = isPremiumActive && 
+          await storage.getSetting("captcha_disabled_premium") === "true";
+        
+        // Return values with premium status included
         res.json({ 
           success: true,
           afkRate,
           dailyLimit,
           dailyEarned: req.user.dailyAfkEarned || 0,
+          isPremiumActive,
+          premiumMultiplier,
+          captchaDisabled,
           message: "Verification successful"
         });
       } else {

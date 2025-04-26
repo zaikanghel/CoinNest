@@ -10,7 +10,9 @@ interface AfkContextType {
   stopAfkEarning: () => void;
   afkTime: number;
   afkRate: number;
+  baseAfkRate: number;
   dailyLimit: number;
+  baseDailyLimit: number;
   dailyEarned: number;
   captchaNeeded: boolean;
   verifyCaptcha: (answer: string, expected: string) => void;
@@ -22,6 +24,9 @@ interface AfkContextType {
   } | null;
   isTabActive: boolean;
   isPaused: boolean;
+  isPremiumActive: boolean;
+  premiumMultiplier: number;
+  captchaDisabled: boolean;
 }
 
 export const AfkContext = createContext<AfkContextType | null>(null);
@@ -32,7 +37,9 @@ export function AfkProvider({ children }: { children: ReactNode }) {
   
   const [isAfkActive, setIsAfkActive] = useState(false);
   const [afkTime, setAfkTime] = useState(0);
+  const [baseAfkRate, setBaseAfkRate] = useState(settings.afk_rate);
   const [afkRate, setAfkRate] = useState(settings.afk_rate);
+  const [baseDailyLimit, setBaseDailyLimit] = useState(settings.afk_daily_limit);
   const [dailyLimit, setDailyLimit] = useState(settings.afk_daily_limit);
   const [dailyEarned, setDailyEarned] = useState(0);
   const [captchaInterval, setCaptchaInterval] = useState(settings.captcha_interval);
@@ -42,6 +49,11 @@ export function AfkProvider({ children }: { children: ReactNode }) {
   const [afkStartTime, setAfkStartTime] = useState(0);
   const [lastEarning, setLastEarning] = useState<{amount: number, timestamp: number} | null>(null);
   const [isTabActive, setIsTabActive] = useState(true);
+  
+  // Premium status 
+  const [isPremiumActive, setIsPremiumActive] = useState(false);
+  const [premiumMultiplier, setPremiumMultiplier] = useState(1);
+  const [captchaDisabled, setCaptchaDisabled] = useState(false);
   
   // Anti-cheat and timer pausing - only tab activity tracking
   const [isPaused, setIsPaused] = useState(false);

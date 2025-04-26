@@ -2,6 +2,40 @@ import { Express } from "express";
 import { storage } from "./storage";
 import { premiumPaymentSchema } from "@shared/schema";
 
+// Get the premium-related settings from the system
+async function getPremiumSettings(): Promise<Record<string, string>> {
+  const premiumKeys = [
+    'premium_price',
+    'premium_afk_multiplier',
+    'premium_daily_limit_bonus',
+    'captcha_disabled_premium'
+  ];
+  
+  const settings = await storage.getSettings();
+  const premiumSettings: Record<string, string> = {};
+  
+  // Filter settings to only premium-related ones
+  for (const key of premiumKeys) {
+    const setting = settings.find(s => s.key === key);
+    // Use default values if setting is not found
+    premiumSettings[key] = setting?.value || getDefaultPremiumSetting(key);
+  }
+  
+  return premiumSettings;
+}
+
+// Get default values for premium settings
+function getDefaultPremiumSetting(key: string): string {
+  const defaults: Record<string, string> = {
+    premium_price: '4.99',
+    premium_afk_multiplier: '2',
+    premium_daily_limit_bonus: '200',
+    captcha_disabled_premium: 'false'
+  };
+  
+  return defaults[key] || '';
+}
+
 export function setupPremiumRoutes(app: Express) {
   // Helper function to check if premium is expired
   const checkPremiumExpiration = async (userId: number) => {
@@ -71,6 +105,17 @@ export function setupPremiumRoutes(app: Express) {
     }
   }, 60000); // Check every minute
   
+  // Get premium settings configured by admin
+  app.get("/api/premium/settings", async (req, res) => {
+    try {
+      const premiumSettings = await getPremiumSettings();
+      res.json(premiumSettings);
+    } catch (error: any) {
+      console.error("[PREMIUM SETTINGS] Error retrieving premium settings:", error);
+      res.status(500).json({ message: "Error retrieving premium settings" });
+    }
+  });
+
   // Get premium status for current user
   app.get("/api/premium/status", async (req, res) => {
     if (!req.isAuthenticated()) {
@@ -108,6 +153,9 @@ export function setupPremiumRoutes(app: Express) {
       premiumJustRevoked = !!revokeActivity;
     }
     
+    // Get premium settings
+    const premiumSettings = await getPremiumSettings();
+    
     // Log premium status changes for debugging
     console.log(`[PREMIUM STATUS] User ${user.id}: isPremium=${isPremiumActive}, wasInitiallyPremium=${wasInitiallyPremium}, premiumJustExpired=${premiumJustExpired}, premiumJustRevoked=${premiumJustRevoked}`);
 
@@ -119,7 +167,9 @@ export function setupPremiumRoutes(app: Express) {
       premiumJustExpired: premiumJustExpired,
       premiumJustRevoked: premiumJustRevoked,
       // Combine the two signals for client-side detection
-      statusChanged: premiumJustExpired || premiumJustRevoked
+      statusChanged: premiumJustExpired || premiumJustRevoked,
+      // Include premium settings for convenience
+      settings: premiumSettings
     });
   });
 
