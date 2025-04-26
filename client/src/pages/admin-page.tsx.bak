@@ -35,8 +35,6 @@ export default function AdminPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [, navigate] = useLocation();
-  
-  // State for modals and view controls
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<any>(null);
   const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
   const [showSettingModal, setShowSettingModal] = useState(false);
@@ -157,6 +155,34 @@ export default function AdminPage() {
     }
   });
 
+  const openWithdrawalModal = (withdrawal: any) => {
+    setSelectedWithdrawal(withdrawal);
+    setShowWithdrawalModal(true);
+  };
+
+  const processWithdrawal = (status: string) => {
+    if (selectedWithdrawal) {
+      processWithdrawalMutation.mutate({
+        id: selectedWithdrawal.id,
+        status
+      });
+    }
+  };
+
+  const openSettingModal = (setting?: any) => {
+    console.log("Opening setting modal with:", setting);
+    
+    if (setting) {
+      form.setValue("key", setting.key);
+      form.setValue("value", setting.value);
+    } else {
+      form.setValue("key", "");
+      form.setValue("value", "");
+    }
+    
+    setShowSettingModal(true);
+  };
+
   // Process premium payment mutation
   const processPremiumPaymentMutation = useMutation({
     mutationFn: async ({ id, status }: { id: number, status: string }) => {
@@ -180,32 +206,6 @@ export default function AdminPage() {
       });
     }
   });
-
-  const openWithdrawalModal = (withdrawal: any) => {
-    setSelectedWithdrawal(withdrawal);
-    setShowWithdrawalModal(true);
-  };
-
-  const processWithdrawal = (status: string) => {
-    if (selectedWithdrawal) {
-      processWithdrawalMutation.mutate({
-        id: selectedWithdrawal.id,
-        status
-      });
-    }
-  };
-
-  const openSettingModal = (setting?: any) => {
-    if (setting) {
-      form.setValue("key", setting.key);
-      form.setValue("value", setting.value);
-    } else {
-      form.setValue("key", "");
-      form.setValue("value", "");
-    }
-    
-    setShowSettingModal(true);
-  };
 
   const openPremiumPaymentModal = (payment: any) => {
     setSelectedPremiumPayment(payment);
@@ -373,260 +373,109 @@ export default function AdminPage() {
             <TabsContent value="users">
               <Card>
                 <CardHeader>
-                  <CardTitle>Manage Users</CardTitle>
+                  <CardTitle>User Management</CardTitle>
                   <CardDescription>
-                    Overview of all users in the system with their current statistics
+                    View and manage registered users
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {users && users.length > 0 ? (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>User</TableHead>
-                          <TableHead>Email</TableHead>
-                          <TableHead>Balance</TableHead>
-                          <TableHead>Total Earned</TableHead>
-                          <TableHead>Joined</TableHead>
-                          <TableHead>Role</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {users.map((user: any) => (
-                          <TableRow key={user.id}>
-                            <TableCell>
-                              <div className="flex items-center">
-                                <Avatar className="h-6 w-6 mr-2">
-                                  <AvatarFallback className={getColorFromString(user.username)}>
-                                    {getUserInitials(user.username)}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <span className="font-medium">{user.username}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell>{user.email}</TableCell>
-                            <TableCell>{user.balance.toLocaleString()} coins</TableCell>
-                            <TableCell>{user.totalEarned.toLocaleString()} coins</TableCell>
-                            <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
-                            <TableCell>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>User</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Balance</TableHead>
+                        <TableHead>Total Earned</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {users?.map((user: any) => (
+                        <TableRow key={user.id}>
+                          <TableCell>
+                            <div className="flex items-center">
+                              <Avatar className="h-8 w-8 mr-2">
+                                <AvatarFallback className={getColorFromString(user.username)}>
+                                  {getUserInitials(user.username)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="font-medium">{user.username}</span>
                               {user.isAdmin && (
-                                <Badge className="bg-blue-500">Admin</Badge>
+                                <Badge variant="outline" className="ml-2 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border-none">
+                                  Admin
+                                </Badge>
                               )}
-                              {!user.isAdmin && user.isPremium && new Date(user.premiumUntil) > new Date() && (
-                                <Badge className="bg-purple-500">Premium</Badge>
-                              )}
-                              {!user.isAdmin && (!user.isPremium || new Date(user.premiumUntil) <= new Date()) && (
-                                <Badge variant="outline">User</Badge>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  ) : (
-                    <div className="text-center py-10">
-                      <p className="text-gray-500">No users found</p>
-                    </div>
-                  )}
+                            </div>
+                          </TableCell>
+                          <TableCell>{user.email}</TableCell>
+                          <TableCell>{user.balance.toLocaleString()} coins</TableCell>
+                          <TableCell>{user.totalEarned.toLocaleString()} coins</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-none">
+                              Active
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </CardContent>
               </Card>
             </TabsContent>
 
             {/* Settings Tab */}
             <TabsContent value="settings">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>System Settings</CardTitle>
-                    <CardDescription>
-                      Configure global system settings and parameters
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Setting</TableHead>
-                          <TableHead>Value</TableHead>
-                          <TableHead>Action</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {settings && settings.length > 0 ? (
-                          settings.map((setting: any) => (
-                            <TableRow key={setting.key}>
-                              <TableCell>
-                                <div className="font-medium">{setting.key}</div>
-                                <div className="text-sm text-gray-500">{getSettingDescription(setting.key)}</div>
-                              </TableCell>
-                              <TableCell>{setting.value}</TableCell>
-                              <TableCell>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => openSettingModal(setting)}
-                                >
-                                  Edit
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))
-                        ) : (
-                          <TableRow>
-                            <TableCell colSpan={3} className="text-center py-4">
-                              <p className="text-gray-500">No settings found</p>
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
-                    
-                    <Button 
-                      className="mt-4" 
-                      onClick={() => openSettingModal()}
-                    >
-                      Add New Setting
-                    </Button>
-                  </CardContent>
-                </Card>
-                
-                {/* Premium section of the settings tab */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Premium Settings</CardTitle>
-                    <CardDescription>
-                      Configure premium membership settings
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <Card className="p-4">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h3 className="font-medium">Subscription Price</h3>
-                              <span className="text-sm">${settings?.find(s => s.key === 'premium_price')?.value || '4.99'}/month</span>
-                            </div>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => openSettingModal(settings?.find(s => s.key === 'premium_price'))}
-                            >
-                              Edit
-                            </Button>
-                          </div>
-                        </Card>
-                        
-                        <Card className="p-4">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h3 className="font-medium">AFK Earnings Multiplier</h3>
-                              <span className="text-sm">{settings?.find(s => s.key === 'premium_afk_multiplier')?.value || '2'}x earnings</span>
-                            </div>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => openSettingModal(settings?.find(s => s.key === 'premium_afk_multiplier'))}
-                            >
-                              Edit
-                            </Button>
-                          </div>
-                        </Card>
-                        
-                        <Card className="p-4">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h3 className="font-medium">Daily Limit Bonus</h3>
-                              <span className="text-sm">+{settings?.find(s => s.key === 'premium_daily_limit_bonus')?.value || '200'} coins</span>
-                            </div>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => openSettingModal(settings?.find(s => s.key === 'premium_daily_limit_bonus'))}
-                            >
-                              Edit
-                            </Button>
-                          </div>
-                        </Card>
-                        
-                        <Card className="p-4">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h3 className="font-medium">No Captchas</h3>
-                              <span className="text-sm">{settings?.find(s => s.key === 'captcha_disabled_premium')?.value === 'true' ? 'Enabled' : 'Disabled'}</span>
-                            </div>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => openSettingModal(settings?.find(s => s.key === 'captcha_disabled_premium'))}
-                            >
-                              Edit
-                            </Button>
-                          </div>
-                        </Card>
-                      </div>
+              <Card>
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <CardTitle>System Settings</CardTitle>
+                      <CardDescription>
+                        Configure platform settings and rates
+                      </CardDescription>
                     </div>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Premium Users</CardTitle>
-                    <CardDescription>
-                      Manage premium user subscriptions
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {users && users.some((user: any) => user.isPremium && new Date(user.premiumUntil) > new Date()) ? (
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>User</TableHead>
-                            <TableHead>Started</TableHead>
-                            <TableHead>Expires</TableHead>
-                            <TableHead>Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {users.filter((user: any) => user.isPremium && new Date(user.premiumUntil) > new Date()).map((user: any) => (
-                            <TableRow key={`premium-${user.id}`}>
-                              <TableCell>
-                                <div className="flex items-center">
-                                  <Avatar className="h-6 w-6 mr-2">
-                                    <AvatarFallback className={getColorFromString(user.username)}>
-                                      {getUserInitials(user.username)}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <span className="font-medium">{user.username}</span>
-                                </div>
-                              </TableCell>
-                              <TableCell>{new Date(user.premiumStarted).toLocaleDateString()}</TableCell>
-                              <TableCell>{new Date(user.premiumUntil).toLocaleDateString()}</TableCell>
-                              <TableCell>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="bg-red-100 hover:bg-red-200 text-red-600 border-red-200"
-                                  onClick={() => {/* Revoke premium logic */}}
-                                >
-                                  <XCircle className="h-4 w-4 mr-1" />
-                                  Revoke
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    ) : (
-                      <div className="text-center py-4">
-                        <p className="text-gray-500">No premium subscribers</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
+                    <Button onClick={() => openSettingModal()}>
+                      Add Setting
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Setting</TableHead>
+                        <TableHead>Value</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead>Last Updated</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {settings?.map((setting: any) => (
+                        <TableRow key={setting.id}>
+                          <TableCell className="font-medium">{setting.key}</TableCell>
+                          <TableCell>{setting.value}</TableCell>
+                          <TableCell>
+                            {getSettingDescription(setting.key)}
+                          </TableCell>
+                          <TableCell>{new Date(setting.updatedAt).toLocaleDateString()}</TableCell>
+                          <TableCell>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openSettingModal(setting)}
+                            >
+                              Edit
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
             </TabsContent>
-            
+
             {/* Premium Tab */}
             <TabsContent value="premium">
               <Card>
@@ -746,47 +595,356 @@ export default function AdminPage() {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            {/* Monetization Tab */}
+            <TabsContent value="monetization">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Ad Network Settings */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Ad Network Settings</CardTitle>
+                    <CardDescription>
+                      Configure ExoClick ad network integration
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Ad Network ID */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium">ExoClick Site ID</h3>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openSettingModal(settings?.find(s => s.key === 'exoclick_site_id'))}
+                        >
+                          Configure
+                        </Button>
+                      </div>
+                      <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                        <code className="text-sm">
+                          {settings?.find(s => s.key === 'exoclick_site_id')?.value || 'Not configured'}
+                        </code>
+                      </div>
+                    </div>
+
+                    {/* Ad Types */}
+                    <div className="space-y-2">
+                      <h3 className="text-sm font-medium">Ad Types</h3>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div 
+                          className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md flex flex-col items-center text-center cursor-pointer"
+                          onClick={() => openSettingModal(settings?.find(s => s.key === 'ad_banner_enabled'))}
+                        >
+                          <div className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+                          <span className="text-xs font-medium">Banner Ads</span>
+                          <span className="text-xs mt-1 text-gray-500">
+                            {settings?.find(s => s.key === 'ad_banner_enabled')?.value === 'true' ? 'Enabled' : 'Disabled'}
+                          </span>
+                        </div>
+                        <div 
+                          className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md flex flex-col items-center text-center cursor-pointer"
+                          onClick={() => openSettingModal(settings?.find(s => s.key === 'ad_video_enabled'))}
+                        >
+                          <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded mb-2 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                            </svg>
+                          </div>
+                          <span className="text-xs font-medium">Video Ads</span>
+                          <span className="text-xs mt-1 text-gray-500">
+                            {settings?.find(s => s.key === 'ad_video_enabled')?.value === 'true' ? 'Enabled' : 'Disabled'}
+                          </span>
+                        </div>
+                        <div 
+                          className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md flex flex-col items-center text-center cursor-pointer"
+                          onClick={() => openSettingModal(settings?.find(s => s.key === 'ad_interstitial_enabled'))}
+                        >
+                          <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded mb-2 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            </svg>
+                          </div>
+                          <span className="text-xs font-medium">Interstitial</span>
+                          <span className="text-xs mt-1 text-gray-500">
+                            {settings?.find(s => s.key === 'ad_interstitial_enabled')?.value === 'true' ? 'Enabled' : 'Disabled'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Ad Refresh Rate */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium">Ad Refresh Rate</h3>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openSettingModal(settings?.find(s => s.key === 'ad_refresh_rate'))}
+                        >
+                          Configure
+                        </Button>
+                      </div>
+                      <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">Every {settings?.find(s => s.key === 'ad_refresh_rate')?.value || '60'} seconds</span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Premium Subscription Settings */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Premium Subscription</CardTitle>
+                    <CardDescription>
+                      Configure premium membership settings
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium">Monthly Price</h3>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openSettingModal(settings?.find(s => s.key === 'premium_price'))}
+                        >
+                          Configure
+                        </Button>
+                      </div>
+                      <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">${settings?.find(s => s.key === 'premium_price')?.value || '4.99'}/month</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium">AFK Earnings Multiplier</h3>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openSettingModal(settings?.find(s => s.key === 'premium_afk_multiplier'))}
+                        >
+                          Configure
+                        </Button>
+                      </div>
+                      <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">{settings?.find(s => s.key === 'premium_afk_multiplier')?.value || '2'}x earnings</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium">Daily Limit Bonus</h3>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openSettingModal(settings?.find(s => s.key === 'premium_daily_limit_bonus'))}
+                        >
+                          Configure
+                        </Button>
+                      </div>
+                      <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">+{settings?.find(s => s.key === 'premium_daily_limit_bonus')?.value || '200'} coins</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium">Disable Captchas</h3>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openSettingModal(settings?.find(s => s.key === 'captcha_disabled_premium'))}
+                        >
+                          Configure
+                        </Button>
+                      </div>
+                      <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">{settings?.find(s => s.key === 'captcha_disabled_premium')?.value === 'true' ? 'Enabled' : 'Disabled'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Game Rewards Settings */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Game Rewards</CardTitle>
+                    <CardDescription>
+                      Configure in-game coin rewards
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium">Clicker Game Reward</h3>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openSettingModal(settings?.find(s => s.key === 'game_clicker_reward'))}
+                        >
+                          Configure
+                        </Button>
+                      </div>
+                      <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">Base: {settings?.find(s => s.key === 'game_clicker_reward')?.value || '5'} coins per click</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium">Memory Game Reward</h3>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openSettingModal(settings?.find(s => s.key === 'game_memory_reward'))}
+                        >
+                          Configure
+                        </Button>
+                      </div>
+                      <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">Base: {settings?.find(s => s.key === 'game_memory_reward')?.value || '10'} coins per match</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium">Max Game Earnings</h3>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openSettingModal(settings?.find(s => s.key === 'game_max_earnings'))}
+                        >
+                          Configure
+                        </Button>
+                      </div>
+                      <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">Cap: {settings?.find(s => s.key === 'game_max_earnings')?.value || '200'} coins per game</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium">Daily Game Earnings Limit</h3>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openSettingModal(settings?.find(s => s.key === 'game_daily_limit'))}
+                        >
+                          Configure
+                        </Button>
+                      </div>
+                      <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">Limit: {settings?.find(s => s.key === 'game_daily_limit')?.value || '1000'} coins per day</span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Premium Subscriptions Management */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Premium Subscriptions</CardTitle>
+                    <CardDescription>
+                      Manage premium user subscriptions
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>User</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Expiry</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {users?.filter((u: any) => u.isPremium)?.length > 0 ? (
+                          users?.filter((u: any) => u.isPremium).map((user: any) => (
+                            <TableRow key={`premium-${user.id}`}>
+                              <TableCell className="font-medium">{user.username}</TableCell>
+                              <TableCell>
+                                {new Date(user.premiumUntil) > new Date() ? (
+                                  <Badge variant="outline" className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-none">
+                                    Active
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-none">
+                                    Expired
+                                  </Badge>
+                                )}
+                              </TableCell>
+                              <TableCell>{new Date(user.premiumUntil).toLocaleDateString()}</TableCell>
+                              <TableCell>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                >
+                                  Extend
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={4} className="text-center py-4 text-gray-500">
+                              No premium subscribers
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
           </Tabs>
         )}
       </div>
 
-      {/* Withdrawal Modal */}
+      {/* Withdrawal Processing Dialog */}
       <Dialog open={showWithdrawalModal} onOpenChange={setShowWithdrawalModal}>
-        <DialogContent className="max-w-md">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>Withdrawal Request</DialogTitle>
-            <DialogDescription>
-              {selectedWithdrawal?.status === 'pending' 
-                ? 'Review and process this withdrawal request' 
-                : 'View withdrawal details'}
-            </DialogDescription>
+            <DialogTitle>Process Withdrawal Request</DialogTitle>
           </DialogHeader>
           
-          {selectedWithdrawal && (
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">User</p>
-                <div className="flex items-center mt-1">
-                  {users?.find((u: any) => u.id === selectedWithdrawal.userId) && (
-                    <Avatar className="h-8 w-8 mr-2">
-                      <AvatarFallback className={getColorFromString(users?.find((u: any) => u.id === selectedWithdrawal.userId)?.username || '')}>
-                        {getUserInitials(users?.find((u: any) => u.id === selectedWithdrawal.userId)?.username || '')}
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                  <span className="font-medium">
-                    {users?.find((u: any) => u.id === selectedWithdrawal.userId)?.username || `User #${selectedWithdrawal.userId}`}
-                  </span>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">User</p>
+                  <p className="font-medium">
+                    {users?.find((u: any) => u.id === selectedWithdrawal?.userId)?.username || `User #${selectedWithdrawal?.userId}`}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Amount</p>
+                  <p className="font-medium">{selectedWithdrawal?.amount?.toLocaleString()} coins</p>
                 </div>
               </div>
               
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Amount</p>
-                <p className="font-medium">{selectedWithdrawal.amount.toLocaleString()} coins</p>
-              </div>
-              
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Payment Method</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Withdrawal Method</p>
                 <p className="font-medium capitalize">{selectedWithdrawal?.method}</p>
               </div>
               
@@ -819,7 +977,7 @@ export default function AdminPage() {
                 </div>
               </div>
             </div>
-          )}
+          </div>
           
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowWithdrawalModal(false)}>
@@ -989,40 +1147,67 @@ export default function AdminPage() {
                       )}
                     </div>
                   </div>
-                  
-                  {selectedPremiumPayment.status === 'pending' && (
-                    <div>
-                      <h3 className="text-sm font-medium mb-2">Processing Options</h3>
-                      <div className="flex space-x-3">
-                        <Button
-                          className="w-full bg-green-600 hover:bg-green-700 text-white"
-                          onClick={() => processPremiumPayment("approved")}
-                          disabled={processPremiumPaymentMutation.isPending}
-                        >
-                          <CheckCircle className="mr-2 h-4 w-4" />
-                          Approve
-                        </Button>
-                        <Button
-                          className="w-full bg-red-600 hover:bg-red-700 text-white"
-                          onClick={() => processPremiumPayment("rejected")}
-                          disabled={processPremiumPaymentMutation.isPending}
-                        >
-                          <XCircle className="mr-2 h-4 w-4" />
-                          Reject
-                        </Button>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
+              
+              {selectedPremiumPayment.status === 'pending' && (
+                <div className="flex justify-end gap-2 pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowPremiumPaymentModal(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => processPremiumPayment('rejected')}
+                    disabled={processPremiumPaymentMutation.isPending}
+                  >
+                    {processPremiumPaymentMutation.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="h-4 w-4 mr-2" />
+                        Reject
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="default"
+                    onClick={() => processPremiumPayment('approved')}
+                    disabled={processPremiumPaymentMutation.isPending}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {processPremiumPaymentMutation.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Approve
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+              
+              {selectedPremiumPayment.status !== 'pending' && (
+                <div className="flex justify-end pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowPremiumPaymentModal(false)}
+                  >
+                    Close
+                  </Button>
+                </div>
+              )}
             </div>
           )}
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPremiumPaymentModal(false)}>
-              Close
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </MainLayout>
@@ -1030,29 +1215,30 @@ export default function AdminPage() {
 }
 
 function getSettingDescription(key: string): string {
-  const descriptions: { [key: string]: string } = {
-    'afk_rate': 'Coins earned per minute while AFK',
-    'afk_daily_limit': 'Maximum daily coins from AFK earnings',
-    'referral_bonus': 'One-time bonus for referring a new user (coins)',
-    'referral_percent': 'Percentage of referred user earnings',
-    'min_withdrawal': 'Minimum coins required for withdrawal',
-    'conversion_rate': 'Number of coins per dollar for withdrawals',
-    'captcha_interval': 'Time in seconds between captcha checks',
-    'game_memory_reward': 'Base reward for memory game matches',
-    'game_clicker_reward': 'Reward per click in clicker game',
-    'game_max_earnings': 'Maximum earnings per game session',
-    'game_daily_limit': 'Maximum daily earnings from all games',
+  const descriptions: Record<string, string> = {
+    'afk_rate': 'Rate of earning coins in AFK mode (coins per minute)',
+    'afk_daily_limit': 'Maximum daily earnings from AFK mode (in coins)',
+    'coin_value': 'Value of 1000 coins in real currency (USD)',
+    'withdrawal_min': 'Minimum amount of coins required for withdrawal',
+    'referral_bonus': 'Percentage of referral earnings given to referrer',
+    'new_user_bonus': 'Bonus coins given to new users upon registration',
     'premium_price': 'Monthly subscription price in USD',
     'premium_afk_multiplier': 'Multiplier for AFK earnings for premium users',
     'premium_daily_limit_bonus': 'Additional daily limit for premium users',
     'premium_duration_options': 'Available premium subscription durations in months (comma-separated)',
     'premium_captcha_disabled': 'Whether premium users are exempt from captchas (true/false)',
     'premium_ad_free': 'Whether premium users see ads (true/false)',
-    'settings_updated_at': 'Timestamp of last settings update',
-    'game_daily_earnings': 'Current daily earnings from games',
-    'afk_daily_earnings': 'Current daily earnings from AFK',
+    'ad_refresh_rate': 'How often ads should refresh (in seconds)',
+    'ad_banner_enabled': 'Whether banner ads are enabled (true/false)',
+    'ad_video_enabled': 'Whether video ads are enabled (true/false)',
+    'ad_interstitial_enabled': 'Whether interstitial ads are enabled (true/false)',
+    'game_clicker_reward': 'Base reward for Clicker game',
+    'game_memory_reward': 'Base reward for Memory game',
+    'game_max_earnings': 'Maximum coins that can be earned from a single game session',
+    'game_daily_limit': 'Maximum coins that can be earned from games per day',
+    'exoclick_site_id': 'ExoClick site ID for ad integration',
     'captcha_disabled_premium': 'Whether captchas are disabled for premium users (true/false)',
   };
   
-  return descriptions[key] || 'System configuration parameter';
+  return descriptions[key] || 'System configuration setting';
 }

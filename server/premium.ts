@@ -30,6 +30,83 @@ export function setupPremiumRoutes(app: Express) {
     const payments = await storage.getPremiumPaymentsByUser(req.user.id);
     res.json(payments);
   });
+  
+  // Admin endpoint to get all premium payments
+  app.get("/api/admin/premium/payments", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+    
+    const showAll = req.query.all === "true";
+    
+    if (showAll) {
+      const allPayments = await storage.getAllPremiumPayments();
+      res.json(allPayments);
+    } else {
+      const pendingPayments = await storage.getPendingPremiumPayments();
+      res.json(pendingPayments);
+    }
+  });
+  
+  // Admin endpoint to process premium payment
+  app.post("/api/admin/premium/payments/:id", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+    
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    if (!["approved", "rejected"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+    
+    const payment = await storage.updatePremiumPaymentStatus(
+      parseInt(id), 
+      status,
+      new Date()
+    );
+    
+    if (!payment) {
+      return res.status(404).json({ message: "Payment not found" });
+    }
+    
+    // If approved, activate premium for the user
+    if (status === "approved") {
+      const user = await storage.getUser(payment.userId);
+      if (user) {
+        // Calculate new premium expiry date
+        const now = new Date();
+        let premiumUntil = user.premiumUntil ? new Date(user.premiumUntil) : now;
+        
+        // If premium has expired, start from now
+        if (premiumUntil < now) {
+          premiumUntil = now;
+        }
+        
+        // Add months to the premium expiry date
+        premiumUntil.setMonth(premiumUntil.getMonth() + payment.durationMonths);
+        
+        // Update user's premium status
+        await storage.updateUserPremiumStatus(
+          user.id, 
+          true, 
+          premiumUntil,
+          user.premiumStarted || now
+        );
+        
+        // Add activity record
+        await storage.createActivity({
+          userId: user.id,
+          type: "premium_activated",
+          amount: payment.amount,
+          description: `Premium subscription activated for ${payment.durationMonths} month(s)`
+        });
+      }
+    }
+    
+    res.json(payment);
+  });
 
   // Endpoint to submit premium subscription request
   app.post("/api/premium/subscribe", async (req, res) => {
