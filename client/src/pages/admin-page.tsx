@@ -84,7 +84,20 @@ export default function AdminPage() {
     }
   });
 
-  const isLoading = isLoadingUsers || isLoadingWithdrawals || isLoadingSettings;
+  // Fetch premium payments (pending only or all)
+  const { data: premiumPayments, isLoading: isLoadingPremiumPayments } = useQuery({
+    queryKey: ["/api/admin/premium/payments", showAllPremiumPayments],
+    queryFn: async () => {
+      const url = showAllPremiumPayments 
+        ? "/api/admin/premium/payments?all=true" 
+        : "/api/admin/premium/payments";
+      const res = await fetch(url, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch premium payments");
+      return res.json();
+    }
+  });
+
+  const isLoading = isLoadingUsers || isLoadingWithdrawals || isLoadingSettings || isLoadingPremiumPayments;
 
   // Process withdrawal mutation
   const processWithdrawalMutation = useMutation({
@@ -172,6 +185,44 @@ export default function AdminPage() {
     setShowSettingModal(true);
   };
 
+  // Process premium payment mutation
+  const processPremiumPaymentMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: number, status: string }) => {
+      const res = await apiRequest("POST", `/api/admin/premium/payments/${id}`, { status });
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Premium payment updated",
+        description: "The premium payment has been processed",
+        variant: "default"
+      });
+      setShowPremiumPaymentModal(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/premium/payments"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  const openPremiumPaymentModal = (payment: any) => {
+    setSelectedPremiumPayment(payment);
+    setShowPremiumPaymentModal(true);
+  };
+
+  const processPremiumPayment = (status: string) => {
+    if (selectedPremiumPayment) {
+      processPremiumPaymentMutation.mutate({
+        id: selectedPremiumPayment.id,
+        status
+      });
+    }
+  };
+
   const onSettingSubmit = (data: SettingFormData) => {
     updateSettingMutation.mutate(data);
   };
@@ -198,23 +249,9 @@ export default function AdminPage() {
                 <Settings className="h-4 w-4 mr-2" />
                 Settings
               </TabsTrigger>
-              <TabsTrigger value="monetization">
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  className="h-4 w-4 mr-2"
-                >
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <path d="M12 6v6l4 2"></path>
-                  <path d="M8.5 9.5h.01"></path>
-                  <path d="M15.5 9.5h.01"></path>
-                </svg>
-                Monetization
+              <TabsTrigger value="premium">
+                <Crown className="h-4 w-4 mr-2" />
+                Premium
               </TabsTrigger>
             </TabsList>
 
@@ -437,6 +474,126 @@ export default function AdminPage() {
                       ))}
                     </TableBody>
                   </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Premium Tab */}
+            <TabsContent value="premium">
+              <Card>
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <CardTitle>{showAllPremiumPayments ? "All Premium Payments" : "Pending Premium Payments"}</CardTitle>
+                      <CardDescription>
+                        {showAllPremiumPayments 
+                          ? "View complete premium payment history with user details" 
+                          : "Review and approve or reject premium payment requests"}
+                      </CardDescription>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-500">Show All</span>
+                      <Switch 
+                        checked={showAllPremiumPayments}
+                        onCheckedChange={setShowAllPremiumPayments}
+                      />
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {premiumPayments && premiumPayments.length > 0 ? (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>User</TableHead>
+                          <TableHead>Amount</TableHead>
+                          <TableHead>Duration</TableHead>
+                          <TableHead>Method</TableHead>
+                          <TableHead>Requested</TableHead>
+                          {showAllPremiumPayments && <TableHead>Status</TableHead>}
+                          {showAllPremiumPayments && <TableHead>Processed</TableHead>}
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {premiumPayments.map((payment: any) => (
+                          <TableRow key={payment.id}>
+                            <TableCell>
+                              <div className="flex items-center">
+                                {users?.find((u: any) => u.id === payment.userId) && (
+                                  <Avatar className="h-6 w-6 mr-2">
+                                    <AvatarFallback className={getColorFromString(users?.find((u: any) => u.id === payment.userId)?.username || '')}>
+                                      {getUserInitials(users?.find((u: any) => u.id === payment.userId)?.username || '')}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                )}
+                                <span className="font-medium">
+                                  {users?.find((u: any) => u.id === payment.userId)?.username || `User #${payment.userId}`}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              ${payment.amount.toFixed(2)}
+                            </TableCell>
+                            <TableCell>
+                              {payment.durationMonths} {payment.durationMonths === 1 ? 'month' : 'months'}
+                            </TableCell>
+                            <TableCell className="capitalize">{payment.method}</TableCell>
+                            <TableCell>{new Date(payment.createdAt).toLocaleDateString()}</TableCell>
+                            
+                            {showAllPremiumPayments && (
+                              <TableCell>
+                                {payment.status === 'pending' ? (
+                                  <Badge variant="outline" className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 border-none">
+                                    Pending
+                                  </Badge>
+                                ) : payment.status === 'approved' ? (
+                                  <Badge variant="outline" className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-none">
+                                    Approved
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-none">
+                                    Rejected
+                                  </Badge>
+                                )}
+                              </TableCell>
+                            )}
+                            
+                            {showAllPremiumPayments && (
+                              <TableCell>
+                                {payment.processedAt ? new Date(payment.processedAt).toLocaleDateString() : '-'}
+                              </TableCell>
+                            )}
+                            
+                            <TableCell>
+                              {payment.status === 'pending' && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => openPremiumPaymentModal(payment)}
+                                >
+                                  Process
+                                </Button>
+                              )}
+                              {payment.status !== 'pending' && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => openPremiumPaymentModal(payment)}
+                                >
+                                  View
+                                </Button>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  ) : (
+                    <div className="text-center py-10">
+                      <p className="text-gray-500">No pending premium payments</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
