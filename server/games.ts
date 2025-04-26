@@ -8,11 +8,13 @@ export function setupGameRoutes(app: Express) {
     const memoryRewardStr = await storage.getSetting("game_memory_reward");
     const clickerRewardStr = await storage.getSetting("game_clicker_reward");
     const maxEarningsStr = await storage.getSetting("game_max_earnings");
+    const dailyGameLimitStr = await storage.getSetting("game_daily_limit");
     
     // Default values if settings aren't configured
     const memoryReward = parseInt(memoryRewardStr || "10");
     const clickerReward = parseInt(clickerRewardStr || "5");
     const maxEarnings = parseInt(maxEarningsStr || "200");
+    const baseDailyGameLimit = parseInt(dailyGameLimitStr || "1000");
     
     // Calculate max hourly earnings for memory game (based on admin settings)
     // Assume average of 3 matches per minute
@@ -21,6 +23,28 @@ export function setupGameRoutes(app: Express) {
     // Calculate max hourly earnings for clicker game (based on admin settings)
     // Assume average of 10 clicks per minute
     const clickerHourlyEarning = 10 * 60 * (clickerReward / 5);
+    
+    // Check for premium benefits
+    let dailyGameLimit = baseDailyGameLimit;
+    let isPremiumActive = false;
+    let dailyLimitBonus = 0;
+    
+    // If the user is authenticated, check for premium status
+    if (req.isAuthenticated()) {
+      const user = req.user;
+      
+      // Apply premium benefits if user is premium
+      if (user.isPremium && user.premiumUntil && new Date(user.premiumUntil) > new Date()) {
+        isPremiumActive = true;
+        
+        // Get premium settings for daily limit bonus
+        const premiumDailyLimitBonusStr = await storage.getSetting("premium_daily_limit_bonus");
+        dailyLimitBonus = parseInt(premiumDailyLimitBonusStr || "200");
+        
+        // Apply daily limit bonus to mini-games as well
+        dailyGameLimit = baseDailyGameLimit + dailyLimitBonus;
+      }
+    }
     
     // These would typically be stored in the database,
     // but for MVP we'll use dynamic values based on admin settings
@@ -51,7 +75,14 @@ export function setupGameRoutes(app: Express) {
       }
     ];
     
-    res.json(games);
+    // Include premium information in the response
+    res.json({
+      games,
+      dailyGameLimit,
+      baseDailyGameLimit,
+      isPremiumActive,
+      dailyLimitBonus
+    });
   });
   
   // Submit game score and earn rewards
@@ -112,7 +143,25 @@ export function setupGameRoutes(app: Express) {
     const memoryReward = parseInt(memoryRewardStr || "10");
     const clickerReward = parseInt(clickerRewardStr || "5");
     const maxEarnings = parseInt(maxEarningsStr || "200");
-    const dailyGameLimit = parseInt(dailyGameLimitStr || "1000");
+    const baseDailyGameLimit = parseInt(dailyGameLimitStr || "1000");
+    
+    // Check for premium benefits
+    let dailyGameLimit = baseDailyGameLimit;
+    let isPremiumActive = false;
+    
+    // Apply premium benefits if user is premium
+    if (user.isPremium && user.premiumUntil && new Date(user.premiumUntil) > new Date()) {
+      isPremiumActive = true;
+      
+      // Get premium settings for daily limit bonus
+      const premiumDailyLimitBonusStr = await storage.getSetting("premium_daily_limit_bonus");
+      const dailyLimitBonus = parseInt(premiumDailyLimitBonusStr || "200");
+      
+      // Apply daily limit bonus to mini-games as well
+      dailyGameLimit = baseDailyGameLimit + dailyLimitBonus;
+      
+      console.log(`[GAMES] Premium user ${user.id} gets +${dailyLimitBonus} daily game limit (${baseDailyGameLimit} → ${dailyGameLimit})`);
+    }
     
     // For memory game, we need to be more accurate with the match count
     // In memory-game.tsx, we have 8 pairs total, and score is calculated as:
@@ -241,7 +290,24 @@ export function setupGameRoutes(app: Express) {
     
     // Otherwise cap to remaining daily allowance
     coinsEarned = Math.min(coinsEarned, remainingDaily);
-    console.log(`Final coins earned after all limits: ${coinsEarned}`);
+    
+    // Apply premium earnings multiplier if applicable
+    if (isPremiumActive) {
+      // Get premium multiplier setting
+      const premiumMultiplierStr = await storage.getSetting("premium_afk_multiplier");
+      const premiumMultiplier = parseFloat(premiumMultiplierStr || "2");
+      
+      // Calculate bonus amount based on multiplier
+      const premiumBonus = Math.floor(coinsEarned * (premiumMultiplier - 1));
+      
+      if (premiumBonus > 0) {
+        // Add premium bonus to earnings
+        coinsEarned += premiumBonus;
+        console.log(`[GAMES] Premium user ${user.id} gets ${premiumMultiplier}x earnings: +${premiumBonus} bonus coins`);
+      }
+    }
+    
+    console.log(`Final coins earned after all limits and premium bonuses: ${coinsEarned}`);
     
     
     // Save the game score
@@ -301,7 +367,12 @@ export function setupGameRoutes(app: Express) {
     res.json({
       gameScore,
       coinsEarned,
-      newBalance: updatedUser?.balance || 0
+      newBalance: updatedUser?.balance || 0,
+      isPremiumActive,
+      dailyGameLimit,
+      baseDailyGameLimit,
+      dailyEarned: todaysEarnings,
+      remainingDaily: Math.max(0, dailyGameLimit - todaysEarnings - coinsEarned)
     });
   });
   
