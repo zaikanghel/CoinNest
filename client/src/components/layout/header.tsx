@@ -60,12 +60,14 @@ export default function Header({ toggleSidebar, pageTitle }: HeaderProps) {
             size="icon"
             className="sm:hidden text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
             onClick={toggleSidebar}
+            aria-expanded="false"
+            aria-controls="mobile-menu"
           >
             <Menu className="h-5 w-5" />
             <span className="sr-only">Toggle sidebar</span>
           </Button>
-          <div className="hidden sm:block">
-            <h2 className="text-xl font-poppins font-semibold text-gray-900 dark:text-gray-100">{pageTitle}</h2>
+          <div className="sm:block">
+            <h2 className="text-xl font-poppins font-semibold text-gray-900 dark:text-gray-100 ml-2 sm:ml-0">{pageTitle}</h2>
           </div>
         </div>
 

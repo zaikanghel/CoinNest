@@ -24,6 +24,19 @@ export default function MainLayout({ children, pageTitle }: MainLayoutProps) {
       navigate("/auth");
     }
   }, [user, isLoading, navigate]);
+  
+  // Handle resize events for responsive behavior
+  useEffect(() => {
+    const handleResize = () => {
+      // Close sidebar automatically when window is resized to desktop view
+      if (window.innerWidth >= 640 && sidebarOpen && isMobile) {
+        setSidebarOpen(false);
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [sidebarOpen, isMobile]);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);

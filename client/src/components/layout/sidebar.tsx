@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { X } from "lucide-react";
 
 type SidebarProps = {
   isMobile: boolean;
@@ -21,6 +22,18 @@ export default function Sidebar({ isMobile, isOpen, onClose }: SidebarProps) {
       onClose();
     }
   }, [location, isMobile, isOpen, onClose]);
+
+  // Disable body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (isMobile && isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMobile, isOpen]);
 
   const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: "ri-dashboard-line" },
@@ -41,21 +54,35 @@ export default function Sidebar({ isMobile, isOpen, onClose }: SidebarProps) {
       {/* Mobile overlay */}
       {isMobile && isOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-30"
+          className="fixed inset-0 bg-black/50 z-30 animate-fadeIn"
           onClick={onClose}
           aria-hidden="true"
         />
       )}
       
       <aside 
+        id="mobile-menu"
         className={cn(
-          "fixed top-0 left-0 z-40 w-64 h-screen transition-transform bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800",
+          "fixed top-0 left-0 z-40 w-64 h-screen transition-transform duration-300 ease-in-out bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 shadow-lg",
           isMobile && !isOpen && "-translate-x-full",
           isMobile && isOpen && "translate-x-0",
           !isMobile && "translate-x-0"
         )}
       >
-        <div className="h-full px-3 py-6 flex flex-col">
+        <div className="h-full px-3 py-6 flex flex-col relative">
+          {/* Close button for mobile */}
+          {isMobile && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="absolute right-2 top-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+              onClick={onClose}
+            >
+              <X className="h-5 w-5" />
+              <span className="sr-only">Close sidebar</span>
+            </Button>
+          )}
+          
           <div className="flex items-center justify-center mb-8">
             <Link href="/dashboard">
               <div className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent font-poppins cursor-pointer">
