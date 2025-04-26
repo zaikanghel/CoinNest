@@ -152,10 +152,43 @@ export default function AfkCard() {
           </Button>
         )}
         
+        {isAfkActive && (
+          <div className="mt-4 grid gap-2">
+            <div className="text-xs font-medium">Anti-Cheat Status:</div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className={`p-2 rounded-md ${
+                isTabActive ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'
+              }`}>
+                <div className="flex items-center gap-1.5">
+                  <span className={`w-2 h-2 rounded-full ${
+                    isTabActive ? 'bg-green-500' : 'bg-red-500'
+                  }`}></span>
+                  <span className="text-xs font-medium">
+                    Tab {isTabActive ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+              </div>
+              
+              <div className={`p-2 rounded-md ${
+                Date.now() - lastMouseMovement < 60000 ? 'bg-green-50 dark:bg-green-900/20' : 'bg-amber-50 dark:bg-amber-900/20'
+              }`}>
+                <div className="flex items-center gap-1.5">
+                  <span className={`w-2 h-2 rounded-full ${
+                    Date.now() - lastMouseMovement < 60000 ? 'bg-green-500' : 'bg-amber-500'
+                  }`}></span>
+                  <span className="text-xs font-medium">
+                    {Date.now() - lastMouseMovement < 60000 ? 'Recent Activity' : 'Need Movement'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <Alert className="mt-4 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 p-3 rounded-lg text-sm flex items-start">
           <Info className="h-4 w-4 mr-2 mt-0.5" />
           <AlertDescription>
-            Keep this tab open to continue earning. Verification checks help prevent automated farming.
+            Keep this tab open and move your mouse occasionally to earn coins. Verification checks help prevent automated farming.
           </AlertDescription>
         </Alert>
       </CardContent>

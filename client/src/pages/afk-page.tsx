@@ -26,7 +26,8 @@ function AfkEarningContent() {
     captchaVerificationPending,
     isLoading,
     lastEarning,
-    isTabActive
+    isTabActive,
+    lastMouseMovement
   } = useAfk();
 
   const [showLastEarning, setShowLastEarning] = useState(false);
@@ -103,10 +104,43 @@ function AfkEarningContent() {
             </div>
             
             {isAfkActive && (
-              <div className="text-center mb-6">
-                <p className="text-sm text-gray-600 dark:text-gray-400">AFK Time</p>
-                <p className="text-xl font-semibold">{formattedAfkTime}</p>
-              </div>
+              <>
+                <div className="text-center mb-4">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">AFK Time</p>
+                  <p className="text-xl font-semibold">{formattedAfkTime}</p>
+                </div>
+                
+                <div className="w-full p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg mb-4">
+                  <h4 className="text-sm font-medium mb-2">Anti-Cheat Status</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className={`flex items-center gap-1 p-2 rounded ${
+                      isTabActive 
+                        ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400' 
+                        : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'
+                    }`}>
+                      <span className={`w-2 h-2 rounded-full ${
+                        isTabActive ? 'bg-green-500' : 'bg-red-500'
+                      }`}></span>
+                      <span className="text-xs ml-1">
+                        Tab {isTabActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
+                    
+                    <div className={`flex items-center gap-1 p-2 rounded ${
+                      Date.now() - lastMouseMovement < 60000 
+                        ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400' 
+                        : 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400'
+                    }`}>
+                      <span className={`w-2 h-2 rounded-full ${
+                        Date.now() - lastMouseMovement < 60000 ? 'bg-green-500' : 'bg-amber-500'
+                      }`}></span>
+                      <span className="text-xs ml-1">
+                        {Date.now() - lastMouseMovement < 60000 ? 'Active Mouse' : 'Move Mouse!'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </>
             )}
             
             <div className="w-full">

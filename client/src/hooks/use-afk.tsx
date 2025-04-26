@@ -132,9 +132,27 @@ export function AfkProvider({ children }: { children: ReactNode }) {
         const timeSinceLastMovement = now - lastMouseMovement;
         const isUserActive = timeSinceLastMovement < MOUSE_MOVEMENT_TIMEOUT;
         
-        if (isTabActive && isUserActive && now - lastEarningSubmit >= 60000) {
-          const minutesElapsed = (now - lastEarningSubmit) / 60000;
-          earnMutation.mutate(minutesElapsed);
+        if (now - lastEarningSubmit >= 60000) {
+          // Only earn if tab is active and user has moved their mouse recently
+          if (isTabActive && isUserActive) {
+            const minutesElapsed = (now - lastEarningSubmit) / 60000;
+            earnMutation.mutate(minutesElapsed);
+          } else {
+            // Show warning toast if inactive but don't earn
+            if (!isTabActive) {
+              toast({
+                title: "Tab inactive",
+                description: "You need to keep this tab active to earn coins",
+                variant: "destructive"
+              });
+            } else if (!isUserActive) {
+              toast({
+                title: "Inactivity detected",
+                description: "Move your mouse to continue earning coins",
+                variant: "destructive"
+              });
+            }
+          }
           setLastEarningSubmit(now);
         }
       }, 1000);
