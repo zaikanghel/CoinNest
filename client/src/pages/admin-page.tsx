@@ -488,6 +488,17 @@ function getSettingDescription(key: string): string {
     'withdrawal_min': 'Minimum amount of coins required for withdrawal',
     'referral_bonus': 'Percentage of referral earnings given to referrer',
     'new_user_bonus': 'Bonus coins given to new users upon registration',
+    'premium_price': 'Monthly subscription price in USD',
+    'premium_afk_multiplier': 'Multiplier for AFK earnings for premium users',
+    'premium_daily_limit_bonus': 'Additional daily limit for premium users',
+    'ad_refresh_rate': 'How often ads should refresh (in seconds)',
+    'ad_banner_enabled': 'Whether banner ads are enabled (true/false)',
+    'ad_video_enabled': 'Whether video ads are enabled (true/false)',
+    'ad_interstitial_enabled': 'Whether interstitial ads are enabled (true/false)',
+    'game_clicker_reward': 'Base reward for Clicker game',
+    'game_memory_reward': 'Base reward for Memory game',
+    'exoclick_site_id': 'ExoClick site ID for ad integration',
+    'captcha_disabled_premium': 'Whether captchas are disabled for premium users (true/false)',
   };
   
   return descriptions[key] || 'System configuration setting';

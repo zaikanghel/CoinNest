@@ -18,7 +18,10 @@ export const users = pgTable("users", {
   isAdmin: boolean("is_admin").notNull().default(false),
   dailyAfkLimit: integer("daily_afk_limit").notNull().default(200),
   dailyAfkEarned: integer("daily_afk_earned").notNull().default(0),
-  lastAfkReset: timestamp("last_afk_reset").notNull().defaultNow()
+  lastAfkReset: timestamp("last_afk_reset").notNull().defaultNow(),
+  isPremium: boolean("is_premium").notNull().default(false),
+  premiumUntil: timestamp("premium_until"),
+  premiumStarted: timestamp("premium_started")
 });
 
 export const activities = pgTable("activities", {
@@ -70,7 +73,10 @@ export const insertUserSchema = createInsertSchema(users).omit({
   afkEarned: true,
   gamesEarned: true,
   referralEarned: true,
-  balance: true
+  balance: true,
+  isPremium: true,
+  premiumUntil: true,
+  premiumStarted: true
 });
 
 export const insertActivitySchema = createInsertSchema(activities).omit({
