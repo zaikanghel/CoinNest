@@ -27,7 +27,8 @@ function AfkEarningContent() {
     isLoading,
     lastEarning,
     isTabActive,
-    lastMouseMovement
+    lastMouseMovement,
+    isPaused
   } = useAfk();
 
   const [showLastEarning, setShowLastEarning] = useState(false);
