@@ -56,9 +56,9 @@ export default function Sidebar({ isMobile, isOpen, onClose }: SidebarProps) {
       >
         <div className="h-full px-3 py-6 flex flex-col">
           <div className="flex items-center justify-center mb-8">
-            <Link href="/">
-              <a className="text-2xl font-bold text-primary-500 font-poppins">
-                <i className="ri-gamepad-line mr-2"></i>EarnPlay
+            <Link href="/dashboard">
+              <a className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent font-poppins">
+                <i className="ri-money-dollar-circle-line mr-2"></i>IdleCash
               </a>
             </Link>
           </div>
@@ -99,17 +99,20 @@ export default function Sidebar({ isMobile, isOpen, onClose }: SidebarProps) {
           </div>
 
           {/* Premium Badge/Upgrade Section */}
-          <div className="mt-4 p-3 bg-gradient-to-r from-primary-600 to-violet-500 rounded-lg text-white">
+          <div className="mt-4 p-3 bg-gradient-to-r from-primary to-accent rounded-lg text-white shadow-lg relative overflow-hidden">
+            <div className="absolute -right-4 -top-4 w-20 h-20 bg-white/10 rounded-full"></div>
+            <div className="absolute right-8 top-2 w-2 h-2 bg-yellow-300 rounded-full animate-pulse"></div>
+            
             <div className="flex items-center">
               <i className="ri-vip-crown-line text-yellow-300 text-xl"></i>
               <p className="ml-2 font-medium">Free Account</p>
             </div>
-            <p className="text-xs mt-1 text-white/90">Upgrade to premium for 2x earnings</p>
+            <p className="text-xs mt-1 text-white/90">Upgrade to premium for 2x AFK earnings</p>
             <Button 
-              className="mt-2 w-full py-1.5 bg-white/20 hover:bg-white/30 rounded text-sm font-medium transition"
+              className="mt-2 w-full py-1.5 bg-white/20 hover:bg-white/30 rounded text-sm font-medium transition-all hover:translate-y-[-2px]"
               variant="ghost"
             >
-              Upgrade Now
+              Boost Your Idle Income
             </Button>
           </div>
         </div>

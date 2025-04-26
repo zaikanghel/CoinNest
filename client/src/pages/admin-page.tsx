@@ -39,7 +39,7 @@ export default function AdminPage() {
 
   // Redirect if not admin
   if (user && !user.isAdmin) {
-    navigate("/");
+    navigate("/dashboard");
     return null;
   }
 
@@ -352,97 +352,89 @@ export default function AdminPage() {
         )}
       </div>
 
-      {/* Withdrawal Process Modal */}
+      {/* Withdrawal Processing Dialog */}
       <Dialog open={showWithdrawalModal} onOpenChange={setShowWithdrawalModal}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Process Withdrawal</DialogTitle>
+            <DialogTitle>Process Withdrawal Request</DialogTitle>
           </DialogHeader>
           
-          {selectedWithdrawal && (
-            <div className="space-y-4 py-2">
-              <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">User</p>
                   <p className="font-medium">
-                    {users?.find((u: any) => u.id === selectedWithdrawal.userId)?.username || `User #${selectedWithdrawal.userId}`}
+                    {users?.find((u: any) => u.id === selectedWithdrawal?.userId)?.username || `User #${selectedWithdrawal?.userId}`}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">Amount</p>
-                  <p className="font-medium">{selectedWithdrawal.amount.toLocaleString()} coins</p>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Method</p>
-                  <p className="font-medium capitalize">{selectedWithdrawal.method}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Requested On</p>
-                  <p className="font-medium">{new Date(selectedWithdrawal.createdAt).toLocaleDateString()}</p>
+                  <p className="font-medium">{selectedWithdrawal?.amount?.toLocaleString()} coins</p>
                 </div>
               </div>
               
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Account Details</p>
-                <p className="font-medium break-all">{selectedWithdrawal.accountDetails}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Withdrawal Method</p>
+                <p className="font-medium capitalize">{selectedWithdrawal?.method}</p>
               </div>
               
-              <Separator />
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Account Details</p>
+                <p className="font-medium break-all">{selectedWithdrawal?.accountDetails}</p>
+              </div>
               
-              <div className="flex justify-between pt-2">
-                <Button
-                  variant="outline"
-                  className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
-                  onClick={() => processWithdrawal('rejected')}
-                  disabled={processWithdrawalMutation.isPending}
-                >
-                  <XCircle className="mr-2 h-4 w-4" />
-                  Reject
-                </Button>
-                <Button
-                  className="bg-green-600 hover:bg-green-700"
-                  onClick={() => processWithdrawal('approved')}
-                  disabled={processWithdrawalMutation.isPending}
-                >
-                  {processWithdrawalMutation.isPending ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
+              <Separator className="my-4" />
+              
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Processing Options</p>
+                <div className="flex space-x-2 mt-2">
+                  <Button
+                    className="w-full bg-green-600 hover:bg-green-700 text-white"
+                    onClick={() => processWithdrawal("completed")}
+                    disabled={processWithdrawalMutation.isPending}
+                  >
                     <CheckCircle className="mr-2 h-4 w-4" />
-                  )}
-                  Approve
-                </Button>
+                    Approve
+                  </Button>
+                  <Button
+                    className="w-full bg-red-600 hover:bg-red-700 text-white"
+                    onClick={() => processWithdrawal("rejected")}
+                    disabled={processWithdrawalMutation.isPending}
+                  >
+                    <XCircle className="mr-2 h-4 w-4" />
+                    Reject
+                  </Button>
+                </div>
               </div>
             </div>
-          )}
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowWithdrawalModal(false)}>
+              Cancel
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Setting Edit Modal */}
+      {/* Setting Edit Dialog */}
       <Dialog open={showSettingModal} onOpenChange={setShowSettingModal}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {form.getValues().key ? `Edit Setting: ${form.getValues().key}` : 'Add New Setting'}
-            </DialogTitle>
+            <DialogTitle>Edit System Setting</DialogTitle>
           </DialogHeader>
           
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSettingSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSettingSubmit)} className="space-y-4 py-2">
               <FormField
                 control={form.control}
                 name="key"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Setting Key</FormLabel>
+                    <FormLabel>Key</FormLabel>
                     <FormControl>
-                      <Input 
-                        {...field} 
-                        placeholder="e.g., afk_rate" 
-                        disabled={!!form.getValues().key}
-                      />
+                      <Input placeholder="Setting key" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -456,28 +448,26 @@ export default function AdminPage() {
                   <FormItem>
                     <FormLabel>Value</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="e.g., 2" />
+                      <Input placeholder="Setting value" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               
-              {form.getValues().key && (
-                <div className="text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-3 rounded-md">
-                  {getSettingDescription(form.getValues().key)}
-                </div>
-              )}
-              
               <DialogFooter>
-                <Button 
-                  type="submit" 
-                  disabled={updateSettingMutation.isPending}
-                >
+                <Button variant="outline" onClick={() => setShowSettingModal(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={updateSettingMutation.isPending}>
                   {updateSettingMutation.isPending ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : null}
-                  Save Setting
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save Changes"
+                  )}
                 </Button>
               </DialogFooter>
             </form>
@@ -490,13 +480,12 @@ export default function AdminPage() {
 
 function getSettingDescription(key: string): string {
   const descriptions: Record<string, string> = {
-    'afk_rate': 'Coins earned per minute for AFK earning',
-    'afk_daily_limit': 'Maximum coins users can earn from AFK per day',
-    'referral_bonus': 'One-time bonus coins for referring a new user',
-    'referral_percent': 'Percentage of earnings given to referrer',
-    'min_withdrawal': 'Minimum coins required for withdrawal',
-    'conversion_rate': 'Coins per $1 for withdrawals',
-    'captcha_interval': 'Seconds between captcha verifications for AFK earning'
+    'afk_rate': 'Rate of earning coins in AFK mode (coins per minute)',
+    'afk_daily_limit': 'Maximum daily earnings from AFK mode (in coins)',
+    'coin_value': 'Value of 1000 coins in real currency (USD)',
+    'withdrawal_min': 'Minimum amount of coins required for withdrawal',
+    'referral_bonus': 'Percentage of referral earnings given to referrer',
+    'new_user_bonus': 'Bonus coins given to new users upon registration',
   };
   
   return descriptions[key] || 'System configuration setting';
