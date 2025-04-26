@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "next-themes";
 import { getUserInitials, getColorFromString } from "@/lib/utils";
-import { Moon, Sun, Menu, Bell } from "lucide-react";
+import { Moon, Sun, Bell } from "lucide-react";
 
 type HeaderProps = {
   toggleSidebar: () => void;
@@ -52,108 +52,87 @@ export default function Header({ toggleSidebar, pageTitle }: HeaderProps) {
   };
 
   return (
-    <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800 sticky top-0 z-30">
-      <div className="flex items-center justify-between h-16 px-4 sm:px-6">
-        <div className="flex items-center">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="sm:hidden text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-            onClick={toggleSidebar}
-            aria-expanded="false"
-            aria-controls="mobile-menu"
-          >
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">Toggle sidebar</span>
-          </Button>
-          <div className="sm:block">
-            <h2 className="text-xl font-poppins font-semibold text-gray-900 dark:text-gray-100 ml-2 sm:ml-0">{pageTitle}</h2>
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-3">
-          {/* User balance */}
-          <div className="hidden md:flex items-center bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-300 px-3 py-1.5 rounded-full">
-            <i className="ri-coin-line mr-1.5"></i>
-            <span className="font-medium">{userData?.balance?.toLocaleString() || user?.balance?.toLocaleString() || 0}</span>
-            <span className="text-xs ml-1">coins</span>
-          </div>
-
-          {/* Notifications */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="relative text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-          >
-            <Bell className="h-5 w-5" />
-            {notificationCount > 0 && (
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            )}
-            <span className="sr-only">Notifications</span>
-          </Button>
-
-          {/* Theme toggle */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleTheme}
-            className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-          >
-            <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            <span className="sr-only">Toggle theme</span>
-          </Button>
-
-          {/* User menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="relative h-8 rounded-full focus:ring-0 focus:ring-offset-0"
-              >
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback className={getColorFromString(user?.username || "U")}>
-                    {getUserInitials(user?.username || "User")}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="sr-only">Open user menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{user?.username}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuGroup>
-                <DropdownMenuItem>
-                  <Link href="/profile">
-                    <div className="flex w-full cursor-pointer">Profile</div>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link href="/settings">
-                    <div className="flex w-full cursor-pointer">Settings</div>
-                  </Link>
-                </DropdownMenuItem>
-                {user?.isAdmin && (
-                  <DropdownMenuItem>
-                    <Link href="/admin">
-                      <div className="flex w-full cursor-pointer">Admin Dashboard</div>
-                    </Link>
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-500 focus:text-red-500 cursor-pointer" onClick={handleLogout}>
-                Logout
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+    <div className="flex items-center space-x-3">
+      {/* User balance */}
+      <div className="hidden md:flex items-center bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-300 px-3 py-1.5 rounded-full">
+        <i className="ri-coin-line mr-1.5"></i>
+        <span className="font-medium">{userData?.balance?.toLocaleString() || user?.balance?.toLocaleString() || 0}</span>
+        <span className="text-xs ml-1">coins</span>
       </div>
-    </header>
+
+      {/* Notifications */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="relative text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+      >
+        <Bell className="h-5 w-5" />
+        {notificationCount > 0 && (
+          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+        )}
+        <span className="sr-only">Notifications</span>
+      </Button>
+
+      {/* Theme toggle */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={toggleTheme}
+        className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+      >
+        <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+        <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+        <span className="sr-only">Toggle theme</span>
+      </Button>
+
+      {/* User menu */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            className="relative h-8 rounded-full focus:ring-0 focus:ring-offset-0"
+          >
+            <Avatar className="h-8 w-8">
+              <AvatarFallback className={getColorFromString(user?.username || "U")}>
+                {getUserInitials(user?.username || "User")}
+              </AvatarFallback>
+            </Avatar>
+            <span className="sr-only">Open user menu</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-56" align="end" forceMount>
+          <DropdownMenuLabel className="font-normal">
+            <div className="flex flex-col space-y-1">
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{user?.username}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
+            </div>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuGroup>
+            <DropdownMenuItem>
+              <Link href="/profile">
+                <div className="flex w-full cursor-pointer">Profile</div>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Link href="/settings">
+                <div className="flex w-full cursor-pointer">Settings</div>
+              </Link>
+            </DropdownMenuItem>
+            {user?.isAdmin && (
+              <DropdownMenuItem>
+                <Link href="/admin">
+                  <div className="flex w-full cursor-pointer">Admin Dashboard</div>
+                </Link>
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem className="text-red-500 focus:text-red-500 cursor-pointer" onClick={handleLogout}>
+            Logout
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }
