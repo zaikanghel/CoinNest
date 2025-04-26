@@ -3,6 +3,7 @@ import type { User, Activity, Withdrawal, GameScore, Setting, InsertUser } from 
 import { nanoid } from "nanoid";
 import session from "express-session";
 import createMemoryStore from "memorystore";
+import { MongoStorage } from "./mongodb-storage";
 
 const MemoryStore = createMemoryStore(session);
 
@@ -57,7 +58,7 @@ export interface IStorage {
   getSettings(): Promise<Setting[]>;
 
   // Session store
-  sessionStore: session.SessionStore;
+  sessionStore: session.Store;
 }
 
 export class MemStorage implements IStorage {
@@ -323,4 +324,23 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Factory function to create the appropriate storage implementation
+export async function createStorage(): Promise<IStorage> {
+  if (process.env.MONGODB_URI) {
+    try {
+      const mongoStorage = new MongoStorage(process.env.MONGODB_URI);
+      await mongoStorage.connect();
+      console.log('Using MongoDB for storage');
+      return mongoStorage;
+    } catch (error) {
+      console.error('Failed to connect to MongoDB, falling back to in-memory storage', error);
+      return new MemStorage();
+    }
+  } else {
+    console.log('No MongoDB URI provided, using in-memory storage');
+    return new MemStorage();
+  }
+}
+
+// Initialize with in-memory storage by default, will be updated in server/index.ts
+export let storage = new MemStorage();
