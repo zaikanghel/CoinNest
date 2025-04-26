@@ -197,9 +197,8 @@ export function setupGameRoutes(app: Express) {
       return res.status(404).json({ message: "Game not found" });
     }
     
-    // TEMPORARY FOR TESTING - Skip daily limit check
-    // In production, this should be set to false
-    const skipDailyLimit = true; 
+    // Enforce daily earnings limit
+    const skipDailyLimit = false;
     
     // Enforce daily game earnings limit
     const today = new Date();
