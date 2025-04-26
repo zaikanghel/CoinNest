@@ -20,9 +20,7 @@ export function PremiumNotificationProvider({ children }: { children: ReactNode 
   const [showDialog, setShowDialog] = useState(false);
   const [dialogTitle, setDialogTitle] = useState("Premium Subscription Ended");
   const [dialogMessage, setDialogMessage] = useState("Your premium benefits are no longer active.");
-  const [lastPremiumStatus, setLastPremiumStatus] = useState<boolean | null>(null);
-  const [isPremiumActivated, setIsPremiumActivated] = useState(false);
-  const [hasProcessedInitialStatus, setHasProcessedInitialStatus] = useState(false);
+  const [processedNotificationIds, setProcessedNotificationIds] = useState<string[]>([]);
   const { toast } = useToast();
 
   // Check premium status periodically if user is logged in
@@ -37,92 +35,75 @@ export function PremiumNotificationProvider({ children }: { children: ReactNode 
     refetchInterval: 15000, // Check every 15 seconds
   });
 
-  // Initial login detection
+  // Process premium status changes (both activations and deactivations)
   useEffect(() => {
-    if (user && !hasProcessedInitialStatus) {
-      console.log("Initial premium status check:", user.isPremium);
-      setLastPremiumStatus(!!user.isPremium);
-      setHasProcessedInitialStatus(true);
-    }
-  }, [user, hasProcessedInitialStatus]);
-
-  // Track direct premium status changes from the user object
-  useEffect(() => {
-    if (!user || !hasProcessedInitialStatus) return;
+    if (!user || !premiumStatus) return;
     
-    const currentStatus = !!user.isPremium;
+    console.log("Processing premium status:", { 
+      userIsPremium: user.isPremium,
+      premiumStatus
+    });
     
-    // If premium status changed from false to true (activated)
-    if (lastPremiumStatus === false && currentStatus === true) {
-      console.log("Premium activated: false → true");
+    // Create unique identifiers for premium events to prevent duplicate notifications
+    const activationId = premiumStatus.isPremium ? `activation-${user.id}-${premiumStatus.premiumUntil}` : null;
+    const deactivationId = (!premiumStatus.isPremium && 
+                           (premiumStatus.statusChanged || 
+                            premiumStatus.premiumJustExpired || 
+                            premiumStatus.premiumJustRevoked)) 
+                           ? `deactivation-${user.id}-${Date.now()}` : null;
+    
+    // Check if we've already processed these events
+    const isActivationProcessed = !activationId || processedNotificationIds.includes(activationId);
+    const isDeactivationProcessed = !deactivationId || processedNotificationIds.includes(deactivationId);
+    
+    // Handle activation notification (premium just became active)
+    if (premiumStatus.isPremium && !isActivationProcessed && activationId) {
+      console.log("Premium activation detected!");
       
       // Show toast notification for premium activation
       toast({
-        title: "Premium Activated",
+        title: "Premium Activated", 
         description: "Your premium subscription is now active. Enjoy your benefits!",
         variant: "default",
         className: "bg-gradient-to-r from-yellow-500 to-amber-600 text-white border-0",
       });
       
-      setIsPremiumActivated(true);
+      // Mark this activation as processed
+      setProcessedNotificationIds(prev => [...prev, activationId]);
     }
     
-    // If premium status changed from true to false (deactivated)
-    if (lastPremiumStatus === true && currentStatus === false) {
-      console.log("Premium deactivated: true → false");
-      
-      // Show popup for premium deactivation
-      setDialogTitle("Premium Subscription Ended");
-      setDialogMessage("Your premium subscription has been deactivated. Resubscribe to continue enjoying premium benefits!");
-      setShowDialog(true);
-    }
-    
-    // Update last known status
-    if (lastPremiumStatus !== currentStatus) {
-      setLastPremiumStatus(currentStatus);
-    }
-  }, [user?.isPremium, lastPremiumStatus, hasProcessedInitialStatus, toast]);
-
-  // Premium status updates from API
-  useEffect(() => {
-    if (!premiumStatus || !user) return;
-    
-    console.log("Premium status update from API:", premiumStatus);
-    
-    // Check if premium status changed (either from server check or direct user object change)
-    if (premiumStatus.statusChanged || 
-        premiumStatus.premiumJustExpired || 
-        premiumStatus.premiumJustRevoked || 
-        premiumStatus.wasExpired) {
-      
-      console.log("Premium status change detected:", { 
+    // Handle deactivation notification (premium was lost)
+    if (!premiumStatus.isPremium && !isDeactivationProcessed && deactivationId) {
+      console.log("Premium deactivation detected!", { 
         statusChanged: premiumStatus.statusChanged,
         premiumJustExpired: premiumStatus.premiumJustExpired,
         premiumJustRevoked: premiumStatus.premiumJustRevoked, 
         wasExpired: premiumStatus.wasExpired 
       });
       
-      // Only show popup if user is not premium and we haven't already shown it for this event
-      if (!user.isPremium && (lastPremiumStatus === true || lastPremiumStatus === null)) {
-        if (premiumStatus.premiumJustRevoked) {
-          // Premium was revoked by admin
-          setDialogTitle("Premium Subscription Revoked");
-          setDialogMessage("Your premium subscription has been deactivated by an administrator. Please contact support if you believe this is an error.");
-        } else {
-          // Premium naturally expired
-          setDialogTitle("Premium Subscription Expired");
-          setDialogMessage("Your premium subscription has expired. Renew now to continue enjoying premium benefits!");
-        }
-        
-        // Show the dialog
-        setShowDialog(true);
-        console.log("Showing premium expiration dialog");
-        
-        // Store that we've shown the notification
-        setLastPremiumStatus(false);
+      // Set up dialog content based on deactivation reason
+      if (premiumStatus.premiumJustRevoked) {
+        setDialogTitle("Premium Subscription Revoked");
+        setDialogMessage(
+          "Your premium subscription has been deactivated by an administrator. " +
+          "Please contact support if you believe this is an error."
+        );
+      } else {
+        setDialogTitle("Premium Subscription Expired");
+        setDialogMessage(
+          "Your premium subscription has expired. " +
+          "Renew now to continue enjoying premium benefits!"
+        );
       }
+      
+      // Show the dialog
+      setShowDialog(true);
+      console.log("Showing premium expiration dialog");
+      
+      // Mark this deactivation as processed
+      setProcessedNotificationIds(prev => [...prev, deactivationId]);
     }
-  }, [premiumStatus, user, lastPremiumStatus]);
+  }, [premiumStatus, user, toast]);
 
   // Expose a function to show the dialog manually
   const showExpiredDialog = () => {

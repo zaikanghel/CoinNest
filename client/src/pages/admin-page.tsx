@@ -544,12 +544,12 @@ export default function AdminPage() {
                           <div className="flex justify-between items-start">
                             <div>
                               <h3 className="font-medium">Subscription Price</h3>
-                              <span className="text-sm">${settings?.find(s => s.key === 'premium_price')?.value || '4.99'}/month</span>
+                              <span className="text-sm">${settings?.find((s: Setting) => s.key === 'premium_price')?.value || '4.99'}/month</span>
                             </div>
                             <Button 
                               variant="outline" 
                               size="sm"
-                              onClick={() => openSettingModal(settings?.find(s => s.key === 'premium_price'))}
+                              onClick={() => openSettingModal(settings?.find((s: Setting) => s.key === 'premium_price'))}
                             >
                               Edit
                             </Button>
@@ -560,12 +560,12 @@ export default function AdminPage() {
                           <div className="flex justify-between items-start">
                             <div>
                               <h3 className="font-medium">AFK Earnings Multiplier</h3>
-                              <span className="text-sm">{settings?.find(s => s.key === 'premium_afk_multiplier')?.value || '2'}x earnings</span>
+                              <span className="text-sm">{settings?.find((s: Setting) => s.key === 'premium_afk_multiplier')?.value || '2'}x earnings</span>
                             </div>
                             <Button 
                               variant="outline" 
                               size="sm"
-                              onClick={() => openSettingModal(settings?.find(s => s.key === 'premium_afk_multiplier'))}
+                              onClick={() => openSettingModal(settings?.find((s: Setting) => s.key === 'premium_afk_multiplier'))}
                             >
                               Edit
                             </Button>
@@ -576,12 +576,12 @@ export default function AdminPage() {
                           <div className="flex justify-between items-start">
                             <div>
                               <h3 className="font-medium">Daily Limit Bonus</h3>
-                              <span className="text-sm">+{settings?.find(s => s.key === 'premium_daily_limit_bonus')?.value || '200'} coins</span>
+                              <span className="text-sm">+{settings?.find((s: Setting) => s.key === 'premium_daily_limit_bonus')?.value || '200'} coins</span>
                             </div>
                             <Button 
                               variant="outline" 
                               size="sm"
-                              onClick={() => openSettingModal(settings?.find(s => s.key === 'premium_daily_limit_bonus'))}
+                              onClick={() => openSettingModal(settings?.find((s: Setting) => s.key === 'premium_daily_limit_bonus'))}
                             >
                               Edit
                             </Button>
@@ -592,12 +592,12 @@ export default function AdminPage() {
                           <div className="flex justify-between items-start">
                             <div>
                               <h3 className="font-medium">No Captchas</h3>
-                              <span className="text-sm">{settings?.find(s => s.key === 'captcha_disabled_premium')?.value === 'true' ? 'Enabled' : 'Disabled'}</span>
+                              <span className="text-sm">{settings?.find((s: Setting) => s.key === 'captcha_disabled_premium')?.value === 'true' ? 'Enabled' : 'Disabled'}</span>
                             </div>
                             <Button 
                               variant="outline" 
                               size="sm"
-                              onClick={() => openSettingModal(settings?.find(s => s.key === 'captcha_disabled_premium'))}
+                              onClick={() => openSettingModal(settings?.find((s: Setting) => s.key === 'captcha_disabled_premium'))}
                             >
                               Edit
                             </Button>
