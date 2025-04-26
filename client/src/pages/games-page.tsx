@@ -102,21 +102,35 @@ export default function GamesPage() {
                           <i className="ri-gamepad-line mr-1"></i>
                           <span>{game.category} • {game.difficulty}</span>
                         </div>
-                        <div className="mt-3 flex justify-between items-center">
-                          <div className="flex items-center">
-                            <i className="ri-coin-line text-amber-500 mr-1"></i>
-                            <span className="text-sm font-medium">Up to {game.maxEarning}/hr</span>
+                        <div className="mt-3 flex flex-col space-y-2">
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center">
+                              <i className="ri-coin-line text-amber-500 mr-1"></i>
+                              <span className="text-sm font-medium">Up to {game.maxEarning}/hr</span>
+                            </div>
+                            {game.id === "memory-match" && (
+                              <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-2 py-1 rounded">
+                                {game.baseReward} coins/match
+                              </span>
+                            )}
+                            {game.id === "clicker-quest" && (
+                              <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-1 rounded">
+                                {game.baseReward} coins/click
+                              </span>
+                            )}
                           </div>
-                          {game.isNew && (
-                            <Badge variant="outline" className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-none">
-                              New
-                            </Badge>
-                          )}
-                          {game.isPopular && (
-                            <Badge variant="outline" className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-none">
-                              Popular
-                            </Badge>
-                          )}
+                          <div className="flex space-x-2">
+                            {game.isNew && (
+                              <Badge variant="outline" className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-none">
+                                New
+                              </Badge>
+                            )}
+                            {game.isPopular && (
+                              <Badge variant="outline" className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-none">
+                                Popular
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>

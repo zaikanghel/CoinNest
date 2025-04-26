@@ -4,8 +4,26 @@ import { storage } from "./storage";
 export function setupGameRoutes(app: Express) {
   // Get list of available games
   app.get("/api/games", async (req, res) => {
+    // Get game reward settings from the database
+    const memoryRewardStr = await storage.getSetting("game_memory_reward");
+    const clickerRewardStr = await storage.getSetting("game_clicker_reward");
+    const maxEarningsStr = await storage.getSetting("game_max_earnings");
+    
+    // Default values if settings aren't configured
+    const memoryReward = parseInt(memoryRewardStr || "10");
+    const clickerReward = parseInt(clickerRewardStr || "5");
+    const maxEarnings = parseInt(maxEarningsStr || "200");
+    
+    // Calculate max hourly earnings for memory game (based on admin settings)
+    // Assume average of 3 matches per minute
+    const memoryHourlyEarning = 3 * 60 * (memoryReward / 10);
+    
+    // Calculate max hourly earnings for clicker game (based on admin settings)
+    // Assume average of 10 clicks per minute
+    const clickerHourlyEarning = 10 * 60 * (clickerReward / 5);
+    
     // These would typically be stored in the database,
-    // but for MVP we'll hardcode them
+    // but for MVP we'll use dynamic values based on admin settings
     const games = [
       {
         id: "memory-match",
@@ -13,7 +31,8 @@ export function setupGameRoutes(app: Express) {
         description: "Test your memory by matching pairs of cards",
         difficulty: "Medium",
         category: "Puzzle",
-        maxEarning: 180, // coins per hour
+        maxEarning: Math.min(Math.round(memoryHourlyEarning), maxEarnings), // coins per hour, capped by max earnings
+        baseReward: memoryReward,
         isNew: true,
         isPopular: false,
         imageUrl: "https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=300&q=80"
@@ -24,7 +43,8 @@ export function setupGameRoutes(app: Express) {
         description: "Click to earn coins and upgrade your abilities",
         difficulty: "Easy",
         category: "Idle",
-        maxEarning: 200, // coins per hour
+        maxEarning: Math.min(Math.round(clickerHourlyEarning), maxEarnings), // coins per hour, capped by max earnings
+        baseReward: clickerReward,
         isNew: false,
         isPopular: true,
         imageUrl: "https://images.unsplash.com/photo-1601987177651-8edfe995b286?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=300&q=80"
