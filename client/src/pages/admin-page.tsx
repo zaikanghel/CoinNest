@@ -112,7 +112,9 @@ export default function AdminPage() {
         variant: "default"
       });
       setShowSettingModal(false);
+      // Invalidate both admin settings and global settings
       queryClient.invalidateQueries({ queryKey: ["/api/admin/settings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/settings/global"] });
     },
     onError: (error: Error) => {
       toast({

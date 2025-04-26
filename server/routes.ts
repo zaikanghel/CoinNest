@@ -212,7 +212,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     await storage.updateSetting(key, value.toString());
+    
+    // Update the settings_updated_at timestamp to track changes
+    await storage.updateSetting("settings_updated_at", Date.now().toString());
+    
     res.json({ success: true });
+  });
+  
+  // Global settings endpoint for all clients (no auth required)
+  app.get("/api/settings/global", async (req, res) => {
+    const settings = await storage.getSettings();
+    res.json(settings);
   });
   
   // Stats route for dashboard

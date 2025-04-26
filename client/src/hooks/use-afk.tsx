@@ -2,6 +2,7 @@ import { createContext, ReactNode, useContext, useEffect, useRef, useState } fro
 import { useToast } from "./use-toast";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useSettings } from "./use-settings";
 
 interface AfkContextType {
   isAfkActive: boolean;
@@ -27,12 +28,14 @@ export const AfkContext = createContext<AfkContextType | null>(null);
 
 export function AfkProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
+  const { settings } = useSettings(); // Use global settings
+  
   const [isAfkActive, setIsAfkActive] = useState(false);
   const [afkTime, setAfkTime] = useState(0);
-  const [afkRate, setAfkRate] = useState(2);
-  const [dailyLimit, setDailyLimit] = useState(200);
+  const [afkRate, setAfkRate] = useState(settings.afk_rate);
+  const [dailyLimit, setDailyLimit] = useState(settings.afk_daily_limit);
   const [dailyEarned, setDailyEarned] = useState(0);
-  const [captchaInterval, setCaptchaInterval] = useState(1200);
+  const [captchaInterval, setCaptchaInterval] = useState(settings.captcha_interval);
   const [lastCaptchaTime, setLastCaptchaTime] = useState(0);
   const [captchaNeeded, setCaptchaNeeded] = useState(false);
   const [lastEarningSubmit, setLastEarningSubmit] = useState(0);
@@ -50,6 +53,16 @@ export function AfkProvider({ children }: { children: ReactNode }) {
   
   // Constants for anti-cheat
   const RESUME_TOAST_COOLDOWN = 3000; // 3 seconds cooldown between resume notifications
+  
+  // Update local state when global settings change
+  useEffect(() => {
+    // Only update if not in active AFK session to avoid disruption
+    if (!isAfkActive) {
+      setAfkRate(settings.afk_rate);
+      setDailyLimit(settings.afk_daily_limit);
+      setCaptchaInterval(settings.captcha_interval);
+    }
+  }, [settings, isAfkActive]);
   
   // Start AFK session
   const { isLoading, refetch: refetchAfkSettings } = useQuery({
