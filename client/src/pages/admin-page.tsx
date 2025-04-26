@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -1052,6 +1052,166 @@ export default function AdminPage() {
           </Form>
         </DialogContent>
       </Dialog>
+
+      {/* Premium Payment Modal */}
+      <Dialog open={showPremiumPaymentModal} onOpenChange={setShowPremiumPaymentModal}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Premium Payment Details</DialogTitle>
+            <DialogDescription>
+              {selectedPremiumPayment?.status === 'pending' 
+                ? 'Review and process this premium payment request' 
+                : 'View premium payment details'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedPremiumPayment && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-medium mb-1">User</h3>
+                    <div className="flex items-center">
+                      {users?.find((u: any) => u.id === selectedPremiumPayment.userId) && (
+                        <Avatar className="h-8 w-8 mr-2">
+                          <AvatarFallback className={getColorFromString(users?.find((u: any) => u.id === selectedPremiumPayment.userId)?.username || '')}>
+                            {getUserInitials(users?.find((u: any) => u.id === selectedPremiumPayment.userId)?.username || '')}
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
+                      <span className="font-medium">
+                        {users?.find((u: any) => u.id === selectedPremiumPayment.userId)?.username || `User #${selectedPremiumPayment.userId}`}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-sm font-medium mb-1">Payment Details</h3>
+                    <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Amount:</span>
+                        <span className="font-medium">${selectedPremiumPayment.amount.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Method:</span>
+                        <span className="font-medium capitalize">{selectedPremiumPayment.method}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Duration:</span>
+                        <span className="font-medium">
+                          {selectedPremiumPayment.durationMonths} {selectedPremiumPayment.durationMonths === 1 ? 'month' : 'months'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Requested:</span>
+                        <span className="font-medium">{new Date(selectedPremiumPayment.createdAt).toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Status:</span>
+                        <span className={`font-medium capitalize ${
+                          selectedPremiumPayment.status === 'approved' 
+                            ? 'text-green-600 dark:text-green-400'
+                            : selectedPremiumPayment.status === 'rejected'
+                              ? 'text-red-600 dark:text-red-400'
+                              : 'text-yellow-600 dark:text-yellow-400'
+                        }`}>
+                          {selectedPremiumPayment.status}
+                        </span>
+                      </div>
+                      {selectedPremiumPayment.processedAt && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Processed:</span>
+                          <span className="font-medium">{new Date(selectedPremiumPayment.processedAt).toLocaleString()}</span>
+                        </div>
+                      )}
+                      {selectedPremiumPayment.notes && (
+                        <div className="pt-2">
+                          <span className="text-gray-500">Notes:</span>
+                          <p className="mt-1 text-sm whitespace-pre-wrap">{selectedPremiumPayment.notes}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-medium mb-1">Payment Proof</h3>
+                    <div className="border rounded-md overflow-hidden">
+                      {selectedPremiumPayment.proofImage ? (
+                        <img 
+                          src={selectedPremiumPayment.proofImage} 
+                          alt="Payment Proof" 
+                          className="w-full h-auto max-h-64 object-contain"
+                        />
+                      ) : (
+                        <div className="p-8 text-center text-gray-500">No payment proof provided</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {selectedPremiumPayment.status === 'pending' && (
+                <div className="flex justify-end gap-2 pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowPremiumPaymentModal(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => processPremiumPayment('rejected')}
+                    disabled={processPremiumPaymentMutation.isPending}
+                  >
+                    {processPremiumPaymentMutation.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="h-4 w-4 mr-2" />
+                        Reject
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="default"
+                    onClick={() => processPremiumPayment('approved')}
+                    disabled={processPremiumPaymentMutation.isPending}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {processPremiumPaymentMutation.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Approve
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+              
+              {selectedPremiumPayment.status !== 'pending' && (
+                <div className="flex justify-end pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowPremiumPaymentModal(false)}
+                  >
+                    Close
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 }
@@ -1067,6 +1227,9 @@ function getSettingDescription(key: string): string {
     'premium_price': 'Monthly subscription price in USD',
     'premium_afk_multiplier': 'Multiplier for AFK earnings for premium users',
     'premium_daily_limit_bonus': 'Additional daily limit for premium users',
+    'premium_duration_options': 'Available premium subscription durations in months (comma-separated)',
+    'premium_captcha_disabled': 'Whether premium users are exempt from captchas (true/false)',
+    'premium_ad_free': 'Whether premium users see ads (true/false)',
     'ad_refresh_rate': 'How often ads should refresh (in seconds)',
     'ad_banner_enabled': 'Whether banner ads are enabled (true/false)',
     'ad_video_enabled': 'Whether video ads are enabled (true/false)',
