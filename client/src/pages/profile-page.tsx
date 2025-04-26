@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { getUserInitials, getColorFromString, formatDate } from "@/lib/utils";
-import { Loader2, Check, Save, Edit2 } from "lucide-react";
+import { Loader2, Check, Save, Edit2, Crown } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";

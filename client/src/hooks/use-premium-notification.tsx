@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { useAuth } from "@/hooks/use-auth";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { Crown, AlertTriangle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -20,15 +21,9 @@ export function PremiumNotificationProvider({ children }: { children: ReactNode 
   const [dialogTitle, setDialogTitle] = useState("Premium Subscription Ended");
   const [dialogMessage, setDialogMessage] = useState("Your premium benefits are no longer active.");
   const [lastPremiumStatus, setLastPremiumStatus] = useState<boolean | null>(null);
-  const [lastReloadTime, setLastReloadTime] = useState<number>(Date.now());
-
-  // Check if user first loads the page or logs in
-  useEffect(() => {
-    if (user) {
-      // Reset last reload time when user changes (login/logout)
-      setLastReloadTime(Date.now());
-    }
-  }, [user?.id]);
+  const [isPremiumActivated, setIsPremiumActivated] = useState(false);
+  const [hasProcessedInitialStatus, setHasProcessedInitialStatus] = useState(false);
+  const { toast } = useToast();
 
   // Check premium status periodically if user is logged in
   const { data: premiumStatus } = useQuery({
@@ -39,56 +34,78 @@ export function PremiumNotificationProvider({ children }: { children: ReactNode 
       return res.json();
     },
     enabled: !!user, // Only run query if user is logged in
-    refetchInterval: 30000, // Check every 30 seconds
+    refetchInterval: 15000, // Check every 15 seconds
   });
 
-  // Track premium status changes
+  // Initial login detection
   useEffect(() => {
-    if (!user) {
-      setLastPremiumStatus(null);
-      return;
+    if (user && !hasProcessedInitialStatus) {
+      console.log("Initial premium status check:", user.isPremium);
+      setLastPremiumStatus(!!user.isPremium);
+      setHasProcessedInitialStatus(true);
     }
+  }, [user, hasProcessedInitialStatus]);
 
-    // Fresh login or page load - store initial premium status
-    if (lastPremiumStatus === null && user.isPremium !== undefined) {
-      console.log("Setting initial premium status:", user.isPremium);
-      setLastPremiumStatus(user.isPremium);
-      return;
+  // Track direct premium status changes from the user object
+  useEffect(() => {
+    if (!user || !hasProcessedInitialStatus) return;
+    
+    const currentStatus = !!user.isPremium;
+    
+    // If premium status changed from false to true (activated)
+    if (lastPremiumStatus === false && currentStatus === true) {
+      console.log("Premium activated: false → true");
+      
+      // Show toast notification for premium activation
+      toast({
+        title: "Premium Activated",
+        description: "Your premium subscription is now active. Enjoy your benefits!",
+        variant: "default",
+        className: "bg-gradient-to-r from-yellow-500 to-amber-600 text-white border-0",
+      });
+      
+      setIsPremiumActivated(true);
     }
-
-    // If user was premium before but is not now, show the dialog
-    if (lastPremiumStatus === true && user.isPremium === false) {
-      console.log("Premium status changed from true to false");
+    
+    // If premium status changed from true to false (deactivated)
+    if (lastPremiumStatus === true && currentStatus === false) {
+      console.log("Premium deactivated: true → false");
+      
+      // Show popup for premium deactivation
       setDialogTitle("Premium Subscription Ended");
-      setDialogMessage("Your premium subscription has been deactivated.");
+      setDialogMessage("Your premium subscription has been deactivated. Resubscribe to continue enjoying premium benefits!");
       setShowDialog(true);
     }
-
-    // Update the last premium status
-    if (lastPremiumStatus !== user.isPremium) {
-      setLastPremiumStatus(user.isPremium);
+    
+    // Update last known status
+    if (lastPremiumStatus !== currentStatus) {
+      setLastPremiumStatus(currentStatus);
     }
-  }, [user, lastPremiumStatus]);
+  }, [user?.isPremium, lastPremiumStatus, hasProcessedInitialStatus, toast]);
 
-  // Check for premium status changes from API
+  // Premium status updates from API
   useEffect(() => {
-    if (premiumStatus) {
-      // If server detects a just-expired premium
-      if (premiumStatus.premiumJustExpired) {
-        console.log("Premium just expired detected from server");
-        setDialogTitle("Premium Subscription Expired");
-        setDialogMessage("Your premium subscription has expired. Renew now to continue enjoying premium benefits!");
-        setShowDialog(true);
-      } 
-      // If server indicates premium was just expired in a check
-      else if (premiumStatus.wasExpired) {
-        console.log("Premium was expired detected from server");
+    if (!premiumStatus || !user) return;
+    
+    console.log("Premium status update from API:", premiumStatus);
+    
+    // Premium was just revoked by admin or just expired
+    if (premiumStatus.premiumJustExpired || premiumStatus.wasExpired) {
+      console.log("Premium just expired or revoked detected");
+      
+      // Only show if we haven't already shown a dialog for this event
+      if (user.isPremium === false && lastPremiumStatus !== false) {
         setDialogTitle("Premium Subscription Ended");
-        setDialogMessage("Your premium subscription was expired and has been deactivated.");
+        setDialogMessage(premiumStatus.wasExpired 
+          ? "Your premium subscription has expired. Renew now to continue enjoying premium benefits!"
+          : "Your premium subscription has been deactivated. Resubscribe to continue enjoying premium benefits!");
         setShowDialog(true);
+        
+        // Force update status to avoid showing dialog multiple times
+        setLastPremiumStatus(false);
       }
     }
-  }, [premiumStatus]);
+  }, [premiumStatus, user, lastPremiumStatus]);
 
   // Expose a function to show the dialog manually
   const showExpiredDialog = () => {

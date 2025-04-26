@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "next-themes";
 import { getUserInitials, getColorFromString } from "@/lib/utils";
-import { Moon, Sun, Bell } from "lucide-react";
+import { Moon, Sun, Bell, Crown } from "lucide-react";
 
 type HeaderProps = {
   toggleSidebar: () => void;
@@ -92,19 +92,41 @@ export default function Header({ toggleSidebar, pageTitle }: HeaderProps) {
             variant="ghost"
             className="relative h-8 rounded-full focus:ring-0 focus:ring-offset-0"
           >
-            <Avatar className="h-8 w-8">
+            <Avatar className="h-8 w-8 relative">
               <AvatarFallback className={getColorFromString(user?.username || "U")}>
                 {getUserInitials(user?.username || "User")}
               </AvatarFallback>
+              {user?.isPremium && (
+                <div className="absolute -top-1 -right-1 bg-yellow-500 rounded-full w-3 h-3 border-2 border-white dark:border-gray-800" 
+                  title="Premium User"
+                />
+              )}
             </Avatar>
             <span className="sr-only">Open user menu</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56" align="end" forceMount>
+        <DropdownMenuContent className="w-64" align="end" forceMount>
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{user?.username}</p>
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{user?.username}</p>
+                {user?.isPremium ? (
+                  <span className="bg-gradient-to-r from-yellow-500 to-amber-500 text-white text-xs px-2 py-0.5 rounded-full flex items-center">
+                    <Crown className="h-3 w-3 mr-1" />
+                    Premium
+                  </span>
+                ) : (
+                  <span className="text-gray-500 dark:text-gray-400 text-xs px-2 py-0.5 rounded-full border border-gray-200 dark:border-gray-700">
+                    Free
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
+              {user?.isPremium && user.premiumUntil && (
+                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                  Premium until: {new Date(user.premiumUntil).toLocaleDateString()}
+                </p>
+              )}
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
