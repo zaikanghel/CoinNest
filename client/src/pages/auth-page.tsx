@@ -94,48 +94,48 @@ export default function AuthPage() {
         <div className="max-w-md mx-auto relative z-10">
           <div className="mb-8">
             <h1 className="text-4xl md:text-5xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-100">
-              EarnPlay
+              IdleCash
             </h1>
             <div className="h-1 w-20 bg-white/40 rounded-full mb-6"></div>
           </div>
           
           <h2 className="text-2xl md:text-3xl font-semibold mb-6 leading-tight">
-            Play games, stay active,<br />
-            <span className="text-yellow-300">earn real rewards</span>
+            Earn Money 24/7, Even While<br />
+            <span className="text-yellow-300">You Sleep!</span>
           </h2>
           
           <p className="text-lg mb-8 text-white/90 leading-relaxed">
-            Join our platform to earn coins through AFK activities and mini-games. Convert your earnings to real money or use them to unlock exclusive content.
+            Keep the tab open and earn money passively with our AFK system. Boost your earnings with fun mini-games and cash out directly to PayPal or GCash.
           </p>
           
           <div className="space-y-6">
             <div className="flex items-start bg-white/10 p-4 rounded-lg backdrop-blur-sm transition-all hover:bg-white/20">
               <div className="bg-gradient-to-br from-blue-500 to-violet-500 p-3 rounded-lg mr-4 shadow-lg">
-                <span className="text-xl">⏱️</span>
+                <span className="text-xl">💤</span>
               </div>
               <div>
-                <h3 className="font-medium text-lg">AFK Earnings</h3>
-                <p className="text-white/80">Earn while keeping the tab open</p>
+                <h3 className="font-medium text-lg">Passive Income</h3>
+                <p className="text-white/80">Earn 24/7 just by keeping the tab open</p>
               </div>
             </div>
             
             <div className="flex items-start bg-white/10 p-4 rounded-lg backdrop-blur-sm transition-all hover:bg-white/20">
               <div className="bg-gradient-to-br from-green-500 to-emerald-500 p-3 rounded-lg mr-4 shadow-lg">
-                <span className="text-xl">🎮</span>
+                <span className="text-xl">💰</span>
               </div>
               <div>
-                <h3 className="font-medium text-lg">Fun Mini-Games</h3>
-                <p className="text-white/80">Play games to boost your earnings</p>
+                <h3 className="font-medium text-lg">Real Cash Payouts</h3>
+                <p className="text-white/80">Withdraw to PayPal or GCash anytime</p>
               </div>
             </div>
             
             <div className="flex items-start bg-white/10 p-4 rounded-lg backdrop-blur-sm transition-all hover:bg-white/20">
               <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-3 rounded-lg mr-4 shadow-lg">
-                <span className="text-xl">👥</span>
+                <span className="text-xl">🚀</span>
               </div>
               <div>
-                <h3 className="font-medium text-lg">Referral System</h3>
-                <p className="text-white/80">Invite friends and earn commission</p>
+                <h3 className="font-medium text-lg">Boost Your Earnings</h3>
+                <p className="text-white/80">Play mini-games & invite friends for bonuses</p>
               </div>
             </div>
           </div>
@@ -294,7 +294,7 @@ export default function AuthPage() {
                           Creating account...
                         </>
                       ) : (
-                        "Join EarnPlay Now"
+                        "Join IdleCash Now"
                       )}
                     </Button>
                   </form>
