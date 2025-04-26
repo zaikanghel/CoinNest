@@ -9,8 +9,20 @@ export function setupPremiumRoutes(app: Express) {
       const user = await storage.getUser(userId);
       if (!user) return false;
       
+      console.log(`[PREMIUM CHECK] Checking premium status for user ${userId}`);
+      console.log(`[PREMIUM CHECK] isPremium: ${user.isPremium}, premiumUntil: ${user.premiumUntil}`);
+      
+      if (user.premiumUntil) {
+        const expiryDate = new Date(user.premiumUntil);
+        const now = new Date();
+        console.log(`[PREMIUM CHECK] Expiry date: ${expiryDate.toISOString()}, Current date: ${now.toISOString()}`);
+        console.log(`[PREMIUM CHECK] Is expired: ${expiryDate <= now}`);
+      }
+      
       // If user has premium but it's expired, automatically deactivate it
       if (user.isPremium && user.premiumUntil && new Date(user.premiumUntil) <= new Date()) {
+        console.log(`[PREMIUM CHECK] Premium expired for user ${userId}, deactivating...`);
+        
         await storage.updateUserPremiumStatus(
           user.id,
           false,
@@ -25,6 +37,7 @@ export function setupPremiumRoutes(app: Express) {
           description: "Premium subscription expired automatically"
         });
         
+        console.log(`[PREMIUM CHECK] Successfully deactivated premium for user ${userId}`);
         return true; // Premium was expired
       }
       
@@ -266,6 +279,45 @@ export function setupPremiumRoutes(app: Express) {
       success: true,
       user: updatedUser,
       message: "Premium subscription revoked"
+    });
+  });
+  
+  // Test endpoint for premium expiration (for development purposes only)
+  app.get("/api/admin/test-premium-expiration/:userId", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+    
+    const { userId } = req.params;
+    const user = await storage.getUser(parseInt(userId));
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    // Set premium to expire in the past (5 seconds ago)
+    const pastExpiryDate = new Date(Date.now() - 5000); // 5 seconds ago
+    
+    // Set user as premium but with expired date
+    await storage.updateUser(user.id, {
+      isPremium: true,
+      premiumUntil: pastExpiryDate,
+      premiumStarted: new Date(Date.now() - 3600000) // 1 hour ago
+    });
+    
+    console.log(`[TEST] Set user ${userId} as premium with expiry date: ${pastExpiryDate.toISOString()}`);
+    
+    // Check for expiration
+    const wasExpired = await checkPremiumExpiration(parseInt(userId));
+    
+    // Get updated user
+    const updatedUser = await storage.getUser(parseInt(userId));
+    
+    res.json({
+      success: true,
+      wasExpired,
+      user: updatedUser,
+      message: wasExpired ? "Premium was successfully expired and deactivated" : "Premium expiration check did not deactivate premium"
     });
   });
 }
