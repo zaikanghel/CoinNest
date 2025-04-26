@@ -53,6 +53,8 @@ export class MongoStorage implements IStorage {
 
   private async initDefaultSettings(): Promise<void> {
     if (!this.settingsCollection) throw new Error("Database not initialized");
+    
+    console.log("Initializing default settings in MongoDB...");
 
     const defaultSettings = [
       { key: 'afk_rate', value: '2' }, // coins per minute
@@ -71,10 +73,13 @@ export class MongoStorage implements IStorage {
     for (const setting of defaultSettings) {
       const exists = await this.settingsCollection.findOne({ key: setting.key });
       if (!exists) {
+        console.log(`Creating default setting: ${setting.key} = ${setting.value}`);
         await this.settingsCollection.insertOne({
           ...setting,
           updatedAt: new Date()
         });
+      } else {
+        console.log(`Setting already exists: ${setting.key} = ${exists.value}`);
       }
     }
   }
