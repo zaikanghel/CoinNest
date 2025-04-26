@@ -201,7 +201,7 @@ export function AfkProvider({ children }: { children: ReactNode }) {
         toast({
           title: "Tab inactive",
           description: "AFK earnings will be paused until you return to this tab",
-          variant: "warning"
+          variant: "destructive"
         });
       }
     };
@@ -239,7 +239,7 @@ export function AfkProvider({ children }: { children: ReactNode }) {
           toast({
             title: "Mouse inactivity detected",
             description: "Please verify you're still active",
-            variant: "warning"
+            variant: "destructive"
           });
         }
       }, 30000); // Check every 30 seconds

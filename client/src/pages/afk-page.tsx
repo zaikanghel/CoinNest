@@ -8,6 +8,8 @@ import { Separator } from "@/components/ui/separator";
 import { formatTime } from "@/lib/utils";
 import { useAfk, AfkProvider } from "@/hooks/use-afk";
 import VerificationModal from "@/components/verification-modal";
+import BannerAd from "@/components/ads/banner-ad";
+import VideoAd from "@/components/ads/video-ad";
 import { AlertCircle, Info } from "lucide-react";
 
 function AfkEarningContent() {
@@ -23,10 +25,12 @@ function AfkEarningContent() {
     verifyCaptcha,
     captchaVerificationPending,
     isLoading,
-    lastEarning
+    lastEarning,
+    isTabActive
   } = useAfk();
 
   const [showLastEarning, setShowLastEarning] = useState(false);
+  const [showVideoAd, setShowVideoAd] = useState(false);
 
   // Show the last earning notification for 5 seconds
   useEffect(() => {
