@@ -56,8 +56,11 @@ export function setupPremiumRoutes(app: Express) {
 
     const user = req.user;
     
+    // Store initial premium status before checking expiration
+    const wasInitiallyPremium = user.isPremium && user.premiumUntil && new Date(user.premiumUntil) > new Date();
+    
     // Check if premium subscription has expired
-    await checkPremiumExpiration(user.id);
+    const wasExpired = await checkPremiumExpiration(user.id);
     
     // Get fresh user data after potential expiration check
     const updatedUser = await storage.getUser(user.id);
@@ -68,10 +71,15 @@ export function setupPremiumRoutes(app: Express) {
     // Calculate if premium is active with fresh data
     const isPremiumActive = updatedUser.isPremium && updatedUser.premiumUntil && new Date(updatedUser.premiumUntil) > new Date();
 
+    // Check if premium status changed from active to inactive
+    const premiumJustExpired = wasInitiallyPremium && !isPremiumActive;
+
     res.json({
       isPremium: isPremiumActive,
       premiumUntil: updatedUser.premiumUntil,
-      premiumStarted: updatedUser.premiumStarted
+      premiumStarted: updatedUser.premiumStarted,
+      wasExpired: wasExpired,
+      premiumJustExpired: premiumJustExpired
     });
   });
 
