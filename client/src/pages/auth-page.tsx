@@ -22,10 +22,19 @@ export default function AuthPage() {
   // Get authentication context
   const { user, isLoading, loginMutation, registerMutation } = useAuth();
   
+  // Check for tab query parameter and set active tab
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab');
+    if (tabParam === 'login' || tabParam === 'register') {
+      setActiveTab(tabParam);
+    }
+  }, []);
+
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      navigate("/");
+      navigate("/dashboard");
     }
   }, [user, navigate]);
 
@@ -55,10 +64,8 @@ export default function AuthPage() {
     loginMutation.mutate(values, {
       onError: (error) => {
         setLoginError(error.message);
-      },
-      onSuccess: () => {
-        navigate("/");
       }
+      // No onSuccess handler needed - redirection handled in auth hook
     });
   };
 
@@ -68,10 +75,8 @@ export default function AuthPage() {
     registerMutation.mutate(values, {
       onError: (error) => {
         setRegisterError(error.message);
-      },
-      onSuccess: () => {
-        navigate("/");
       }
+      // No onSuccess handler needed - redirection handled in auth hook
     });
   };
 
@@ -205,9 +210,9 @@ export default function AuthPage() {
                     <Button 
                       type="submit" 
                       className="w-full mt-6 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white font-medium" 
-                      disabled={isLoading}
+                      disabled={loginMutation.isPending}
                     >
-                      {isLoading ? (
+                      {loginMutation.isPending ? (
                         <>
                           <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                           Logging in...
@@ -286,9 +291,9 @@ export default function AuthPage() {
                     <Button 
                       type="submit" 
                       className="w-full mt-6 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white font-medium" 
-                      disabled={isLoading}
+                      disabled={registerMutation.isPending}
                     >
-                      {isLoading ? (
+                      {registerMutation.isPending ? (
                         <>
                           <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                           Creating account...

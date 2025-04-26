@@ -23,7 +23,7 @@ export default function Sidebar({ isMobile, isOpen, onClose }: SidebarProps) {
   }, [location, isMobile, isOpen, onClose]);
 
   const navItems = [
-    { href: "/", label: "Dashboard", icon: "ri-dashboard-line" },
+    { href: "/dashboard", label: "Dashboard", icon: "ri-dashboard-line" },
     { href: "/afk", label: "AFK Earning", icon: "ri-time-line" },
     { href: "/games", label: "Games", icon: "ri-gamepad-line" },
     { href: "/leaderboard", label: "Leaderboard", icon: "ri-trophy-line" },
