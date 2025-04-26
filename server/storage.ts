@@ -31,6 +31,7 @@ export interface IStorage {
   }): Promise<Withdrawal>;
   getWithdrawalsByUser(userId: number): Promise<Withdrawal[]>;
   getPendingWithdrawals(): Promise<Withdrawal[]>;
+  getAllWithdrawals(): Promise<Withdrawal[]>;
   updateWithdrawalStatus(
     id: number,
     status: string,
