@@ -70,8 +70,10 @@ export function AfkProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Only update if not in active AFK session to avoid disruption
     if (!isAfkActive) {
-      setAfkRate(settings.afk_rate);
-      setDailyLimit(settings.afk_daily_limit);
+      setBaseAfkRate(settings.afk_rate);
+      setBaseDailyLimit(settings.afk_daily_limit);
+      setAfkRate(settings.afk_rate); // Will be updated with premium multiplier later if needed
+      setDailyLimit(settings.afk_daily_limit); // Will be updated with premium bonus later if needed
       setCaptchaInterval(settings.captcha_interval);
     }
   }, [settings, isAfkActive]);
@@ -143,11 +145,36 @@ export function AfkProvider({ children }: { children: ReactNode }) {
       const res = await apiRequest('POST', '/api/afk/verify', { answer, expected });
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       // Reset captcha state
       setCaptchaNeeded(false);
       const now = Date.now();
       setLastCaptchaTime(now);
+      
+      // Update premium status from verification response
+      if (data.isPremiumActive !== undefined) {
+        setIsPremiumActive(data.isPremiumActive);
+      }
+      
+      // Update premium multiplier if available
+      if (data.premiumMultiplier !== undefined) {
+        setPremiumMultiplier(data.premiumMultiplier);
+      }
+      
+      // Update AFK rate with premium multiplier
+      if (data.afkRate !== undefined) {
+        setAfkRate(data.afkRate);
+      }
+      
+      // Update daily limit with premium bonus
+      if (data.dailyLimit !== undefined) {
+        setDailyLimit(data.dailyLimit);
+      }
+      
+      // Update captcha disabled status
+      if (data.captchaDisabled !== undefined) {
+        setCaptchaDisabled(data.captchaDisabled);
+      }
       
       // Resume AFK earnings after successful verification
       if (isPaused) {
@@ -190,7 +217,8 @@ export function AfkProvider({ children }: { children: ReactNode }) {
         const shouldBePaused = !isTabActive || captchaNeeded;
         
         // Check if captcha should be shown based on time - improved consistency
-        if (!captchaNeeded && captchaInterval > 0) {
+        // Skip captcha check entirely if premium user has captcha bypass enabled
+        if (!captchaNeeded && captchaInterval > 0 && !captchaDisabled) {
           // Calculate exact elapsed time in seconds
           const timeElapsedSinceCaptcha = (now - lastCaptchaTime) / 1000;
           
@@ -198,6 +226,12 @@ export function AfkProvider({ children }: { children: ReactNode }) {
           // FOR TESTING: Use 60 seconds instead of captchaInterval
           if (timeElapsedSinceCaptcha >= 60) { // Temporary change for testing
             console.log("Showing verification captcha after 60 seconds");
+            
+            // Log if premium but not captcha disabled (for debugging)
+            if (isPremiumActive) {
+              console.log("Premium user still requires captcha - captchaDisabled setting is false");
+            }
+            
             setCaptchaNeeded(true);
             // Pause timer immediately when captcha appears
             setIsPaused(true);
@@ -212,6 +246,18 @@ export function AfkProvider({ children }: { children: ReactNode }) {
               });
               lastResumeToastRef.current = now;
             }
+          }
+        } 
+        // If premium user has captcha bypass, track that we're bypassing captcha
+        else if (captchaDisabled && !captchaNeeded && captchaInterval > 0) {
+          // Calculate exact elapsed time in seconds
+          const timeElapsedSinceCaptcha = (now - lastCaptchaTime) / 1000;
+          
+          // Check if it's time for a captcha that we'll bypass
+          if (timeElapsedSinceCaptcha >= 60) {
+            console.log("Premium user bypassing captcha verification");
+            // Reset the captcha timer without requiring verification
+            setLastCaptchaTime(now);
           }
         }
         
@@ -280,10 +326,35 @@ export function AfkProvider({ children }: { children: ReactNode }) {
     try {
       const data = await refetchAfkSettings();
       if (data.data) {
+        // Set base rates first
+        if (data.data.baseAfkRate) {
+          setBaseAfkRate(data.data.baseAfkRate);
+        }
+        
+        if (data.data.baseDailyLimit) {
+          setBaseDailyLimit(data.data.baseDailyLimit);
+        }
+        
+        // Set actual rates that include premium bonuses
         setAfkRate(data.data.afkRate);
         setDailyLimit(data.data.dailyLimit);
         setDailyEarned(data.data.dailyEarned);
         setCaptchaInterval(data.data.captchaInterval);
+        
+        // Set premium status
+        if (data.data.isPremiumActive !== undefined) {
+          setIsPremiumActive(data.data.isPremiumActive);
+        }
+        
+        // Set premium multiplier
+        if (data.data.premiumMultiplier !== undefined) {
+          setPremiumMultiplier(data.data.premiumMultiplier);
+        }
+        
+        // Set captcha bypass
+        if (data.data.captchaDisabled !== undefined) {
+          setCaptchaDisabled(data.data.captchaDisabled);
+        }
       }
       setIsAfkActive(true);
     } catch (error: any) {
@@ -399,7 +470,9 @@ export function AfkProvider({ children }: { children: ReactNode }) {
         stopAfkEarning,
         afkTime,
         afkRate,
+        baseAfkRate, // Premium base rate
         dailyLimit,
+        baseDailyLimit, // Premium base limit
         dailyEarned,
         captchaNeeded,
         verifyCaptcha,
@@ -407,7 +480,10 @@ export function AfkProvider({ children }: { children: ReactNode }) {
         isLoading,
         lastEarning,
         isTabActive,
-        isPaused
+        isPaused,
+        isPremiumActive, // Premium status
+        premiumMultiplier, // Premium earnings multiplier
+        captchaDisabled // Premium captcha bypass status
       }}
     >
       {children}
