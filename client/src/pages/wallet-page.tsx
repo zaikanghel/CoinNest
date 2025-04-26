@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useSettings } from "@/hooks/use-settings";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,6 +30,7 @@ type WithdrawalFormData = z.infer<typeof withdrawalSchema>;
 export default function WalletPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { settings } = useSettings();
   const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
 
   // Fetch wallet data
@@ -122,7 +124,7 @@ export default function WalletPage() {
                         <span className="text-5xl font-bold">{wallet?.balance.toLocaleString()}</span>
                         <span className="ml-2 text-white/90 text-xl">coins</span>
                         <p className="mt-1 text-white/80 text-sm">
-                          ≈ <span className="font-medium">${((wallet?.balance || 0) / wallet?.conversionRate).toFixed(2)}</span> at rate of {wallet?.conversionRate} coins = $1
+                          ≈ <span className="font-medium">${((wallet?.balance || 0) / settings.conversion_rate).toFixed(2)}</span> at rate of {settings.conversion_rate} coins = $1
                         </p>
                       </div>
                     </div>
@@ -303,8 +305,8 @@ export default function WalletPage() {
                       What is the minimum withdrawal amount?
                     </h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400 ml-6">
-                      The minimum withdrawal amount is <span className="font-semibold text-primary">{wallet?.minWithdrawal}</span> coins 
-                      (approximately <span className="font-semibold">${((wallet?.minWithdrawal || 0) / wallet?.conversionRate).toFixed(2)}</span>).
+                      The minimum withdrawal amount is <span className="font-semibold text-primary">{settings.min_withdrawal}</span> coins 
+                      (approximately <span className="font-semibold">${((settings.min_withdrawal || 0) / settings.conversion_rate).toFixed(2)}</span>).
                       This helps us minimize processing fees and provide efficient service.
                     </p>
                   </div>
@@ -370,12 +372,12 @@ export default function WalletPage() {
                             onChange={e => field.onChange(parseInt(e.target.value) || wallet?.minWithdrawal || 1000)}
                           />
                           <div className="absolute right-3 top-2.5 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded text-xs font-medium">
-                            ≈ ${field.value ? (field.value / (wallet?.conversionRate || 100)).toFixed(2) : "0.00"}
+                            ≈ ${field.value ? (field.value / settings.conversion_rate).toFixed(2) : "0.00"}
                           </div>
                         </div>
                       </FormControl>
                       <div className="flex justify-between items-center text-xs mt-1">
-                        <span className="text-gray-500">Min: {wallet?.minWithdrawal} coins</span>
+                        <span className="text-gray-500">Min: {settings.min_withdrawal} coins</span>
                         <span className="text-gray-500">Max: {wallet?.balance} coins</span>
                       </div>
                       <FormMessage />
