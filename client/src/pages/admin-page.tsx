@@ -175,7 +175,7 @@ export default function AdminPage() {
           </div>
         ) : (
           <Tabs defaultValue="withdrawals">
-            <TabsList className="grid w-full grid-cols-3 mb-6">
+            <TabsList className="grid w-full grid-cols-4 mb-6">
               <TabsTrigger value="withdrawals">
                 <Wallet className="h-4 w-4 mr-2" />
                 Withdrawals
@@ -187,6 +187,24 @@ export default function AdminPage() {
               <TabsTrigger value="settings">
                 <Settings className="h-4 w-4 mr-2" />
                 Settings
+              </TabsTrigger>
+              <TabsTrigger value="monetization">
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  className="h-4 w-4 mr-2"
+                >
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M12 6v6l4 2"></path>
+                  <path d="M8.5 9.5h.01"></path>
+                  <path d="M15.5 9.5h.01"></path>
+                </svg>
+                Monetization
               </TabsTrigger>
             </TabsList>
 
@@ -349,6 +367,292 @@ export default function AdminPage() {
                   </Table>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* Monetization Tab */}
+            <TabsContent value="monetization">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Ad Network Settings */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Ad Network Settings</CardTitle>
+                    <CardDescription>
+                      Configure ExoClick ad network integration
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Ad Network ID */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium">ExoClick Site ID</h3>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openSettingModal(settings?.find(s => s.key === 'exoclick_site_id'))}
+                        >
+                          Configure
+                        </Button>
+                      </div>
+                      <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                        <code className="text-sm">
+                          {settings?.find(s => s.key === 'exoclick_site_id')?.value || 'Not configured'}
+                        </code>
+                      </div>
+                    </div>
+
+                    {/* Ad Types */}
+                    <div className="space-y-2">
+                      <h3 className="text-sm font-medium">Ad Types</h3>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div 
+                          className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md flex flex-col items-center text-center cursor-pointer"
+                          onClick={() => openSettingModal(settings?.find(s => s.key === 'ad_banner_enabled'))}
+                        >
+                          <div className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+                          <span className="text-xs font-medium">Banner Ads</span>
+                          <span className="text-xs mt-1 text-gray-500">
+                            {settings?.find(s => s.key === 'ad_banner_enabled')?.value === 'true' ? 'Enabled' : 'Disabled'}
+                          </span>
+                        </div>
+                        <div 
+                          className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md flex flex-col items-center text-center cursor-pointer"
+                          onClick={() => openSettingModal(settings?.find(s => s.key === 'ad_video_enabled'))}
+                        >
+                          <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded mb-2 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                            </svg>
+                          </div>
+                          <span className="text-xs font-medium">Video Ads</span>
+                          <span className="text-xs mt-1 text-gray-500">
+                            {settings?.find(s => s.key === 'ad_video_enabled')?.value === 'true' ? 'Enabled' : 'Disabled'}
+                          </span>
+                        </div>
+                        <div 
+                          className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md flex flex-col items-center text-center cursor-pointer"
+                          onClick={() => openSettingModal(settings?.find(s => s.key === 'ad_interstitial_enabled'))}
+                        >
+                          <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded mb-2 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            </svg>
+                          </div>
+                          <span className="text-xs font-medium">Interstitial</span>
+                          <span className="text-xs mt-1 text-gray-500">
+                            {settings?.find(s => s.key === 'ad_interstitial_enabled')?.value === 'true' ? 'Enabled' : 'Disabled'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Ad Refresh Rate */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium">Ad Refresh Rate</h3>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openSettingModal(settings?.find(s => s.key === 'ad_refresh_rate'))}
+                        >
+                          Configure
+                        </Button>
+                      </div>
+                      <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">Every {settings?.find(s => s.key === 'ad_refresh_rate')?.value || '60'} seconds</span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Premium Subscription Settings */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Premium Subscription</CardTitle>
+                    <CardDescription>
+                      Configure premium membership settings
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium">Monthly Price</h3>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openSettingModal(settings?.find(s => s.key === 'premium_price'))}
+                        >
+                          Configure
+                        </Button>
+                      </div>
+                      <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">${settings?.find(s => s.key === 'premium_price')?.value || '4.99'}/month</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium">AFK Earnings Multiplier</h3>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openSettingModal(settings?.find(s => s.key === 'premium_afk_multiplier'))}
+                        >
+                          Configure
+                        </Button>
+                      </div>
+                      <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">{settings?.find(s => s.key === 'premium_afk_multiplier')?.value || '2'}x earnings</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium">Daily Limit Bonus</h3>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openSettingModal(settings?.find(s => s.key === 'premium_daily_limit_bonus'))}
+                        >
+                          Configure
+                        </Button>
+                      </div>
+                      <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">+{settings?.find(s => s.key === 'premium_daily_limit_bonus')?.value || '200'} coins</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium">Disable Captchas</h3>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openSettingModal(settings?.find(s => s.key === 'captcha_disabled_premium'))}
+                        >
+                          Configure
+                        </Button>
+                      </div>
+                      <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">{settings?.find(s => s.key === 'captcha_disabled_premium')?.value === 'true' ? 'Enabled' : 'Disabled'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Game Rewards Settings */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Game Rewards</CardTitle>
+                    <CardDescription>
+                      Configure in-game coin rewards
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium">Clicker Game Reward</h3>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openSettingModal(settings?.find(s => s.key === 'game_clicker_reward'))}
+                        >
+                          Configure
+                        </Button>
+                      </div>
+                      <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">Base: {settings?.find(s => s.key === 'game_clicker_reward')?.value || '5'} coins per click</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium">Memory Game Reward</h3>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openSettingModal(settings?.find(s => s.key === 'game_memory_reward'))}
+                        >
+                          Configure
+                        </Button>
+                      </div>
+                      <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">Base: {settings?.find(s => s.key === 'game_memory_reward')?.value || '10'} coins per match</span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Premium Subscriptions Management */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Premium Subscriptions</CardTitle>
+                    <CardDescription>
+                      Manage premium user subscriptions
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>User</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Expiry</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {users?.filter((u: any) => u.isPremium)?.length > 0 ? (
+                          users?.filter((u: any) => u.isPremium).map((user: any) => (
+                            <TableRow key={`premium-${user.id}`}>
+                              <TableCell className="font-medium">{user.username}</TableCell>
+                              <TableCell>
+                                {new Date(user.premiumUntil) > new Date() ? (
+                                  <Badge variant="outline" className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-none">
+                                    Active
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-none">
+                                    Expired
+                                  </Badge>
+                                )}
+                              </TableCell>
+                              <TableCell>{new Date(user.premiumUntil).toLocaleDateString()}</TableCell>
+                              <TableCell>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                >
+                                  Extend
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={4} className="text-center py-4 text-gray-500">
+                              No premium subscribers
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
           </Tabs>
         )}

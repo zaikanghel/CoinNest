@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
+import { useSettings } from "@/hooks/use-settings";
+import ExoClickAd from "./exoclick-ad";
 
-// Mock ad data - in a real app, this would come from an ad network
-const mockAds = [
+// Fallback ads that promote premium features when external ads aren't available
+const fallbackAds = [
   {
     id: 1,
     title: "Premium Membership",
@@ -35,13 +37,27 @@ interface BannerAdProps {
 export default function BannerAd({ className = "", rotationInterval = 10000 }: BannerAdProps) {
   const [currentAdIndex, setCurrentAdIndex] = useState(0);
   const [showBanner, setShowBanner] = useState(true);
+  const [useExternalAd, setUseExternalAd] = useState(true);
   const timer = useRef<NodeJS.Timeout | null>(null);
-
-  // Rotate through ads
+  const { settings } = useSettings();
+  
+  // Check if external ads are configured and enabled
+  const exoclickSiteId = settings.exoclick_site_id;
+  const bannerAdsEnabled = settings.ad_banner_enabled === 'true';
+  const zoneId = "4916254"; // Example zone ID for banner ads (should come from settings)
+  
+  // Determine if we should use external ads or fallback to internal promotions
   useEffect(() => {
-    if (showBanner) {
+    // If we have a site ID and ads are enabled, use external ads
+    // Otherwise use our internal promotional ads
+    setUseExternalAd(!!exoclickSiteId && bannerAdsEnabled);
+  }, [exoclickSiteId, bannerAdsEnabled]);
+  
+  // Rotate through fallback ads if we're not using external ads
+  useEffect(() => {
+    if (showBanner && !useExternalAd) {
       timer.current = setInterval(() => {
-        setCurrentAdIndex((prevIndex) => (prevIndex + 1) % mockAds.length);
+        setCurrentAdIndex((prevIndex) => (prevIndex + 1) % fallbackAds.length);
       }, rotationInterval);
     }
 
@@ -50,14 +66,46 @@ export default function BannerAd({ className = "", rotationInterval = 10000 }: B
         clearInterval(timer.current);
       }
     };
-  }, [showBanner, rotationInterval]);
+  }, [showBanner, rotationInterval, useExternalAd]);
 
-  const currentAd = mockAds[currentAdIndex];
+  const currentAd = fallbackAds[currentAdIndex];
 
   if (!showBanner) {
     return null;
   }
+  
+  // If using external ads, render the ExoClick component
+  if (useExternalAd) {
+    return (
+      <Card className={`overflow-hidden ${className}`}>
+        <CardContent className="p-0 relative">
+          <button 
+            className="absolute top-1 right-1 p-1 rounded-full bg-white/80 dark:bg-gray-800/80 z-10 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            onClick={() => setShowBanner(false)}
+            aria-label="Close advertisement"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+          
+          <div className="text-xs uppercase font-bold tracking-wider p-1 flex items-center text-gray-500 bg-gray-100 dark:bg-gray-800">
+            <AlertCircle className="h-3 w-3 mr-1" />
+            Advertisement
+          </div>
+          
+          <ExoClickAd 
+            adType="banner" 
+            zoneId={zoneId} 
+            className="w-full min-h-[90px]"
+          />
+        </CardContent>
+      </Card>
+    );
+  }
 
+  // Fallback to internal promotional ads
   return (
     <Card className={`overflow-hidden ${className}`}>
       <CardContent className={`p-0 relative ${currentAd.bgColor}`}>
@@ -90,7 +138,7 @@ export default function BannerAd({ className = "", rotationInterval = 10000 }: B
           <div 
             className="h-full bg-primary-500 transition-all duration-300 ease-linear"
             style={{ 
-              width: `${(currentAdIndex / (mockAds.length - 1)) * 100}%`,
+              width: `${(currentAdIndex / (fallbackAds.length - 1)) * 100}%`,
               animation: `progress ${rotationInterval}ms linear infinite` 
             }}
           />

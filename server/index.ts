@@ -2,6 +2,10 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { createStorage, setStorage } from "./storage";
+import { setupAuth } from "./auth";
+import { setupAfkRoutes } from "./afk";
+import { setupGameRoutes } from "./games";
+import { setupPremiumRoutes } from "./premium";
 import dotenv from "dotenv";
 
 // Load environment variables
@@ -51,6 +55,18 @@ app.use((req, res, next) => {
     setStorage(mongoStorage);
     
     log('MongoDB storage initialized successfully');
+    
+    // Setup authentication
+    setupAuth(app);
+    
+    // Setup AFK routes
+    setupAfkRoutes(app);
+    
+    // Setup game routes
+    setupGameRoutes(app);
+    
+    // Setup premium subscription routes
+    setupPremiumRoutes(app);
     
     const server = await registerRoutes(app);
 
