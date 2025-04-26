@@ -1,7 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { createStorage, storage as defaultStorage } from "./storage";
+import { createStorage, setStorage } from "./storage";
 import dotenv from "dotenv";
 
 // Load environment variables
@@ -47,15 +47,10 @@ app.use((req, res, next) => {
 (async () => {
   try {
     // Initialize MongoDB storage
-    const storageInstance = await createStorage();
+    const mongoStorage = await createStorage();
+    setStorage(mongoStorage);
     
-    // Replace the default memory storage with MongoDB storage
-    Object.defineProperty(defaultStorage, "__proto__", {
-      value: Object.getPrototypeOf(storageInstance)
-    });
-    Object.assign(defaultStorage, storageInstance);
-    
-    log('Storage initialized successfully');
+    log('MongoDB storage initialized successfully');
     
     const server = await registerRoutes(app);
 
@@ -89,6 +84,7 @@ app.use((req, res, next) => {
     });
   } catch (error) {
     log(`Error during server initialization: ${error}`);
+    log('Fatal: MongoDB connection failed. Application requires MongoDB.');
     process.exit(1);
   }
 })();
