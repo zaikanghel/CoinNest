@@ -86,43 +86,56 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-primary-600 to-violet-600 text-white p-8 md:w-1/2 flex flex-col justify-center">
-        <div className="max-w-md mx-auto">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4 font-poppins">
-            EarnPlay
-          </h1>
-          <h2 className="text-2xl md:text-3xl font-semibold mb-6">
-            Play games, stay active, earn rewards
+      <div className="bg-gradient-to-br from-primary via-accent to-violet-600 text-white p-8 md:w-1/2 flex flex-col justify-center relative overflow-hidden">
+        {/* Animated gradient circles in background */}
+        <div className="absolute w-64 h-64 rounded-full bg-white/10 -top-10 -left-10 animate-pulse"></div>
+        <div className="absolute w-96 h-96 rounded-full bg-white/5 bottom-10 -right-20 animate-pulse" style={{animationDelay: '1s'}}></div>
+        
+        <div className="max-w-md mx-auto relative z-10">
+          <div className="mb-8">
+            <h1 className="text-4xl md:text-5xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-100">
+              EarnPlay
+            </h1>
+            <div className="h-1 w-20 bg-white/40 rounded-full mb-6"></div>
+          </div>
+          
+          <h2 className="text-2xl md:text-3xl font-semibold mb-6 leading-tight">
+            Play games, stay active,<br />
+            <span className="text-yellow-300">earn real rewards</span>
           </h2>
-          <p className="text-lg mb-8 text-white/80">
+          
+          <p className="text-lg mb-8 text-white/90 leading-relaxed">
             Join our platform to earn coins through AFK activities and mini-games. Convert your earnings to real money or use them to unlock exclusive content.
           </p>
-          <div className="space-y-4">
-            <div className="flex items-start">
-              <div className="bg-white/20 p-2 rounded mr-3">
-                <span className="text-lg">⏱️</span>
+          
+          <div className="space-y-6">
+            <div className="flex items-start bg-white/10 p-4 rounded-lg backdrop-blur-sm transition-all hover:bg-white/20">
+              <div className="bg-gradient-to-br from-blue-500 to-violet-500 p-3 rounded-lg mr-4 shadow-lg">
+                <span className="text-xl">⏱️</span>
               </div>
               <div>
-                <h3 className="font-medium">AFK Earnings</h3>
-                <p className="text-sm text-white/70">Earn while keeping the tab open</p>
+                <h3 className="font-medium text-lg">AFK Earnings</h3>
+                <p className="text-white/80">Earn while keeping the tab open</p>
               </div>
             </div>
-            <div className="flex items-start">
-              <div className="bg-white/20 p-2 rounded mr-3">
-                <span className="text-lg">🎮</span>
+            
+            <div className="flex items-start bg-white/10 p-4 rounded-lg backdrop-blur-sm transition-all hover:bg-white/20">
+              <div className="bg-gradient-to-br from-green-500 to-emerald-500 p-3 rounded-lg mr-4 shadow-lg">
+                <span className="text-xl">🎮</span>
               </div>
               <div>
-                <h3 className="font-medium">Fun Mini-Games</h3>
-                <p className="text-sm text-white/70">Play games to boost your earnings</p>
+                <h3 className="font-medium text-lg">Fun Mini-Games</h3>
+                <p className="text-white/80">Play games to boost your earnings</p>
               </div>
             </div>
-            <div className="flex items-start">
-              <div className="bg-white/20 p-2 rounded mr-3">
-                <span className="text-lg">👥</span>
+            
+            <div className="flex items-start bg-white/10 p-4 rounded-lg backdrop-blur-sm transition-all hover:bg-white/20">
+              <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-3 rounded-lg mr-4 shadow-lg">
+                <span className="text-xl">👥</span>
               </div>
               <div>
-                <h3 className="font-medium">Referral System</h3>
-                <p className="text-sm text-white/70">Invite friends and earn commission</p>
+                <h3 className="font-medium text-lg">Referral System</h3>
+                <p className="text-white/80">Invite friends and earn commission</p>
               </div>
             </div>
           </div>
@@ -130,9 +143,12 @@ export default function AuthPage() {
       </div>
 
       {/* Auth Forms */}
-      <div className="p-8 md:w-1/2 flex items-center justify-center bg-gray-50 dark:bg-dark-800">
-        <Card className="w-full max-w-md">
-          <CardHeader>
+      <div className="p-8 md:w-1/2 flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+        <Card className="w-full max-w-md shadow-xl border-0 dark:bg-gray-800/80 backdrop-blur-sm">
+          <CardHeader className="space-y-2">
+            <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mb-2">
+              <span className="text-2xl text-white">{activeTab === "login" ? "🔑" : "✨"}</span>
+            </div>
             <CardTitle className="text-2xl font-bold text-center">
               {activeTab === "login" ? "Welcome Back" : "Create an Account"}
             </CardTitle>
@@ -144,9 +160,9 @@ export default function AuthPage() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid grid-cols-2 mb-6">
-                <TabsTrigger value="login">Login</TabsTrigger>
-                <TabsTrigger value="register">Register</TabsTrigger>
+              <TabsList className="grid grid-cols-2 mb-6 p-1">
+                <TabsTrigger value="login" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white">Login</TabsTrigger>
+                <TabsTrigger value="register" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white">Register</TabsTrigger>
               </TabsList>
 
               {/* Login Form */}
@@ -186,14 +202,18 @@ export default function AuthPage() {
                         </AlertDescription>
                       </Alert>
                     )}
-                    <Button type="submit" className="w-full" disabled={isLoading}>
+                    <Button 
+                      type="submit" 
+                      className="w-full mt-6 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white font-medium" 
+                      disabled={isLoading}
+                    >
                       {isLoading ? (
                         <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                           Logging in...
                         </>
                       ) : (
-                        "Login"
+                        "Login Now"
                       )}
                     </Button>
                   </form>
@@ -263,14 +283,18 @@ export default function AuthPage() {
                         </AlertDescription>
                       </Alert>
                     )}
-                    <Button type="submit" className="w-full" disabled={isLoading}>
+                    <Button 
+                      type="submit" 
+                      className="w-full mt-6 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white font-medium" 
+                      disabled={isLoading}
+                    >
                       {isLoading ? (
                         <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                           Creating account...
                         </>
                       ) : (
-                        "Create Account"
+                        "Join EarnPlay Now"
                       )}
                     </Button>
                   </form>
