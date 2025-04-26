@@ -149,11 +149,16 @@ export default function AdminPage() {
   };
 
   const openSettingModal = (setting?: any) => {
+    console.log("Opening setting modal with:", setting);
+    
     if (setting) {
-      form.reset({
-        key: setting.key,
-        value: setting.value
-      });
+      // Ensure we have the correct data
+      setTimeout(() => {
+        form.reset({
+          key: setting.key,
+          value: setting.value
+        });
+      }, 0);
     } else {
       form.reset({
         key: "",
@@ -762,7 +767,14 @@ export default function AdminPage() {
       </Dialog>
 
       {/* Setting Edit Dialog */}
-      <Dialog open={showSettingModal} onOpenChange={setShowSettingModal}>
+      <Dialog 
+        open={showSettingModal} 
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowSettingModal(false);
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit System Setting</DialogTitle>
@@ -779,6 +791,9 @@ export default function AdminPage() {
                     <FormControl>
                       <Input placeholder="Setting key" {...field} />
                     </FormControl>
+                    <FormDescription>
+                      {getSettingDescription(field.value)}
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
