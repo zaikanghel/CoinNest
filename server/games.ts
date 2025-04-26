@@ -74,6 +74,26 @@ export function setupGameRoutes(app: Express) {
     
     const user = req.user;
     
+    // First, check if user already submitted a score recently (within last 15 seconds)
+    // This prevents multiple submissions abuse
+    const recentScores = await storage.getUserGameScores(user.id, gameId);
+    const now = new Date();
+    const recentSubmission = recentScores.find(score => {
+      const scoreTime = new Date(score.createdAt);
+      const timeDiff = (now.getTime() - scoreTime.getTime()) / 1000; // seconds
+      return timeDiff < 15; // within last 15 seconds
+    });
+    
+    if (recentSubmission) {
+      console.log(`Blocked duplicate submission - last submission was ${new Date(recentSubmission.createdAt).toISOString()}`);
+      return res.status(429).json({ 
+        message: "Please wait before submitting another score",
+        gameScore: null,
+        coinsEarned: 0,
+        newBalance: user.balance
+      });
+    }
+    
     // Calculate coins earned based on game, score and time spent using admin-configurable settings
     let coinsEarned = 0;
     
@@ -169,6 +189,10 @@ export function setupGameRoutes(app: Express) {
       return res.status(404).json({ message: "Game not found" });
     }
     
+    // TEMPORARY FOR TESTING - Skip daily limit check
+    // In production, this should be set to false
+    const skipDailyLimit = true; 
+    
     // Enforce daily game earnings limit
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -177,14 +201,19 @@ export function setupGameRoutes(app: Express) {
     const todaysGameScores = await storage.getUserGameScores(user.id);
     
     // Filter to just today's scores and sum up the coins earned
-    const todaysEarnings = todaysGameScores
-      .filter(gameScore => {
-        const scoreDate = new Date(gameScore.createdAt);
-        return scoreDate >= today;
-      })
-      .reduce((sum, gameScore) => sum + gameScore.coinsEarned, 0);
+    let todaysEarnings = 0;
+    
+    if (!skipDailyLimit) {
+      todaysEarnings = todaysGameScores
+        .filter(gameScore => {
+          const scoreDate = new Date(gameScore.createdAt);
+          return scoreDate >= today;
+        })
+        .reduce((sum, gameScore) => sum + gameScore.coinsEarned, 0);
+    }
     
     console.log(`Daily earnings check:
+      skipDailyLimit=${skipDailyLimit}
       todaysEarnings=${todaysEarnings}
       dailyLimit=${dailyGameLimit}
       currentEarning=${coinsEarned}`);
