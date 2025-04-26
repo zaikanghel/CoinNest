@@ -393,7 +393,7 @@ export default function AdminPage() {
                 <div className="flex space-x-2 mt-2">
                   <Button
                     className="w-full bg-green-600 hover:bg-green-700 text-white"
-                    onClick={() => processWithdrawal("completed")}
+                    onClick={() => processWithdrawal("approved")}
                     disabled={processWithdrawalMutation.isPending}
                   >
                     <CheckCircle className="mr-2 h-4 w-4" />
