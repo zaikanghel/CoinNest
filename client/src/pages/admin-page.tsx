@@ -791,9 +791,6 @@ export default function AdminPage() {
                     <FormControl>
                       <Input placeholder="Setting key" {...field} />
                     </FormControl>
-                    <FormDescription>
-                      {getSettingDescription(field.value)}
-                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
