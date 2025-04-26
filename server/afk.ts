@@ -29,24 +29,65 @@ export function setupAfkRoutes(app: Express) {
     // Update last active time
     await storage.updateUser(user.id, { lastActive: now });
     
-    // Get earning rate from settings
+    // Get base earning rate from settings
     const afkRateStr = await storage.getSetting("afk_rate");
-    const afkRate = parseInt(afkRateStr || "2");
+    const baseAfkRate = parseFloat(afkRateStr || "2");
     
-    // Get daily limit from settings
+    // Get base daily limit from settings
     const dailyLimitStr = await storage.getSetting("afk_daily_limit");
-    const dailyLimit = parseInt(dailyLimitStr || "200");
+    const baseDailyLimit = parseInt(dailyLimitStr || "200");
     
     // Get captcha interval from settings
     const captchaIntervalStr = await storage.getSetting("captcha_interval");
     const captchaInterval = parseInt(captchaIntervalStr || "1200");
     
+    // Apply premium benefits if user is premium
+    let afkRate = baseAfkRate;
+    let dailyLimit = baseDailyLimit;
+    let isPremiumActive = false;
+    let premiumMultiplier = 1;
+    let captchaDisabled = false;
+    
+    // Check if user has active premium
+    if (user.isPremium && user.premiumUntil && new Date(user.premiumUntil) > new Date()) {
+      isPremiumActive = true;
+      
+      // Get premium settings
+      const premiumAfkMultiplierStr = await storage.getSetting("premium_afk_multiplier");
+      const premiumDailyLimitBonusStr = await storage.getSetting("premium_daily_limit_bonus");
+      const captchaDisabledPremiumStr = await storage.getSetting("captcha_disabled_premium");
+      
+      // Apply premium multiplier (default to 2x if not set)
+      premiumMultiplier = parseFloat(premiumAfkMultiplierStr || "2");
+      afkRate = baseAfkRate * premiumMultiplier;
+      
+      // Apply daily limit bonus (default to 200 if not set)
+      const dailyLimitBonus = parseInt(premiumDailyLimitBonusStr || "200"); 
+      dailyLimit = baseDailyLimit + dailyLimitBonus;
+      
+      // Check if captcha is disabled for premium users
+      captchaDisabled = captchaDisabledPremiumStr === "true";
+      
+      console.log(`[AFK-START] Premium user ${user.id} gets ${premiumMultiplier}x earnings (${baseAfkRate} → ${afkRate}) and +${dailyLimitBonus} daily limit`);
+      console.log(`[AFK-START] Captcha disabled for premium: ${captchaDisabled}`);
+    }
+    
     res.json({
+      // Base rates (without premium)
+      baseAfkRate,
+      baseDailyLimit,
+      
+      // Actual rates (with premium benefits applied)
       afkRate,
       dailyLimit,
       dailyEarned: user.dailyAfkEarned,
       captchaInterval,
-      lastActive: user.lastActive
+      lastActive: user.lastActive,
+      
+      // Premium info
+      isPremiumActive,
+      premiumMultiplier,
+      captchaDisabled
     });
   });
   
