@@ -48,6 +48,29 @@ export function setupPremiumRoutes(app: Express) {
     }
   };
   
+  // Setup periodic checks for premium expirations (every 60 seconds)
+  setInterval(async () => {
+    try {
+      // Get all users with premium
+      const allUsers = await storage.listUsers();
+      const premiumUsers = allUsers.filter(user => user.isPremium);
+      
+      if (premiumUsers.length > 0) {
+        console.log(`[PREMIUM AUTO] Running periodic expiration check for ${premiumUsers.length} premium users`);
+        
+        // Check each premium user
+        for (const user of premiumUsers) {
+          const wasExpired = await checkPremiumExpiration(user.id);
+          if (wasExpired) {
+            console.log(`[PREMIUM AUTO] User ${user.id} (${user.username}) premium was automatically expired`);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('[PREMIUM AUTO] Error in periodic premium check:', error);
+    }
+  }, 60000); // Check every minute
+  
   // Get premium status for current user
   app.get("/api/premium/status", async (req, res) => {
     if (!req.isAuthenticated()) {
@@ -213,7 +236,7 @@ export function setupPremiumRoutes(app: Express) {
     }
     
     const { userId } = req.params;
-    const { months = 1 } = req.body; // Default to 1 month if not specified
+    const { months = 1, customExpiry } = req.body; // Default to 1 month if not specified
     
     const user = await storage.getUser(parseInt(userId));
     
@@ -223,15 +246,24 @@ export function setupPremiumRoutes(app: Express) {
     
     // Calculate new premium expiry date
     const now = new Date();
-    let premiumUntil = user.premiumUntil ? new Date(user.premiumUntil) : now;
-    
-    // If premium has expired, start from now
-    if (premiumUntil < now) {
-      premiumUntil = now;
+    let premiumUntil: Date;
+
+    // If customExpiry is provided, use it (for testing)
+    if (customExpiry) {
+      premiumUntil = new Date(customExpiry);
+      console.log(`[PREMIUM] Setting custom expiry for user ${userId} to: ${premiumUntil.toISOString()}`);
+    } else {
+      // Normal calculation
+      premiumUntil = user.premiumUntil ? new Date(user.premiumUntil) : now;
+      
+      // If premium has expired, start from now
+      if (premiumUntil < now) {
+        premiumUntil = now;
+      }
+      
+      // Add months to the premium expiry date
+      premiumUntil.setMonth(premiumUntil.getMonth() + months);
     }
-    
-    // Add months to the premium expiry date
-    premiumUntil.setMonth(premiumUntil.getMonth() + months);
     
     // Update user's premium status
     const updatedUser = await storage.updateUser(user.id, {
@@ -245,13 +277,17 @@ export function setupPremiumRoutes(app: Express) {
       userId: user.id,
       type: "premium_activated",
       amount: 0,
-      description: `Premium subscription activated for ${months} month(s)`
+      description: customExpiry 
+        ? `Premium subscription activated until ${premiumUntil.toISOString()}` 
+        : `Premium subscription activated for ${months} month(s)`
     });
     
     res.json({
       success: true,
       user: updatedUser,
-      message: `Premium subscription activated for ${months} month(s)`
+      message: customExpiry
+        ? `Premium subscription activated until ${premiumUntil.toLocaleString()}`
+        : `Premium subscription activated for ${months} month(s)`
     });
   });
   

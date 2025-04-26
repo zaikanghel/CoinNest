@@ -4,11 +4,16 @@ import StatsCard from "@/components/dashboard/stats-card";
 import AfkCard from "@/components/dashboard/afk-card";
 import ActivityList from "@/components/dashboard/activity-list";
 import GamesList from "@/components/dashboard/games-list";
-import { Loader2 } from "lucide-react";
+import { Loader2, Crown } from "lucide-react";
 import { AfkProvider } from "@/hooks/use-afk";
 import { Link } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
+import { usePremiumNotification } from "@/hooks/use-premium-notification";
+import { Button } from "@/components/ui/button";
 
 export default function DashboardPage() {
+  const { user } = useAuth();
+  const { showExpiredDialog } = usePremiumNotification();
   // Fetch user stats
   const { data: stats, isLoading: isLoadingStats } = useQuery({
     queryKey: ["/api/stats"],
@@ -150,6 +155,82 @@ export default function DashboardPage() {
               </div>
               <GamesList games={games || []} />
             </div>
+            
+            {/* Test section for developers - will be hidden in production */}
+            {user?.isAdmin && (
+              <div className="mt-8 p-4 border border-dashed border-amber-300 dark:border-amber-800 rounded-lg bg-amber-50 dark:bg-amber-950/30">
+                <div className="flex flex-col space-y-3">
+                  <h3 className="text-lg font-semibold text-amber-800 dark:text-amber-300 flex items-center">
+                    <Crown className="h-5 w-5 mr-2" /> 
+                    Premium Features Testing Panel
+                  </h3>
+                  <p className="text-sm text-amber-700 dark:text-amber-400">
+                    This panel is only visible to administrators for testing purposes.
+                  </p>
+                  <div className="flex flex-wrap gap-3 mt-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={showExpiredDialog}
+                      className="bg-white dark:bg-gray-800 border-amber-200 dark:border-amber-800"
+                    >
+                      <Crown className="h-4 w-4 mr-2 text-amber-500" />
+                      Test Premium Expired Dialog
+                    </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      onClick={async () => {
+                        try {
+                          const res = await fetch(`/api/admin/test-premium-expiration/${user?.id}`, {
+                            method: 'GET',
+                            credentials: 'include'
+                          });
+                          const data = await res.json();
+                          alert(data.message);
+                        } catch (error) {
+                          alert('Error: ' + (error as Error).message);
+                        }
+                      }}
+                      className="bg-white dark:bg-gray-800 border-amber-200 dark:border-amber-800"
+                    >
+                      <Crown className="h-4 w-4 mr-2 text-amber-500" />
+                      Simulate Premium Expiration
+                    </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      onClick={async () => {
+                        try {
+                          // Set premium for 1 minute
+                          const expiresIn = new Date();
+                          expiresIn.setMinutes(expiresIn.getMinutes() + 1);
+                          
+                          const res = await fetch(`/api/admin/premium/${user?.id}`, {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ 
+                              months: 0,  // Will be interpreted as a very short duration
+                              customExpiry: expiresIn.toISOString() 
+                            }),
+                            credentials: 'include'
+                          });
+                          const data = await res.json();
+                          alert(`User set as premium until ${new Date(data.user.premiumUntil).toLocaleTimeString()}. The popup should appear after expiration.`);
+                        } catch (error) {
+                          alert('Error: ' + (error as Error).message);
+                        }
+                      }}
+                      className="bg-white dark:bg-gray-800 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300"
+                    >
+                      <Crown className="h-4 w-4 mr-2 text-green-500" />
+                      Set Premium (1 min)
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
