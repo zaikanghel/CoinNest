@@ -152,19 +152,13 @@ export default function AdminPage() {
     console.log("Opening setting modal with:", setting);
     
     if (setting) {
-      // Ensure we have the correct data
-      setTimeout(() => {
-        form.reset({
-          key: setting.key,
-          value: setting.value
-        });
-      }, 0);
+      form.setValue("key", setting.key);
+      form.setValue("value", setting.value);
     } else {
-      form.reset({
-        key: "",
-        value: ""
-      });
+      form.setValue("key", "");
+      form.setValue("value", "");
     }
+    
     setShowSettingModal(true);
   };
 
