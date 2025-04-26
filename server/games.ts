@@ -86,14 +86,27 @@ export function setupGameRoutes(app: Express) {
     const clickerReward = parseInt(clickerRewardStr || "5");
     
     if (gameId === "memory-match") {
-      // For memory match, earn coins based on score and time
-      // Higher score in less time = more coins
-      const baseReward = Math.floor(score * (memoryReward / 10));
-      const timeMultiplier = Math.max(0.5, 1 - (timeSpent / 180)); // Lower time = higher multiplier
+      // For memory match, the score represents matched pairs
+      // Calculate based on number of matches (score is actually much higher)
+      // For memory match, score is calculated as: base 1000 points - (10 * moves) - (5 * time)
+      // We need to normalize this to get a reasonable coin reward
+      // Let's estimate that an average score of 500 represents about 8 matches successfully completed
+      const estimatedMatches = Math.max(1, Math.round(score / 100)); // Roughly estimate matches from score
+      const baseReward = estimatedMatches * memoryReward; // Each match gives memoryReward coins
+      
+      // Apply time multiplier - faster completion gives better rewards
+      // Cap this to avoid extreme rewards for very fast times
+      const timeMultiplier = Math.min(1.5, Math.max(0.5, 1 - (timeSpent / 180))); 
+      
       coinsEarned = Math.round(baseReward * timeMultiplier);
+      console.log(`Memory match: score=${score}, estimatedMatches=${estimatedMatches}, baseReward=${baseReward}, timeMultiplier=${timeMultiplier}, coinsEarned=${coinsEarned}`);
     } else if (gameId === "clicker-quest") {
-      // For clicker, earn coins proportional to score using the admin setting
-      coinsEarned = Math.floor(score * (clickerReward / 5));
+      // For clicker, we need to normalize the score to clicks
+      // The score increases based on upgrades and time played, not just raw clicks
+      // Let's estimate that an average score of 100 represents about 20 effective clicks
+      const estimatedClicks = Math.max(1, Math.round(score / 5)); // Estimate clicks from score
+      coinsEarned = Math.round(estimatedClicks * (clickerReward / 5));
+      console.log(`Clicker quest: score=${score}, estimatedClicks=${estimatedClicks}, coinsEarned=${coinsEarned}`);
     } else {
       return res.status(404).json({ message: "Game not found" });
     }
@@ -104,6 +117,36 @@ export function setupGameRoutes(app: Express) {
     
     // Impose reasonable limits based on admin settings
     coinsEarned = Math.min(coinsEarned, maxEarnings);
+    
+    // Check for daily game earnings limit
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Get today's game earnings
+    const todaysGameScores = await storage.getUserGameScores(user.id);
+    const todaysEarnings = todaysGameScores
+      .filter(score => new Date(score.createdAt) >= today)
+      .reduce((sum, score) => sum + score.coinsEarned, 0);
+      
+    // Get daily game limit from settings
+    const dailyGameLimitStr = await storage.getSetting("game_daily_limit");
+    const dailyGameLimit = parseInt(dailyGameLimitStr || "1000");
+    
+    // Check if adding these earnings would exceed the daily limit
+    const remainingDaily = Math.max(0, dailyGameLimit - todaysEarnings);
+    
+    // If no more earnings allowed today
+    if (remainingDaily <= 0) {
+      return res.json({
+        gameScore: null,
+        coinsEarned: 0,
+        newBalance: user.balance,
+        message: "Daily game earnings limit reached"
+      });
+    }
+    
+    // Cap earnings to remaining daily limit
+    coinsEarned = Math.min(coinsEarned, remainingDaily);
     
     // Save the game score
     const gameScore = await storage.saveGameScore({

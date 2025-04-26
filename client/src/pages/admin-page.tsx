@@ -612,6 +612,24 @@ export default function AdminPage() {
                         </div>
                       </div>
                     </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium">Daily Game Earnings Limit</h3>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openSettingModal(settings?.find(s => s.key === 'game_daily_limit'))}
+                        >
+                          Configure
+                        </Button>
+                      </div>
+                      <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">Limit: {settings?.find(s => s.key === 'game_daily_limit')?.value || '1000'} coins per day</span>
+                        </div>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
 
@@ -821,6 +839,7 @@ function getSettingDescription(key: string): string {
     'game_clicker_reward': 'Base reward for Clicker game',
     'game_memory_reward': 'Base reward for Memory game',
     'game_max_earnings': 'Maximum coins that can be earned from a single game session',
+    'game_daily_limit': 'Maximum coins that can be earned from games per day',
     'exoclick_site_id': 'ExoClick site ID for ad integration',
     'captcha_disabled_premium': 'Whether captchas are disabled for premium users (true/false)',
   };
