@@ -117,16 +117,35 @@ export default function ProfilePage() {
             <div className="flex flex-col md:flex-row gap-6 items-start">
               {/* Profile Avatar */}
               <div className="flex flex-col items-center gap-2">
-                <Avatar className="h-24 w-24 text-2xl">
-                  <AvatarFallback className={getColorFromString(user?.username || "U")}>
-                    {getUserInitials(user?.username || "User")}
-                  </AvatarFallback>
-                </Avatar>
-                {user?.isAdmin && (
-                  <Badge variant="secondary" className="px-2 py-1 text-xs font-medium">
-                    Admin
-                  </Badge>
-                )}
+                <div className="relative">
+                  <Avatar className="h-24 w-24 text-2xl">
+                    <AvatarFallback className={getColorFromString(user?.username || "U")}>
+                      {getUserInitials(user?.username || "User")}
+                    </AvatarFallback>
+                  </Avatar>
+                  {user?.isPremium && (
+                    <div className="absolute -top-1 -right-1 bg-yellow-500 text-white p-1 rounded-full border-2 border-white dark:border-gray-800">
+                      <Crown className="h-4 w-4" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {user?.isAdmin && (
+                    <Badge variant="secondary" className="px-2 py-1 text-xs font-medium">
+                      Admin
+                    </Badge>
+                  )}
+                  {user?.isPremium ? (
+                    <Badge className="px-2 py-1 text-xs font-medium bg-gradient-to-r from-yellow-500 to-amber-500 text-white border-0 flex items-center gap-1">
+                      <Crown className="h-3 w-3" />
+                      Premium
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400">
+                      Free
+                    </Badge>
+                  )}
+                </div>
               </div>
 
               {/* Profile Details */}
@@ -284,6 +303,86 @@ export default function ProfilePage() {
                 )}
               </CardContent>
             </Card>
+            
+            {/* Premium Status Card */}
+            {user && (
+              <Card className={user?.isPremium ? "border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/20 dark:to-amber-900/10" : ""}>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <div>
+                    <CardTitle className="flex items-center">
+                      <Crown className="h-5 w-5 mr-2 text-amber-500" />
+                      Premium Status
+                    </CardTitle>
+                    <CardDescription>
+                      {user?.isPremium 
+                        ? "You have access to premium features" 
+                        : "Upgrade to unlock premium features"}
+                    </CardDescription>
+                  </div>
+                  {!user?.isPremium && (
+                    <Button 
+                      size="sm" 
+                      className="bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-white border-0"
+                      onClick={() => window.location.href = "/premium"}
+                    >
+                      Upgrade
+                    </Button>
+                  )}
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {user?.isPremium ? (
+                    <>
+                      <div className="flex justify-between items-center">
+                        <Label className="text-muted-foreground text-sm">Status</Label>
+                        <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-100 hover:text-green-700">
+                          Active
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <Label className="text-muted-foreground text-sm">Premium Until</Label>
+                        <span className="text-amber-700 dark:text-amber-400 font-medium text-sm">
+                          {user.premiumUntil ? new Date(user.premiumUntil).toLocaleDateString() : "N/A"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <Label className="text-muted-foreground text-sm">Benefits</Label>
+                        <span className="text-gray-700 dark:text-gray-300 text-sm">2x AFK earnings & more</span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm" 
+                        className="w-full mt-2 border-amber-200 dark:border-amber-800"
+                        onClick={() => window.location.href = "/premium"}
+                      >
+                        Extend Subscription
+                      </Button>
+                    </>
+                  ) : (
+                    <div className="rounded-md border border-amber-200 dark:border-amber-800 p-3 bg-white dark:bg-gray-900">
+                      <h4 className="text-sm font-medium text-amber-700 dark:text-amber-400 mb-2">Premium Benefits:</h4>
+                      <ul className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
+                        <li className="flex items-center">
+                          <Check className="h-3 w-3 mr-1 text-green-500" />
+                          2x AFK earnings rate
+                        </li>
+                        <li className="flex items-center">
+                          <Check className="h-3 w-3 mr-1 text-green-500" />
+                          Increased daily earnings limit
+                        </li>
+                        <li className="flex items-center">
+                          <Check className="h-3 w-3 mr-1 text-green-500" />
+                          Premium badge on your profile
+                        </li>
+                        <li className="flex items-center">
+                          <Check className="h-3 w-3 mr-1 text-green-500" />
+                          Ad-free experience
+                        </li>
+                      </ul>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
             
             <Card>
               <CardHeader>

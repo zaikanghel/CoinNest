@@ -89,19 +89,36 @@ export function PremiumNotificationProvider({ children }: { children: ReactNode 
     
     console.log("Premium status update from API:", premiumStatus);
     
-    // Premium was just revoked by admin or just expired
-    if (premiumStatus.premiumJustExpired || premiumStatus.wasExpired) {
-      console.log("Premium just expired or revoked detected");
+    // Check if premium status changed (either from server check or direct user object change)
+    if (premiumStatus.statusChanged || 
+        premiumStatus.premiumJustExpired || 
+        premiumStatus.premiumJustRevoked || 
+        premiumStatus.wasExpired) {
       
-      // Only show if we haven't already shown a dialog for this event
-      if (user.isPremium === false && lastPremiumStatus !== false) {
-        setDialogTitle("Premium Subscription Ended");
-        setDialogMessage(premiumStatus.wasExpired 
-          ? "Your premium subscription has expired. Renew now to continue enjoying premium benefits!"
-          : "Your premium subscription has been deactivated. Resubscribe to continue enjoying premium benefits!");
-        setShowDialog(true);
+      console.log("Premium status change detected:", { 
+        statusChanged: premiumStatus.statusChanged,
+        premiumJustExpired: premiumStatus.premiumJustExpired,
+        premiumJustRevoked: premiumStatus.premiumJustRevoked, 
+        wasExpired: premiumStatus.wasExpired 
+      });
+      
+      // Only show popup if user is not premium and we haven't already shown it for this event
+      if (!user.isPremium && (lastPremiumStatus === true || lastPremiumStatus === null)) {
+        if (premiumStatus.premiumJustRevoked) {
+          // Premium was revoked by admin
+          setDialogTitle("Premium Subscription Revoked");
+          setDialogMessage("Your premium subscription has been deactivated by an administrator. Please contact support if you believe this is an error.");
+        } else {
+          // Premium naturally expired
+          setDialogTitle("Premium Subscription Expired");
+          setDialogMessage("Your premium subscription has expired. Renew now to continue enjoying premium benefits!");
+        }
         
-        // Force update status to avoid showing dialog multiple times
+        // Show the dialog
+        setShowDialog(true);
+        console.log("Showing premium expiration dialog");
+        
+        // Store that we've shown the notification
         setLastPremiumStatus(false);
       }
     }

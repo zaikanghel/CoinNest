@@ -96,13 +96,30 @@ export function setupPremiumRoutes(app: Express) {
 
     // Check if premium status changed from active to inactive
     const premiumJustExpired = wasInitiallyPremium && !isPremiumActive;
+    
+    // Check if premium was just revoked by admin within the last 5 minutes
+    let premiumJustRevoked = false;
+    if (!isPremiumActive) {
+      const recentActivities = await storage.getActivitiesByUser(user.id, 3);
+      const revokeActivity = recentActivities.find(a => 
+        a.type === 'premium_revoked' && 
+        (new Date().getTime() - new Date(a.createdAt).getTime()) < 300000 // 5 minutes
+      );
+      premiumJustRevoked = !!revokeActivity;
+    }
+    
+    // Log premium status changes for debugging
+    console.log(`[PREMIUM STATUS] User ${user.id}: isPremium=${isPremiumActive}, wasInitiallyPremium=${wasInitiallyPremium}, premiumJustExpired=${premiumJustExpired}, premiumJustRevoked=${premiumJustRevoked}`);
 
     res.json({
       isPremium: isPremiumActive,
       premiumUntil: updatedUser.premiumUntil,
       premiumStarted: updatedUser.premiumStarted,
       wasExpired: wasExpired,
-      premiumJustExpired: premiumJustExpired
+      premiumJustExpired: premiumJustExpired,
+      premiumJustRevoked: premiumJustRevoked,
+      // Combine the two signals for client-side detection
+      statusChanged: premiumJustExpired || premiumJustRevoked
     });
   });
 
