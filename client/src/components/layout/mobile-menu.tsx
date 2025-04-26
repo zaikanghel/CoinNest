@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { X } from "lucide-react";
+import { X, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface MobileMenuProps {
@@ -22,6 +22,13 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
     { href: "/leaderboard", label: "Leaderboard", icon: "ri-trophy-line" },
     { href: "/wallet", label: "Wallet", icon: "ri-wallet-3-line" },
     { href: "/referrals", label: "Referrals", icon: "ri-user-add-line" },
+    { 
+      href: "/premium", 
+      label: user?.isPremium ? "Premium Status" : "Upgrade to Premium", 
+      icon: "ri-vip-crown-line",
+      highlight: true,
+      isPremium: true
+    },
   ];
 
   // Only show admin link if user is admin
@@ -63,12 +70,23 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                     "flex items-center px-3 py-3 rounded-md transition-colors",
                     location === item.href 
                       ? "bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400" 
-                      : "text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      : item.highlight
+                        ? "text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 bg-primary-50/50 dark:bg-primary-900/10"
+                        : "text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
                   )}
                   onClick={handleItemClick}
                 >
-                  <i className={cn(item.icon, "text-xl mr-3")}></i>
+                  {item.isPremium ? (
+                    <Crown className="h-5 w-5 mr-3 text-yellow-500" />
+                  ) : (
+                    <i className={cn(item.icon, "text-xl mr-3",
+                      location === item.href || item.highlight ? "text-primary-600 dark:text-primary-400" : ""
+                    )}></i>
+                  )}
                   <span className="font-medium">{item.label}</span>
+                  {item.highlight && !user?.isPremium && (
+                    <span className="ml-auto px-1.5 py-0.5 text-xs bg-yellow-500 text-white rounded-full">New</span>
+                  )}
                 </div>
               </Link>
             ))}
@@ -98,20 +116,54 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
           {/* Premium Badge */}
           <div className="mt-6 p-4 bg-gradient-to-r from-primary to-accent rounded-lg text-white shadow-lg relative overflow-hidden">
             <div className="absolute -right-4 -top-4 w-16 h-16 bg-white/10 rounded-full"></div>
-            <div className="absolute right-8 top-2 w-2 h-2 bg-yellow-300 rounded-full animate-pulse"></div>
             
-            <div className="flex items-center">
-              <i className="ri-vip-crown-line text-yellow-300 text-xl"></i>
-              <p className="ml-2 font-medium">Free Account</p>
-            </div>
-            <p className="text-xs mt-1 opacity-90">Upgrade to premium for 2x AFK earnings</p>
-            <Button 
-              className="mt-2 w-full py-1.5 bg-white/20 hover:bg-white/30 text-white"
-              variant="ghost"
-              onClick={onClose}
-            >
-              Boost Your Idle Income
-            </Button>
+            {user?.isPremium ? (
+              <>
+                <div className="absolute -right-1 -top-1">
+                  <Crown className="h-6 w-6 text-yellow-300" fill="currentColor" />
+                </div>
+                
+                <div className="flex items-center">
+                  <Crown className="h-5 w-5 text-yellow-300" />
+                  <p className="ml-2 font-medium">Premium Active</p>
+                </div>
+                
+                {user?.premiumUntil && (
+                  <p className="text-xs mt-1 text-white/90">
+                    Valid until: {new Date(user.premiumUntil).toLocaleDateString()}
+                  </p>
+                )}
+                
+                <Link href="/premium" onClick={handleItemClick}>
+                  <Button 
+                    className="mt-2 w-full py-1.5 bg-white/20 hover:bg-white/30 rounded text-sm font-medium transition-all hover:translate-y-[-2px]"
+                    variant="ghost"
+                  >
+                    View Premium Benefits
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <div className="absolute right-8 top-2 w-2 h-2 bg-yellow-300 rounded-full animate-pulse"></div>
+                
+                <div className="flex items-center">
+                  <i className="ri-vip-crown-line text-yellow-300 text-xl"></i>
+                  <p className="ml-2 font-medium">Free Account</p>
+                </div>
+                
+                <p className="text-xs mt-1 text-white/90">Upgrade to premium for 2x AFK earnings</p>
+                
+                <Link href="/premium" onClick={handleItemClick}>
+                  <Button 
+                    className="mt-2 w-full py-1.5 bg-white/20 hover:bg-white/30 rounded text-sm font-medium transition-all hover:translate-y-[-2px]"
+                    variant="ghost"
+                  >
+                    Boost Your Idle Income
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </DialogContent>

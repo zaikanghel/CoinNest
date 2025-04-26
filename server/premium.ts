@@ -3,6 +3,38 @@ import { storage } from "./storage";
 import { premiumPaymentSchema } from "@shared/schema";
 
 export function setupPremiumRoutes(app: Express) {
+  // Helper function to check if premium is expired
+  const checkPremiumExpiration = async (userId: number) => {
+    try {
+      const user = await storage.getUser(userId);
+      if (!user) return false;
+      
+      // If user has premium but it's expired, automatically deactivate it
+      if (user.isPremium && user.premiumUntil && new Date(user.premiumUntil) <= new Date()) {
+        await storage.updateUserPremiumStatus(
+          user.id,
+          false,
+          user.premiumUntil
+        );
+        
+        // Add activity record for automatic expiration
+        await storage.createActivity({
+          userId: user.id,
+          type: "premium_expired",
+          amount: 0,
+          description: "Premium subscription expired automatically"
+        });
+        
+        return true; // Premium was expired
+      }
+      
+      return false; // No expiration needed
+    } catch (error) {
+      console.error("Error checking premium expiration:", error);
+      return false;
+    }
+  };
+  
   // Get premium status for current user
   app.get("/api/premium/status", async (req, res) => {
     if (!req.isAuthenticated()) {
@@ -11,13 +43,22 @@ export function setupPremiumRoutes(app: Express) {
 
     const user = req.user;
     
-    // Calculate if premium is active
-    const isPremiumActive = user.isPremium && user.premiumUntil && new Date(user.premiumUntil) > new Date();
+    // Check if premium subscription has expired
+    await checkPremiumExpiration(user.id);
+    
+    // Get fresh user data after potential expiration check
+    const updatedUser = await storage.getUser(user.id);
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    // Calculate if premium is active with fresh data
+    const isPremiumActive = updatedUser.isPremium && updatedUser.premiumUntil && new Date(updatedUser.premiumUntil) > new Date();
 
     res.json({
       isPremium: isPremiumActive,
-      premiumUntil: user.premiumUntil,
-      premiumStarted: user.premiumStarted
+      premiumUntil: updatedUser.premiumUntil,
+      premiumStarted: updatedUser.premiumStarted
     });
   });
 
