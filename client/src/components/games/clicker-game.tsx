@@ -252,6 +252,7 @@ export default function ClickerGame({ onClose }: ClickerGameProps) {
     setClickCount(0);
     setLevel(1);
     setNextLevelThreshold(100);
+    setScoreSubmitted(false); // Reset score submitted flag
     setUpgrades([
       {
         id: "click_power",
@@ -418,9 +419,15 @@ export default function ClickerGame({ onClose }: ClickerGameProps) {
                 <Button variant="outline" onClick={restartGame}>
                   Play Again
                 </Button>
-                <Button onClick={submitScore}>
-                  Submit Score
-                </Button>
+                {!scoreSubmitted ? (
+                  <Button onClick={submitScore}>
+                    Submit Score
+                  </Button>
+                ) : (
+                  <Button disabled variant="outline">
+                    Score Submitted
+                  </Button>
+                )}
               </div>
             ) : (
               <Button disabled>

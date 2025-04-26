@@ -33,6 +33,7 @@ export default function MemoryGame({ onClose }: MemoryGameProps) {
   const [timeElapsed, setTimeElapsed] = useState(0);
   const [score, setScore] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [scoreSubmitted, setScoreSubmitted] = useState(false);
 
   // Initialize the game
   const initializeGame = useCallback(() => {
@@ -113,6 +114,12 @@ export default function MemoryGame({ onClose }: MemoryGameProps) {
   const submitScoreMutation = useMutation({
     mutationFn: async (data: { score: number, timeSpent: number }) => {
       const res = await apiRequest("POST", "/api/games/memory-match/score", data);
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to submit score");
+      }
+      
       return res.json();
     },
     onSuccess: (data) => {
@@ -126,6 +133,7 @@ export default function MemoryGame({ onClose }: MemoryGameProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/activities"] });
       queryClient.invalidateQueries({ queryKey: ["/api/games/memory-match/leaderboard"] });
       setIsSubmitting(false);
+      setScoreSubmitted(true);
     },
     onError: (error: Error) => {
       toast({
@@ -139,6 +147,16 @@ export default function MemoryGame({ onClose }: MemoryGameProps) {
 
   // Submit the score
   const submitScore = () => {
+    // Prevent multiple submissions
+    if (scoreSubmitted) {
+      toast({
+        title: "Score already submitted",
+        description: "You've already submitted your score for this session",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     submitScoreMutation.mutate({
       score,
@@ -206,6 +224,7 @@ export default function MemoryGame({ onClose }: MemoryGameProps) {
   const restartGame = () => {
     initializeGame();
     setGameStarted(false);
+    setScoreSubmitted(false); // Reset score submitted flag
   };
 
   return (
@@ -268,9 +287,15 @@ export default function MemoryGame({ onClose }: MemoryGameProps) {
                 <Button variant="outline" onClick={restartGame}>
                   Play Again
                 </Button>
-                <Button onClick={submitScore}>
-                  Submit Score
-                </Button>
+                {!scoreSubmitted ? (
+                  <Button onClick={submitScore}>
+                    Submit Score
+                  </Button>
+                ) : (
+                  <Button disabled variant="outline">
+                    Score Submitted
+                  </Button>
+                )}
               </div>
             ) : (
               <Button disabled>
