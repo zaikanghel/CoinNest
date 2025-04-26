@@ -1,6 +1,6 @@
 import { MongoClient, ObjectId, Db, Collection } from "mongodb";
 import { users, activities, withdrawals, gameScores, settings } from "@shared/schema";
-import type { User, Activity, Withdrawal, GameScore, Setting, InsertUser } from "@shared/schema";
+import type { User, Activity, Withdrawal, GameScore, Setting, InsertUser, PremiumPayment } from "@shared/schema";
 import { IStorage } from "./storage";
 import { nanoid } from "nanoid";
 import session from "express-session";
@@ -16,6 +16,7 @@ export class MongoStorage implements IStorage {
   private withdrawalsCollection: Collection | null = null;
   private gameScoresCollection: Collection | null = null;
   private settingsCollection: Collection | null = null;
+  private premiumPaymentsCollection: Collection | null = null;
   sessionStore: session.Store;
 
   constructor(mongoUri: string) {
@@ -37,6 +38,7 @@ export class MongoStorage implements IStorage {
       this.withdrawalsCollection = this.db.collection("withdrawals");
       this.gameScoresCollection = this.db.collection("gameScores");
       this.settingsCollection = this.db.collection("settings");
+      this.premiumPaymentsCollection = this.db.collection("premiumPayments");
       
       // Initialize default settings if they don't exist
       await this.initDefaultSettings();
@@ -140,7 +142,10 @@ export class MongoStorage implements IStorage {
       lastAfkReset: now,
       lastActive: now,
       isAdmin: false,
-      referredBy
+      referredBy,
+      isPremium: false,
+      premiumUntil: null,
+      premiumStarted: null
     };
     
     await this.usersCollection.insertOne(user);
@@ -383,5 +388,107 @@ export class MongoStorage implements IStorage {
   private mapToSetting(doc: any): Setting {
     const { _id, ...settingData } = doc;
     return settingData as Setting;
+  }
+
+  private mapToPremiumPayment(doc: any): PremiumPayment {
+    const { _id, ...paymentData } = doc;
+    return paymentData as PremiumPayment;
+  }
+
+  // Premium operations
+  async createPremiumPayment(data: {
+    userId: number;
+    amount: number;
+    method: string;
+    durationMonths: number;
+    proofImage: string;
+    notes?: string;
+  }): Promise<PremiumPayment> {
+    if (!this.premiumPaymentsCollection) throw new Error("Database not initialized");
+    
+    // Get the current max id
+    const maxIdPayment = await this.premiumPaymentsCollection.find().sort({ id: -1 }).limit(1).toArray();
+    const nextId = maxIdPayment.length > 0 ? maxIdPayment[0].id + 1 : 1;
+    
+    const payment: PremiumPayment = {
+      id: nextId,
+      ...data,
+      status: 'pending',
+      createdAt: new Date(),
+      processedAt: null
+    };
+    
+    await this.premiumPaymentsCollection.insertOne(payment);
+    return payment;
+  }
+
+  async getPremiumPaymentsByUser(userId: number): Promise<PremiumPayment[]> {
+    if (!this.premiumPaymentsCollection) throw new Error("Database not initialized");
+    
+    const payments = await this.premiumPaymentsCollection
+      .find({ userId })
+      .sort({ createdAt: -1 })
+      .toArray();
+    
+    return payments.map(payment => this.mapToPremiumPayment(payment));
+  }
+
+  async getPendingPremiumPayments(): Promise<PremiumPayment[]> {
+    if (!this.premiumPaymentsCollection) throw new Error("Database not initialized");
+    
+    const payments = await this.premiumPaymentsCollection
+      .find({ status: 'pending' })
+      .sort({ createdAt: 1 })
+      .toArray();
+    
+    return payments.map(payment => this.mapToPremiumPayment(payment));
+  }
+  
+  async getAllPremiumPayments(): Promise<PremiumPayment[]> {
+    if (!this.premiumPaymentsCollection) throw new Error("Database not initialized");
+    
+    const payments = await this.premiumPaymentsCollection
+      .find({})
+      .sort({ createdAt: -1 })
+      .toArray();
+    
+    return payments.map(payment => this.mapToPremiumPayment(payment));
+  }
+
+  async updatePremiumPaymentStatus(
+    id: number,
+    status: string,
+    processedAt = new Date()
+  ): Promise<PremiumPayment | undefined> {
+    if (!this.premiumPaymentsCollection) throw new Error("Database not initialized");
+    
+    const result = await this.premiumPaymentsCollection.findOneAndUpdate(
+      { id },
+      { $set: { status, processedAt } },
+      { returnDocument: 'after' }
+    );
+    
+    return result ? this.mapToPremiumPayment(result) : undefined;
+  }
+
+  async updateUserPremiumStatus(
+    userId: number,
+    isPremium: boolean,
+    premiumUntil?: Date,
+    premiumStarted?: Date
+  ): Promise<User | undefined> {
+    if (!this.usersCollection) throw new Error("Database not initialized");
+    
+    const updates: any = { isPremium };
+    if (premiumUntil) updates.premiumUntil = premiumUntil;
+    if (premiumStarted) updates.premiumStarted = premiumStarted;
+    
+    const result = await this.usersCollection.findOneAndUpdate(
+      { id: userId },
+      { $set: updates },
+      { returnDocument: 'after' }
+    );
+    
+    return result ? this.mapToUser(result) : undefined;
   }
 }

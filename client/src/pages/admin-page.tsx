@@ -18,7 +18,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Settings, Users, Wallet, CheckCircle, XCircle } from "lucide-react";
+import { Loader2, Settings, Users, Wallet, CheckCircle, XCircle, Crown } from "lucide-react";
 import { getColorFromString, getUserInitials } from "@/lib/utils";
 import { useLocation } from "wouter";
 import { Setting } from "../../shared/schema";
@@ -38,6 +38,9 @@ export default function AdminPage() {
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<any>(null);
   const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
   const [showSettingModal, setShowSettingModal] = useState(false);
+  const [selectedPremiumPayment, setSelectedPremiumPayment] = useState<any>(null);
+  const [showPremiumPaymentModal, setShowPremiumPaymentModal] = useState(false);
+  const [showAllPremiumPayments, setShowAllPremiumPayments] = useState(false);
 
   // Redirect if not admin
   if (user && !user.isAdmin) {
