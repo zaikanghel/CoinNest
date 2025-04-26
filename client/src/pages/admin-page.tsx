@@ -20,6 +20,7 @@ import { z } from "zod";
 import { Loader2, Settings, Users, Wallet, CheckCircle, XCircle } from "lucide-react";
 import { getColorFromString, getUserInitials } from "@/lib/utils";
 import { useLocation } from "wouter";
+import { Setting } from "../../shared/schema";
 
 // Form schema for system settings
 const settingSchema = z.object({
@@ -593,6 +594,24 @@ export default function AdminPage() {
                         </div>
                       </div>
                     </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium">Max Game Earnings</h3>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openSettingModal(settings?.find(s => s.key === 'game_max_earnings'))}
+                        >
+                          Configure
+                        </Button>
+                      </div>
+                      <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">Cap: {settings?.find(s => s.key === 'game_max_earnings')?.value || '200'} coins per game</span>
+                        </div>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
 
@@ -801,6 +820,7 @@ function getSettingDescription(key: string): string {
     'ad_interstitial_enabled': 'Whether interstitial ads are enabled (true/false)',
     'game_clicker_reward': 'Base reward for Clicker game',
     'game_memory_reward': 'Base reward for Memory game',
+    'game_max_earnings': 'Maximum coins that can be earned from a single game session',
     'exoclick_site_id': 'ExoClick site ID for ad integration',
     'captcha_disabled_premium': 'Whether captchas are disabled for premium users (true/false)',
   };
