@@ -81,9 +81,17 @@ function AfkEarningContent() {
           <div className="flex justify-between items-center">
             <CardTitle>AFK Earnings</CardTitle>
             {isAfkActive ? (
-              <span className="bg-success-500/10 text-success-500 text-xs font-medium py-1 px-2 rounded">
-                Active
-              </span>
+              isPaused ? (
+                <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-xs font-medium py-1 px-3 rounded-full">
+                  <span className="w-2 h-2 bg-amber-500 dark:bg-amber-400 rounded-full mr-1 inline-block"></span>
+                  Paused
+                </span>
+              ) : (
+                <span className="bg-success-500/10 text-success-500 text-xs font-medium py-1 px-2 rounded">
+                  <span className="w-2 h-2 bg-green-500 dark:bg-green-400 rounded-full animate-pulse mr-1 inline-block"></span>
+                  Active
+                </span>
+              )
             ) : (
               <span className="bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs font-medium py-1 px-2 rounded">
                 Inactive
@@ -93,9 +101,21 @@ function AfkEarningContent() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center justify-center py-6">
-            <div className={`w-32 h-32 rounded-full ${isAfkActive ? 'bg-primary-50 dark:bg-primary-900/30 afk-pulse' : 'bg-gray-100 dark:bg-gray-800'} flex items-center justify-center mb-6`}>
+            <div className={`w-32 h-32 rounded-full ${
+              isAfkActive 
+                ? isPaused
+                  ? 'bg-amber-50 dark:bg-amber-900/30' 
+                  : 'bg-primary-50 dark:bg-primary-900/30 afk-pulse'
+                : 'bg-gray-100 dark:bg-gray-800'
+            } flex items-center justify-center mb-6`}>
               <div className="text-center">
-                <span className={`block text-3xl font-bold ${isAfkActive ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400 dark:text-gray-500'}`}>
+                <span className={`block text-3xl font-bold ${
+                  isAfkActive 
+                    ? isPaused
+                      ? 'text-amber-600 dark:text-amber-400'
+                      : 'text-primary-600 dark:text-primary-400' 
+                    : 'text-gray-400 dark:text-gray-500'
+                }`}>
                   +{afkRate}
                 </span>
                 <span className="text-sm text-gray-600 dark:text-gray-400">
@@ -113,6 +133,16 @@ function AfkEarningContent() {
                 
                 <div className="w-full p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg mb-4">
                   <h4 className="text-sm font-medium mb-2">Anti-Cheat Status</h4>
+                  <div className={`w-full text-center mb-2 py-1 px-2 rounded ${
+                    isPaused
+                      ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' 
+                      : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                  }`}>
+                    {isPaused 
+                      ? 'Earning paused - Interact to resume' 
+                      : 'Earning active - Keep tab open'
+                    }
+                  </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div className={`flex items-center gap-1 p-2 rounded ${
                       isTabActive 
