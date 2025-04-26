@@ -27,7 +27,6 @@ function AfkEarningContent() {
     isLoading,
     lastEarning,
     isTabActive,
-    lastMouseMovement,
     isPaused
   } = useAfk();
 
@@ -158,15 +157,15 @@ function AfkEarningContent() {
                     </div>
                     
                     <div className={`flex items-center gap-1 p-2 rounded ${
-                      Date.now() - lastMouseMovement < 60000 
+                      !isPaused
                         ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400' 
                         : 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400'
                     }`}>
                       <span className={`w-2 h-2 rounded-full ${
-                        Date.now() - lastMouseMovement < 60000 ? 'bg-green-500' : 'bg-amber-500'
+                        !isPaused ? 'bg-green-500' : 'bg-amber-500'
                       }`}></span>
                       <span className="text-xs ml-1">
-                        {Date.now() - lastMouseMovement < 60000 ? 'Active Mouse' : 'Move Mouse!'}
+                        {!isPaused ? 'Active Earning' : 'Paused'}
                       </span>
                     </div>
                   </div>

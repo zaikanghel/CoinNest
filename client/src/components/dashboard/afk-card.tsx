@@ -25,7 +25,6 @@ export default function AfkCard() {
     isLoading,
     lastEarning,
     isTabActive,
-    lastMouseMovement,
     isPaused
   } = useAfk();
 
@@ -208,14 +207,14 @@ export default function AfkCard() {
                 </div>
                 
                 <div className={`p-2 rounded-md ${
-                  Date.now() - lastMouseMovement < 60000 ? 'bg-green-50 dark:bg-green-900/20' : 'bg-amber-50 dark:bg-amber-900/20'
+                  isTabActive ? 'bg-green-50 dark:bg-green-900/20' : 'bg-amber-50 dark:bg-amber-900/20'
                 }`}>
                   <div className="flex items-center gap-1.5">
                     <span className={`w-2 h-2 rounded-full ${
-                      Date.now() - lastMouseMovement < 60000 ? 'bg-green-500' : 'bg-amber-500'
+                      isTabActive ? 'bg-green-500' : 'bg-amber-500'
                     }`}></span>
                     <span className="text-xs font-medium">
-                      {Date.now() - lastMouseMovement < 60000 ? 'Recent Activity' : 'Need Movement'}
+                      {isTabActive ? 'Tab Active' : 'Tab Inactive'}
                     </span>
                   </div>
                 </div>
@@ -226,7 +225,7 @@ export default function AfkCard() {
           <Alert className="mt-4 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 p-3 rounded-lg text-sm flex items-start">
             <Info className="h-4 w-4 mr-2 mt-0.5" />
             <AlertDescription>
-              Keep this tab open and move your mouse occasionally to earn coins. Verification checks help prevent automated farming.
+              Keep this tab open to earn coins. Verification checks help prevent automated farming.
             </AlertDescription>
           </Alert>
         </CardContent>
