@@ -1,15 +1,18 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import MainLayout from "@/components/layout/main-layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import MemoryGame from "@/components/games/memory-game";
 import ClickerGame from "@/components/games/clicker-game";
-import { Loader2 } from "lucide-react";
+import { useSettings } from "@/hooks/use-settings";
+import { Loader2, Info } from "lucide-react";
 
 type GameData = {
   id: string;
@@ -27,6 +30,7 @@ type GameData = {
 export default function GamesPage() {
   const [gameToPlay, setGameToPlay] = useState<GameData | null>(null);
   const [showGameModal, setShowGameModal] = useState(false);
+  const { settings } = useSettings();
 
   // Fetch available games
   const { data: games, isLoading } = useQuery({
@@ -35,6 +39,16 @@ export default function GamesPage() {
       const res = await fetch("/api/games", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch games");
       return res.json() as Promise<GameData[]>;
+    }
+  });
+
+  // Fetch user stats for daily limits
+  const { data: stats, isLoading: isLoadingStats } = useQuery({
+    queryKey: ["/api/stats"],
+    queryFn: async () => {
+      const res = await fetch("/api/stats", { credentials: "include" });
+      if (!res.ok) return null;
+      return res.json();
     }
   });
 
@@ -66,6 +80,13 @@ export default function GamesPage() {
     setShowGameModal(false);
     setGameToPlay(null);
   };
+  
+  // Get daily game limit from settings
+  const dailyGameLimit = parseInt(settings.game_daily_limit || "1000");
+  
+  // Calculate daily game progress
+  const dailyGamesEarnings = stats?.dailyGamesEarnings || 0;
+  const dailyGamesProgress = (dailyGamesEarnings / dailyGameLimit) * 100;
 
   return (
     <MainLayout pageTitle="Games">
@@ -76,6 +97,38 @@ export default function GamesPage() {
           </div>
         ) : (
           <>
+            {/* Daily Limit Card */}
+            <Card className="bg-gradient-to-r from-primary-50/50 to-accent-50/50 dark:from-primary-900/20 dark:to-accent-900/20">
+              <CardContent className="pt-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold mb-1">Daily Games Limits</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                      You can earn up to {dailyGameLimit} coins per day from games
+                    </p>
+                    <div className="w-full">
+                      <div className="flex justify-between text-xs mb-1">
+                        <span>Progress</span>
+                        <span>{dailyGamesEarnings}/{dailyGameLimit} coins</span>
+                      </div>
+                      <Progress 
+                        value={dailyGamesProgress} 
+                        className="h-2" 
+                      />
+                    </div>
+                  </div>
+                  {dailyGamesEarnings >= dailyGameLimit && (
+                    <Alert className="flex-shrink-0 md:max-w-[280px] bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800/50">
+                      <Info className="h-4 w-4 mt-0.5" />
+                      <AlertDescription className="ml-2">
+                        You've reached your daily game earnings limit. Come back tomorrow for more!
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+            
             {/* Games Grid */}
             <Card>
               <CardHeader>
