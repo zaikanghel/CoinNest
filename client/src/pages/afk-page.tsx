@@ -43,6 +43,13 @@ function AfkEarningContent() {
       return () => clearTimeout(timer);
     }
   }, [lastEarning]);
+  
+  // Show video ad every 10 minutes of AFK time (600 seconds)
+  useEffect(() => {
+    if (isAfkActive && afkTime > 0 && afkTime % 600 === 0) {
+      setShowVideoAd(true);
+    }
+  }, [isAfkActive, afkTime]);
 
   const dailyProgress = (dailyEarned / dailyLimit) * 100;
   const formattedAfkTime = formatTime(afkTime);
@@ -50,6 +57,23 @@ function AfkEarningContent() {
 
   return (
     <div className="space-y-6">
+      {/* Video Ad Modal */}
+      {showVideoAd && (
+        <VideoAd 
+          duration={15}
+          onComplete={() => setShowVideoAd(false)}
+          className="mb-4"
+        />
+      )}
+      
+      {/* Banner Ad - shows when AFK is active */}
+      {isAfkActive && (
+        <BannerAd 
+          className="mb-4" 
+          rotationInterval={30000} // Rotate every 30 seconds
+        />
+      )}
+      
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">

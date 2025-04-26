@@ -20,7 +20,9 @@ export default function AfkCard() {
     verifyCaptcha,
     captchaVerificationPending,
     isLoading,
-    lastEarning
+    lastEarning,
+    isTabActive,
+    lastMouseMovement
   } = useAfk();
 
   const dailyProgress = (dailyEarned / dailyLimit) * 100;
@@ -83,6 +85,20 @@ export default function AfkCard() {
             <div className="text-center mb-5 bg-gray-50 dark:bg-gray-800/50 px-4 py-2 rounded-lg">
               <p className="text-sm text-gray-500 dark:text-gray-400">AFK Time</p>
               <p className="text-xl font-bold text-primary dark:text-primary-400">{formattedAfkTime}</p>
+              
+              {/* Tab status indicator */}
+              <div className="flex items-center justify-center gap-2 mt-2">
+                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${
+                  isTabActive 
+                    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' 
+                    : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                }`}>
+                  <span className={`w-1.5 h-1.5 mr-1 rounded-full ${
+                    isTabActive ? 'bg-green-500' : 'bg-red-500'
+                  }`}></span>
+                  {isTabActive ? 'Tab Active' : 'Tab Inactive'}
+                </span>
+              </div>
               
               {lastEarning && (
                 <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
