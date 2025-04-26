@@ -241,6 +241,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const monetaryValue = (user.totalEarned / conversionRate).toFixed(2);
     
     res.json({
+      balance: user.balance,
       totalEarnings: monetaryValue,
       dailyEarnings: user.dailyAfkEarned,
       dailyLimit: dailyAfkLimit,
