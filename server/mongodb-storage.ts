@@ -69,7 +69,13 @@ export class MongoStorage implements IStorage {
       { key: 'game_memory_reward', value: '10' }, // coins per memory match
       { key: 'game_clicker_reward', value: '5' }, // coins per click
       { key: 'game_max_earnings', value: '200' }, // max coins per game session
-      { key: 'game_daily_limit', value: '1000' } // max coins from games per day
+      { key: 'game_daily_limit', value: '1000' }, // max coins from games per day
+      
+      // Premium settings
+      { key: 'premium_price', value: '4.99' }, // monthly price in USD
+      { key: 'premium_afk_multiplier', value: '2' }, // multiplier for premium earnings
+      { key: 'premium_daily_limit_bonus', value: '200' }, // additional daily limit for premium
+      { key: 'captcha_disabled_premium', value: 'true' } // whether captchas are disabled for premium
     ];
 
     for (const setting of defaultSettings) {

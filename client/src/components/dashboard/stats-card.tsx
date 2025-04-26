@@ -13,6 +13,10 @@ type StatsCardProps = {
     value: number;
     max: number;
     color?: string;
+    premium?: {
+      baseMax: number;
+      bonus: number;
+    }
   };
   detail?: {
     label: string;
@@ -57,13 +61,47 @@ export default function StatsCard({
             <span className="font-medium">Daily Progress</span>
             <span className="font-medium">{progress.value}/{progress.max}</span>
           </div>
-          <Progress
-            value={Math.min(100, Math.round((progress.value / progress.max) * 100))}
-            className={`h-2 ${progress.color || ''}`}
-          />
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            {Math.min(100, Math.round((progress.value / progress.max) * 100))}% of daily limit
-          </p>
+          
+          {/* Premium progress with bonus indicator */}
+          {progress.premium ? (
+            <div className="relative">
+              <div className="absolute inset-0 flex">
+                <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                  {/* Base limit section */}
+                  <div 
+                    className="h-full bg-gradient-to-r from-gray-400 to-gray-500 dark:from-gray-600 dark:to-gray-700 rounded-full"
+                    style={{ width: `${(progress.premium.baseMax / progress.max) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
+              
+              <Progress
+                value={Math.min(100, Math.round((progress.value / progress.max) * 100))}
+                className={`h-2 ${progress.color || ''} relative z-10`}
+              />
+              
+              <div className="flex justify-between text-xs mt-1">
+                <div className="flex items-center">
+                  <span className="inline-block w-2 h-2 bg-gray-400 rounded-full mr-1"></span>
+                  <span className="text-gray-500 dark:text-gray-400">Base: {progress.premium.baseMax}</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="inline-block w-2 h-2 bg-amber-400 rounded-full mr-1"></span>
+                  <span className="text-amber-600 dark:text-amber-400">+Premium: {progress.premium.bonus}</span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <Progress
+                value={Math.min(100, Math.round((progress.value / progress.max) * 100))}
+                className={`h-2 ${progress.color || ''}`}
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {Math.min(100, Math.round((progress.value / progress.max) * 100))}% of daily limit
+              </p>
+            </>
+          )}
         </div>
       )}
 

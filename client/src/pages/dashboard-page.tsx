@@ -106,9 +106,16 @@ export default function DashboardPage() {
                 progress={{
                   value: stats?.dailyEarnings || 0,
                   max: stats?.dailyLimit || 200,
-                  color: "bg-warning-500"
+                  color: "bg-warning-500",
+                  premium: stats?.isPremiumActive ? {
+                    baseMax: stats?.baseDailyLimit || 200,
+                    bonus: stats?.dailyLimit - (stats?.baseDailyLimit || 200)
+                  } : undefined
                 }}
-                iconClass="bg-warning-100 dark:bg-warning-900/30 text-warning-500"
+                iconClass={stats?.isPremiumActive 
+                  ? "bg-gradient-to-r from-amber-100 to-yellow-200 dark:from-amber-900/30 dark:to-yellow-800/30 text-amber-600"
+                  : "bg-warning-100 dark:bg-warning-900/30 text-warning-500"
+                }
               />
               
               <StatsCard

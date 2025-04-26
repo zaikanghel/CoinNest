@@ -238,9 +238,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     const user = req.user;
     
-    // Calculate daily progress
+    // Get base daily limit
     const dailyAfkLimitStr = await storage.getSetting("afk_daily_limit");
-    const dailyAfkLimit = parseInt(dailyAfkLimitStr || "200");
+    const baseDailyAfkLimit = parseInt(dailyAfkLimitStr || "200");
+    
+    // Apply premium benefits if user is premium
+    let dailyAfkLimit = baseDailyAfkLimit;
+    let isPremiumActive = false;
+    
+    if (user.isPremium && user.premiumUntil && new Date(user.premiumUntil) > new Date()) {
+      isPremiumActive = true;
+      
+      // Get premium daily limit bonus
+      const premiumDailyLimitBonusStr = await storage.getSetting("premium_daily_limit_bonus");
+      const dailyLimitBonus = parseInt(premiumDailyLimitBonusStr || "200");
+      
+      // Apply the bonus to the daily limit
+      dailyAfkLimit = baseDailyAfkLimit + dailyLimitBonus;
+      
+      console.log(`[STATS] Premium user ${user.id} gets total daily limit of ${dailyAfkLimit} coins`);
+    }
     
     // Convert user balance to monetary value
     const conversionRateStr = await storage.getSetting("conversion_rate");
@@ -252,6 +269,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       totalEarnings: monetaryValue,
       dailyEarnings: user.dailyAfkEarned,
       dailyLimit: dailyAfkLimit,
+      baseDailyLimit: baseDailyAfkLimit,
+      isPremiumActive,
       dailyProgress: `${user.dailyAfkEarned}/${dailyAfkLimit}`,
       dailyProgressPercent: Math.min(100, Math.round((user.dailyAfkEarned / dailyAfkLimit) * 100)),
       gameEarnings: user.gamesEarned,
