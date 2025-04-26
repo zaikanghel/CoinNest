@@ -4,6 +4,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useSettings } from "./use-settings";
 
+// Context type including premium features
 interface AfkContextType {
   isAfkActive: boolean;
   startAfkEarning: () => void;
@@ -313,7 +314,7 @@ export function AfkProvider({ children }: { children: ReactNode }) {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isAfkActive, captchaNeeded, afkStartTime, lastCaptchaTime, lastEarningSubmit, captchaInterval, isTabActive]);
+  }, [isAfkActive, captchaNeeded, afkStartTime, lastCaptchaTime, lastEarningSubmit, captchaInterval, isTabActive, captchaDisabled, isPremiumActive]);
 
   // Function to start AFK earning
   const startAfkEarning = async () => {
@@ -344,16 +345,19 @@ export function AfkProvider({ children }: { children: ReactNode }) {
         // Set premium status
         if (data.data.isPremiumActive !== undefined) {
           setIsPremiumActive(data.data.isPremiumActive);
+          console.log("Premium status updated:", data.data.isPremiumActive);
         }
         
         // Set premium multiplier
         if (data.data.premiumMultiplier !== undefined) {
           setPremiumMultiplier(data.data.premiumMultiplier);
+          console.log("Premium multiplier updated:", data.data.premiumMultiplier);
         }
         
         // Set captcha bypass
         if (data.data.captchaDisabled !== undefined) {
           setCaptchaDisabled(data.data.captchaDisabled);
+          console.log("Captcha disabled status updated:", data.data.captchaDisabled);
         }
       }
       setIsAfkActive(true);

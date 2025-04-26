@@ -17,7 +17,9 @@ export default function AfkCard() {
     stopAfkEarning,
     afkTime,
     afkRate,
+    baseAfkRate,
     dailyLimit,
+    baseDailyLimit,
     dailyEarned,
     captchaNeeded,
     verifyCaptcha,
@@ -25,7 +27,10 @@ export default function AfkCard() {
     isLoading,
     lastEarning,
     isTabActive,
-    isPaused
+    isPaused,
+    isPremiumActive,
+    premiumMultiplier,
+    captchaDisabled
   } = useAfk();
 
   const [showVideoAd, setShowVideoAd] = useState(false);
