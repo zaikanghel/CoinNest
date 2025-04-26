@@ -30,20 +30,20 @@ export default function StatsCard({
   detail
 }: StatsCardProps) {
   return (
-    <div className="bg-white dark:bg-dark-900 rounded-xl shadow-sm p-5 border border-gray-200 dark:border-gray-700">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-5 border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-lg hover:transform hover:translate-y-[-2px]">
       <div className="flex justify-between items-start">
         <div>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">{title}</p>
-          <h3 className="text-2xl font-bold mt-1">{value}</h3>
+          <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">{title}</p>
+          <h3 className="text-2xl font-bold mt-1 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300">{value}</h3>
         </div>
-        <div className={`p-2 rounded-lg ${iconClass}`}>
+        <div className={`p-3 rounded-xl ${iconClass} shadow-sm`}>
           <i className={`${icon} text-xl`}></i>
         </div>
       </div>
 
       {trend && (
         <div className="mt-3 flex items-center text-xs">
-          <span className={`flex items-center ${trend.value >= 0 ? 'text-success-500' : 'text-red-500'}`}>
+          <span className={`flex items-center px-2 py-1 rounded-full ${trend.value >= 0 ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'}`}>
             <i className={`${trend.value >= 0 ? 'ri-arrow-up-line' : 'ri-arrow-down-line'} mr-1`}></i> 
             {Math.abs(trend.value)}%
           </span>
@@ -54,25 +54,25 @@ export default function StatsCard({
       {progress && (
         <div className="mt-4">
           <div className="flex justify-between text-xs mb-1">
-            <span>Progress</span>
-            <span>{progress.value}/{progress.max}</span>
+            <span className="font-medium">Daily Progress</span>
+            <span className="font-medium">{progress.value}/{progress.max}</span>
           </div>
-          <div className="progress-bar">
-            <div 
-              className="progress-value" 
-              style={{ 
-                width: `${Math.min(100, Math.round((progress.value / progress.max) * 100))}%`,
-                background: progress.color || undefined
-              }}
-            ></div>
-          </div>
+          <Progress
+            value={Math.min(100, Math.round((progress.value / progress.max) * 100))}
+            className={`h-2 ${progress.color || ''}`}
+          />
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            {Math.min(100, Math.round((progress.value / progress.max) * 100))}% of daily limit
+          </p>
         </div>
       )}
 
       {detail && (
         <div className="mt-3 flex items-center text-xs">
-          <span className="text-gray-500 dark:text-gray-400">{detail.label}: </span>
-          <span className="ml-1 font-medium">{detail.value}</span>
+          <div className="flex items-center px-2 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20">
+            <span className="text-gray-700 dark:text-gray-300">{detail.label}: </span>
+            <span className="ml-1 font-medium text-blue-600 dark:text-blue-400">{detail.value}</span>
+          </div>
         </div>
       )}
     </div>

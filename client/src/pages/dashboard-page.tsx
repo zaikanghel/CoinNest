@@ -6,6 +6,7 @@ import ActivityList from "@/components/dashboard/activity-list";
 import GamesList from "@/components/dashboard/games-list";
 import { Loader2 } from "lucide-react";
 import { AfkProvider } from "@/hooks/use-afk";
+import { Link } from "wouter";
 
 export default function DashboardPage() {
   // Fetch user stats
@@ -42,15 +43,49 @@ export default function DashboardPage() {
 
   return (
     <MainLayout pageTitle="Dashboard">
-      <div className="space-y-6">
+      <div className="space-y-8">
         {isLoading ? (
           <div className="flex items-center justify-center h-96">
-            <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+            <div className="flex flex-col items-center">
+              <Loader2 className="h-12 w-12 animate-spin text-primary" />
+              <p className="mt-4 text-gray-500 dark:text-gray-400">Loading your earnings data...</p>
+            </div>
           </div>
         ) : (
           <>
+            {/* Welcome Banner */}
+            <div className="relative overflow-hidden bg-gradient-to-r from-primary to-accent rounded-2xl shadow-lg">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mt-20 -mr-20 z-0"></div>
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -mb-16 -ml-16 z-0"></div>
+              
+              <div className="relative z-10 px-8 py-6 text-white">
+                <h2 className="text-2xl md:text-3xl font-bold">
+                  Welcome to Your IdleCash Dashboard
+                </h2>
+                <p className="mt-2 max-w-2xl opacity-90">
+                  Start earning passively by keeping this tab open or boost your earnings by playing games!
+                </p>
+                
+                <div className="mt-4 inline-flex items-center space-x-4">
+                  <div className="flex items-center bg-white/20 rounded-lg px-3 py-1.5 backdrop-blur-sm">
+                    <i className="ri-money-dollar-circle-line text-yellow-300 mr-2"></i>
+                    <span className="text-white font-medium">
+                      Total Balance: <span className="font-bold">{stats?.balance || 0}</span> coins
+                    </span>
+                  </div>
+                  
+                  <div className="hidden md:flex items-center bg-white/20 rounded-lg px-3 py-1.5 backdrop-blur-sm">
+                    <i className="ri-exchange-dollar-line text-green-300 mr-2"></i>
+                    <span className="text-white">
+                      Value: <span className="font-bold">${stats?.totalEarnings || "0.00"}</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
             {/* Stats Row */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
               <StatsCard
                 title="Total Earnings"
                 value={`$${stats?.totalEarnings || "0.00"}`}
@@ -104,7 +139,17 @@ export default function DashboardPage() {
             </div>
             
             {/* Games Section */}
-            <GamesList games={games || []} />
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold">Play & Earn More</h2>
+                <Link to="/games">
+                  <span className="flex items-center text-primary hover:underline cursor-pointer">
+                    View all games <i className="ri-arrow-right-line ml-1"></i>
+                  </span>
+                </Link>
+              </div>
+              <GamesList games={games || []} />
+            </div>
           </>
         )}
       </div>
