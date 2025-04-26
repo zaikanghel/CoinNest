@@ -22,7 +22,8 @@ export default function AfkCard() {
     isLoading,
     lastEarning,
     isTabActive,
-    lastMouseMovement
+    lastMouseMovement,
+    isPaused
   } = useAfk();
 
   const dailyProgress = (dailyEarned / dailyLimit) * 100;
@@ -34,10 +35,17 @@ export default function AfkCard() {
         <div className="flex justify-between items-center">
           <CardTitle className="text-xl font-bold">AFK Earnings</CardTitle>
           {isAfkActive ? (
-            <span className="flex items-center gap-1.5 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-medium py-1 px-3 rounded-full">
-              <span className="w-2 h-2 bg-green-500 dark:bg-green-400 rounded-full animate-pulse"></span>
-              Active
-            </span>
+            isPaused ? (
+              <span className="flex items-center gap-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-xs font-medium py-1 px-3 rounded-full">
+                <span className="w-2 h-2 bg-amber-500 dark:bg-amber-400 rounded-full"></span>
+                Paused
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-medium py-1 px-3 rounded-full">
+                <span className="w-2 h-2 bg-green-500 dark:bg-green-400 rounded-full animate-pulse"></span>
+                Active
+              </span>
+            )
           ) : (
             <span className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-medium py-1 px-3 rounded-full">
               <span className="w-2 h-2 bg-gray-400 dark:bg-gray-600 rounded-full"></span>

@@ -21,6 +21,7 @@ interface AfkContextType {
   } | null;
   isTabActive: boolean;
   lastMouseMovement: number;
+  isPaused: boolean;
 }
 
 export const AfkContext = createContext<AfkContextType | null>(null);
@@ -40,6 +41,11 @@ export function AfkProvider({ children }: { children: ReactNode }) {
   const [lastEarning, setLastEarning] = useState<{amount: number, timestamp: number} | null>(null);
   const [isTabActive, setIsTabActive] = useState(true);
   const [lastMouseMovement, setLastMouseMovement] = useState(Date.now());
+  
+  // Anti-cheat and timer pausing
+  const [isPaused, setIsPaused] = useState(false);
+  const [pauseStartTime, setPauseStartTime] = useState(0);
+  const [totalPausedTime, setTotalPausedTime] = useState(0);
   
   // Constants for anti-cheat
   const MOUSE_MOVEMENT_TIMEOUT = 120000; // 2 minutes
@@ -120,40 +126,61 @@ export function AfkProvider({ children }: { children: ReactNode }) {
     if (isAfkActive && !captchaNeeded) {
       interval = setInterval(() => {
         const now = Date.now();
-        const elapsedSinceStart = Math.floor((now - afkStartTime) / 1000);
-        setAfkTime(elapsedSinceStart);
         
-        // Check if captcha should be shown
+        // Check for active conditions (tab active + recent mouse movement)
+        const timeSinceLastMovement = now - lastMouseMovement;
+        const isUserActive = timeSinceLastMovement < MOUSE_MOVEMENT_TIMEOUT;
+        const shouldBePaused = !isTabActive || !isUserActive;
+        
+        // Check if captcha should be shown based on time
         if (captchaInterval > 0 && now - lastCaptchaTime > captchaInterval * 1000) {
           setCaptchaNeeded(true);
         }
         
-        // Only submit earnings if tab is active and mouse has moved recently
-        const timeSinceLastMovement = now - lastMouseMovement;
-        const isUserActive = timeSinceLastMovement < MOUSE_MOVEMENT_TIMEOUT;
+        // Handle pausing and resuming
+        if (shouldBePaused && !isPaused) {
+          // Just entered paused state
+          setIsPaused(true);
+          setPauseStartTime(now);
+          
+          // Show appropriate warning
+          if (!isTabActive) {
+            toast({
+              title: "Tab inactive",
+              description: "AFK timer paused. Keep this tab active to earn coins",
+              variant: "destructive"
+            });
+          } else if (!isUserActive) {
+            toast({
+              title: "Inactivity detected",
+              description: "AFK timer paused. Move your mouse to continue earning",
+              variant: "destructive"
+            });
+          }
+        } else if (!shouldBePaused && isPaused) {
+          // Just resumed from paused state
+          setIsPaused(false);
+          const pauseDuration = now - pauseStartTime;
+          setTotalPausedTime(prev => prev + pauseDuration);
+          
+          toast({
+            title: "Activity resumed",
+            description: "AFK timer and earnings have resumed",
+            variant: "default"
+          });
+        }
         
-        if (now - lastEarningSubmit >= 60000) {
-          // Only earn if tab is active and user has moved their mouse recently
-          if (isTabActive && isUserActive) {
+        // Update AFK time with pause compensation
+        if (!isPaused) {
+          const effectiveElapsed = Math.floor((now - afkStartTime - totalPausedTime) / 1000);
+          setAfkTime(effectiveElapsed);
+          
+          // Only submit earnings if active and it's time
+          if (now - lastEarningSubmit >= 60000) {
             const minutesElapsed = (now - lastEarningSubmit) / 60000;
             earnMutation.mutate(minutesElapsed);
-          } else {
-            // Show warning toast if inactive but don't earn
-            if (!isTabActive) {
-              toast({
-                title: "Tab inactive",
-                description: "You need to keep this tab active to earn coins",
-                variant: "destructive"
-              });
-            } else if (!isUserActive) {
-              toast({
-                title: "Inactivity detected",
-                description: "Move your mouse to continue earning coins",
-                variant: "destructive"
-              });
-            }
+            setLastEarningSubmit(now);
           }
-          setLastEarningSubmit(now);
         }
       }, 1000);
     }
@@ -293,7 +320,8 @@ export function AfkProvider({ children }: { children: ReactNode }) {
         isLoading,
         lastEarning,
         isTabActive,
-        lastMouseMovement
+        lastMouseMovement,
+        isPaused
       }}
     >
       {children}
