@@ -474,10 +474,45 @@ export default function PremiumPage() {
                               onChange={(e) => {
                                 const file = e.target.files?.[0];
                                 if (file) {
-                                  // Convert the file to a base64 string
+                                  // Compress and convert the image before uploading
                                   const reader = new FileReader();
                                   reader.onload = (event) => {
-                                    onChange(event.target?.result as string);
+                                    const img = new Image();
+                                    img.onload = () => {
+                                      // Create a canvas to resize the image
+                                      const canvas = document.createElement('canvas');
+                                      // Max dimensions for the image (reduces file size)
+                                      const MAX_WIDTH = 800;
+                                      const MAX_HEIGHT = 800;
+                                      
+                                      let width = img.width;
+                                      let height = img.height;
+                                      
+                                      // Calculate new dimensions while maintaining aspect ratio
+                                      if (width > height) {
+                                        if (width > MAX_WIDTH) {
+                                          height *= MAX_WIDTH / width;
+                                          width = MAX_WIDTH;
+                                        }
+                                      } else {
+                                        if (height > MAX_HEIGHT) {
+                                          width *= MAX_HEIGHT / height;
+                                          height = MAX_HEIGHT;
+                                        }
+                                      }
+                                      
+                                      canvas.width = width;
+                                      canvas.height = height;
+                                      
+                                      // Draw the resized image on the canvas
+                                      const ctx = canvas.getContext('2d');
+                                      ctx?.drawImage(img, 0, 0, width, height);
+                                      
+                                      // Convert canvas to base64 with reduced quality
+                                      const compressedImage = canvas.toDataURL('image/jpeg', 0.7);
+                                      onChange(compressedImage);
+                                    };
+                                    img.src = event.target?.result as string;
                                   };
                                   reader.readAsDataURL(file);
                                 }
@@ -496,7 +531,8 @@ export default function PremiumPage() {
                           </div>
                         </FormControl>
                         <FormDescription>
-                          Upload a screenshot of your payment confirmation
+                          Upload a screenshot of your payment confirmation.
+                          Images will be automatically compressed to reduce file size.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>

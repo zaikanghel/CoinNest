@@ -15,8 +15,9 @@ dotenv.config();
 process.env.MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://reddino037:NFYbVAsB4Yk383ld@smartcode.srnth.mongodb.net/";
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+// Increase JSON payload limit to 10MB to handle base64 encoded images
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
 app.use((req, res, next) => {
   const start = Date.now();
