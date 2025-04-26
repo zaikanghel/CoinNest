@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useSettings } from "@/hooks/use-settings";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Crown, CreditCard, AlertCircle, Check, ChevronRight } from "lucide-react";
+import { Crown, CreditCard, AlertCircle, Check, ChevronRight, Upload } from "lucide-react";
 
 // Form schema for premium subscription
 const subscriptionSchema = z.object({
@@ -362,7 +362,12 @@ export default function PremiumPage() {
                     name="proofImage"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Payment Proof</FormLabel>
+                        <FormLabel>
+                          <div className="flex items-center gap-1">
+                            <Upload className="h-4 w-4" />
+                            <span>Payment Proof</span>
+                          </div>
+                        </FormLabel>
                         <FormControl>
                           <Input 
                             placeholder="URL to screenshot or payment confirmation" 
