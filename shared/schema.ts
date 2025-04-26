@@ -60,6 +60,19 @@ export const settings = pgTable("settings", {
   updatedAt: timestamp("updated_at").notNull().defaultNow()
 });
 
+export const premiumPayments = pgTable("premium_payments", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  amount: integer("amount").notNull(),
+  method: text("method").notNull(), // 'paypal', 'gcash', 'bank_transfer', etc.
+  durationMonths: integer("duration_months").notNull(),
+  status: text("status").notNull().default("pending"), // 'pending', 'approved', 'rejected'
+  proofImage: text("proof_image"), // URL or base64 of payment proof
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  processedAt: timestamp("processed_at")
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -101,6 +114,13 @@ export const insertSettingSchema = createInsertSchema(settings).omit({
   updatedAt: true
 });
 
+export const insertPremiumPaymentSchema = createInsertSchema(premiumPayments).omit({
+  id: true,
+  status: true,
+  createdAt: true,
+  processedAt: true
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -108,6 +128,7 @@ export type Activity = typeof activities.$inferSelect;
 export type Withdrawal = typeof withdrawals.$inferSelect;
 export type GameScore = typeof gameScores.$inferSelect;
 export type Setting = typeof settings.$inferSelect;
+export type PremiumPayment = typeof premiumPayments.$inferSelect;
 
 // Additional schemas for client validation
 export const loginSchema = z.object({
@@ -132,6 +153,17 @@ export const withdrawalSchema = z.object({
   accountDetails: z.string().min(5, "Please enter valid account details")
 });
 
+export const premiumPaymentSchema = z.object({
+  amount: z.number().min(1, "Please enter a valid amount"),
+  method: z.enum(["paypal", "gcash", "bank_transfer", "crypto"], {
+    errorMap: () => ({ message: "Please select a valid payment method" })
+  }),
+  durationMonths: z.number().min(1, "Please select a valid duration"),
+  proofImage: z.string().min(5, "Please upload proof of payment"),
+  notes: z.string().optional()
+});
+
 export type LoginData = z.infer<typeof loginSchema>;
 export type RegisterData = z.infer<typeof registerSchema>;
 export type WithdrawalData = z.infer<typeof withdrawalSchema>;
+export type PremiumPaymentData = z.infer<typeof premiumPaymentSchema>;

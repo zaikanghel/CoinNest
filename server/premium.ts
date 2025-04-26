@@ -1,17 +1,40 @@
 import { Express } from "express";
 import { storage } from "./storage";
+import { premiumPaymentSchema } from "@shared/schema";
 
 export function setupPremiumRoutes(app: Express) {
+  // Get premium status for current user
+  app.get("/api/premium/status", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const user = req.user;
+    
+    // Calculate if premium is active
+    const isPremiumActive = user.isPremium && user.premiumUntil && new Date(user.premiumUntil) > new Date();
+
+    res.json({
+      isPremium: isPremiumActive,
+      premiumUntil: user.premiumUntil,
+      premiumStarted: user.premiumStarted
+    });
+  });
+
+  // Get premium payments for current user
+  app.get("/api/premium/payments", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const payments = await storage.getPremiumPaymentsByUser(req.user.id);
+    res.json(payments);
+  });
+
   // Endpoint to submit premium subscription request
   app.post("/api/premium/subscribe", async (req, res) => {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: "Unauthorized" });
-    }
-    
-    const { paymentMethod, receiptId } = req.body;
-    
-    if (!paymentMethod || !receiptId) {
-      return res.status(400).json({ message: "Missing required fields" });
     }
     
     // Check if user is already premium with an active subscription
@@ -22,16 +45,26 @@ export function setupPremiumRoutes(app: Express) {
       }
     }
     
-    // Add the payment request to activities for admin review
-    await storage.createActivity({
-      userId: req.user.id,
-      type: "premium_request",
-      amount: 0, // No coins involved directly
-      description: `Premium subscription payment (${paymentMethod}) - Reference: ${receiptId}`
-    });
-    
-    // Return success response
-    res.json({ success: true, message: "Premium subscription request submitted for review" });
+    try {
+      const validatedData = premiumPaymentSchema.parse(req.body);
+      
+      const payment = await storage.createPremiumPayment({
+        userId: req.user.id,
+        ...validatedData
+      });
+      
+      // Add the payment request to activities for admin review
+      await storage.createActivity({
+        userId: req.user.id,
+        type: "premium_request",
+        amount: payment.amount,
+        description: `Premium subscription payment (${payment.method}) - ${payment.durationMonths} month(s)`
+      });
+
+      res.json({ success: true, payment, message: "Premium subscription request submitted for review" });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
   });
   
   // Admin endpoint to approve premium subscription

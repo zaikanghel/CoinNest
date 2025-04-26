@@ -1,4 +1,4 @@
-import type { User, Activity, Withdrawal, GameScore, Setting, InsertUser } from "@shared/schema";
+import type { User, Activity, Withdrawal, GameScore, Setting, InsertUser, PremiumPayment } from "@shared/schema";
 import session from "express-session";
 import { MongoStorage } from "./mongodb-storage";
 
@@ -52,6 +52,30 @@ export interface IStorage {
   getSetting(key: string): Promise<string | undefined>;
   updateSetting(key: string, value: string): Promise<boolean>;
   getSettings(): Promise<Setting[]>;
+  
+  // Premium operations
+  createPremiumPayment(data: {
+    userId: number;
+    amount: number;
+    method: string;
+    durationMonths: number;
+    proofImage: string;
+    notes?: string;
+  }): Promise<PremiumPayment>;
+  getPremiumPaymentsByUser(userId: number): Promise<PremiumPayment[]>;
+  getPendingPremiumPayments(): Promise<PremiumPayment[]>;
+  getAllPremiumPayments(): Promise<PremiumPayment[]>;
+  updatePremiumPaymentStatus(
+    id: number,
+    status: string,
+    processedAt?: Date
+  ): Promise<PremiumPayment | undefined>;
+  updateUserPremiumStatus(
+    userId: number,
+    isPremium: boolean,
+    premiumUntil?: Date,
+    premiumStarted?: Date
+  ): Promise<User | undefined>;
 
   // Session store
   sessionStore: session.Store;
