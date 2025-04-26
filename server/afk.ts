@@ -57,18 +57,48 @@ export function setupAfkRoutes(app: Express) {
     }
     
     const { minutes } = req.body;
+    
+    // Enhanced validation on minutes value
     if (!minutes || typeof minutes !== "number" || minutes <= 0) {
-      return res.status(400).json({ message: "Invalid minutes value" });
+      return res.json({
+        earned: 0,
+        dailyEarned: req.user.dailyAfkEarned || 0,
+        dailyLimit: 200,
+        remainingDaily: 200 - (req.user.dailyAfkEarned || 0),
+        message: "Invalid minutes value"
+      });
     }
     
+    // Anti-cheat: Cap the maximum minutes that can be earned in one request
+    // This prevents attempting to submit large time periods at once
+    const cappedMinutes = Math.min(minutes, 1.2); // Maximum slightly more than 1 minute
+    
     const user = req.user;
+    
+    // Check for inactivity - don't award if user has been inactive for too long
+    const now = new Date();
+    const lastActive = new Date(user.lastActive || 0);
+    const inactiveTimeSeconds = (now.getTime() - lastActive.getTime()) / 1000;
+    
+    // If user has been inactive for more than 3 minutes, return no earnings
+    // This is a server-side safety net for the client-side anti-cheat
+    if (inactiveTimeSeconds > 180) {
+      return res.json({
+        earned: 0,
+        dailyEarned: user.dailyAfkEarned || 0,
+        dailyLimit: 200,
+        remainingDaily: 200 - (user.dailyAfkEarned || 0),
+        captchaRequired: true,
+        message: "Inactive for too long"
+      });
+    }
     
     // Get earning rate from settings
     const afkRateStr = await storage.getSetting("afk_rate");
     const afkRate = parseInt(afkRateStr || "2");
     
-    // Calculate earned coins
-    const earnedCoins = Math.floor(minutes * afkRate);
+    // Calculate earned coins (using capped minutes)
+    const earnedCoins = Math.floor(cappedMinutes * afkRate);
     
     // Get daily limit from settings
     const dailyLimitStr = await storage.getSetting("afk_daily_limit");
@@ -84,7 +114,7 @@ export function setupAfkRoutes(app: Express) {
     if (actualEarnings === 0) {
       return res.json({
         earned: 0,
-        dailyEarned: user.dailyAfkEarned,
+        dailyEarned: user.dailyAfkEarned || 0,
         dailyLimit,
         remainingDaily: 0,
         message: "Daily limit reached"
@@ -162,18 +192,53 @@ export function setupAfkRoutes(app: Express) {
       return res.status(400).json({ message: "Missing answer or expected value" });
     }
     
-    // Simple verification, just check if the answer matches expected
-    const isCorrect = parseInt(answer) === parseInt(expected);
-    
-    if (isCorrect) {
-      // Update last active time
-      await storage.updateUser(req.user.id, { lastActive: new Date() });
+    try {
+      // Convert both values to numbers and compare
+      const answerNum = parseInt(String(answer).trim());
+      const expectedNum = parseInt(String(expected).trim());
       
-      res.json({ success: true });
-    } else {
-      res.status(400).json({
+      // Validation for non-numeric values
+      if (isNaN(answerNum) || isNaN(expectedNum)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid numeric values"
+        });
+      }
+      
+      // Simple verification, check if the answer matches expected
+      const isCorrect = answerNum === expectedNum;
+      
+      if (isCorrect) {
+        // Update last active time and reset pause/inactivity status
+        await storage.updateUser(req.user.id, { 
+          lastActive: new Date(),
+          // Could add additional fields if needed for tracking verification history
+        });
+        
+        // Return success with the AFK rate and daily info to resume correctly
+        const afkRateStr = await storage.getSetting("afk_rate");
+        const afkRate = parseInt(afkRateStr || "2");
+        
+        const dailyLimitStr = await storage.getSetting("afk_daily_limit");
+        const dailyLimit = parseInt(dailyLimitStr || "200");
+        
+        res.json({ 
+          success: true,
+          afkRate,
+          dailyLimit,
+          dailyEarned: req.user.dailyAfkEarned || 0,
+          message: "Verification successful"
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          message: "Incorrect answer"
+        });
+      }
+    } catch (error) {
+      res.status(500).json({
         success: false,
-        message: "Incorrect answer"
+        message: "Error verifying captcha"
       });
     }
   });
