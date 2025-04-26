@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useState, useEffect, useContext } from "react";
+import { createContext, ReactNode, useState, useEffect, useContext, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -19,6 +19,8 @@ interface AfkContextType {
     amount: number;
     timestamp: number;
   } | null;
+  isTabActive: boolean;
+  lastMouseMovement: number;
 }
 
 export const AfkContext = createContext<AfkContextType | null>(null);
@@ -36,6 +38,11 @@ export function AfkProvider({ children }: { children: ReactNode }) {
   const [lastEarningSubmit, setLastEarningSubmit] = useState(0);
   const [afkStartTime, setAfkStartTime] = useState(0);
   const [lastEarning, setLastEarning] = useState<{amount: number, timestamp: number} | null>(null);
+  const [isTabActive, setIsTabActive] = useState(true);
+  const [lastMouseMovement, setLastMouseMovement] = useState(Date.now());
+  
+  // Constants for anti-cheat
+  const MOUSE_MOVEMENT_TIMEOUT = 120000; // 2 minutes
   
   // Start AFK session
   const { isLoading, refetch: refetchAfkSettings } = useQuery({
@@ -121,8 +128,11 @@ export function AfkProvider({ children }: { children: ReactNode }) {
           setCaptchaNeeded(true);
         }
         
-        // Submit earnings every 60 seconds
-        if (now - lastEarningSubmit >= 60000) {
+        // Only submit earnings if tab is active and mouse has moved recently
+        const timeSinceLastMovement = now - lastMouseMovement;
+        const isUserActive = timeSinceLastMovement < MOUSE_MOVEMENT_TIMEOUT;
+        
+        if (isTabActive && isUserActive && now - lastEarningSubmit >= 60000) {
           const minutesElapsed = (now - lastEarningSubmit) / 60000;
           earnMutation.mutate(minutesElapsed);
           setLastEarningSubmit(now);
@@ -133,7 +143,7 @@ export function AfkProvider({ children }: { children: ReactNode }) {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isAfkActive, captchaNeeded, afkStartTime, lastCaptchaTime, lastEarningSubmit, captchaInterval]);
+  }, [isAfkActive, captchaNeeded, afkStartTime, lastCaptchaTime, lastEarningSubmit, captchaInterval, isTabActive, lastMouseMovement]);
 
   // Function to start AFK earning
   const startAfkEarning = async () => {
@@ -180,6 +190,66 @@ export function AfkProvider({ children }: { children: ReactNode }) {
     captchaMutation.mutate({ answer, expected });
   };
 
+  // Tab visibility change detection
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      const isVisible = document.visibilityState === 'visible';
+      setIsTabActive(isVisible);
+      
+      // If the tab becomes inactive, trigger a warning
+      if (!isVisible && isAfkActive) {
+        toast({
+          title: "Tab inactive",
+          description: "AFK earnings will be paused until you return to this tab",
+          variant: "warning"
+        });
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isAfkActive]);
+  
+  // Mouse movement detection
+  useEffect(() => {
+    const handleMouseMove = () => {
+      setLastMouseMovement(Date.now());
+    };
+    
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, []);
+  
+  // Check for mouse inactivity
+  useEffect(() => {
+    let inactivityCheck: NodeJS.Timeout;
+    
+    if (isAfkActive && !captchaNeeded) {
+      inactivityCheck = setInterval(() => {
+        const now = Date.now();
+        const timeSinceLastMovement = now - lastMouseMovement;
+        
+        // If mouse hasn't moved for the timeout period, prompt captcha
+        if (timeSinceLastMovement > MOUSE_MOVEMENT_TIMEOUT) {
+          setCaptchaNeeded(true);
+          toast({
+            title: "Mouse inactivity detected",
+            description: "Please verify you're still active",
+            variant: "warning"
+          });
+        }
+      }, 30000); // Check every 30 seconds
+    }
+    
+    return () => {
+      if (inactivityCheck) clearInterval(inactivityCheck);
+    };
+  }, [isAfkActive, captchaNeeded, lastMouseMovement]);
+  
   // Clean up on unmount
   useEffect(() => {
     return () => {
@@ -203,7 +273,9 @@ export function AfkProvider({ children }: { children: ReactNode }) {
         verifyCaptcha,
         captchaVerificationPending: captchaMutation.isPending,
         isLoading,
-        lastEarning
+        lastEarning,
+        isTabActive,
+        lastMouseMovement
       }}
     >
       {children}
