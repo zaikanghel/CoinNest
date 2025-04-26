@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useSettings } from "@/hooks/use-settings";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { cn } from "@/lib/utils";
 import { Crown, CreditCard, AlertCircle, Check, ChevronRight, Upload } from "lucide-react";
 
 // Form schema for premium subscription
@@ -301,66 +302,162 @@ export default function PremiumPage() {
                     )}
                   />
                   
-                  {/* Amount */}
+                  {/* Duration & Amount Combined */}
                   <FormField
                     control={form.control}
-                    name="amount"
+                    name="durationMonths"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Amount</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            placeholder="Amount paid" 
-                            {...field}
-                            onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                            value={field.value}
-                          />
-                        </FormControl>
+                      <FormItem className="space-y-4">
+                        <FormLabel>
+                          <div className="flex items-center gap-1">
+                            <CreditCard className="h-4 w-4" />
+                            <span>Subscription Plan</span>
+                          </div>
+                        </FormLabel>
                         <FormDescription>
-                          The amount you paid in USD (default: ${premiumPrice})
+                          Select your preferred subscription duration and payment amount
                         </FormDescription>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div 
+                            className={cn(
+                              "border rounded-lg p-4 cursor-pointer transition-all",
+                              field.value === 1 
+                                ? "border-primary bg-primary-50 dark:bg-primary-900/20" 
+                                : "hover:border-gray-400 dark:hover:border-gray-600"
+                            )}
+                            onClick={() => {
+                              field.onChange(1);
+                              form.setValue("amount", 5);
+                            }}
+                          >
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <h4 className="font-medium">1 Month</h4>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Basic Plan</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-lg font-bold text-primary">$5</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">$5/mo</p>
+                              </div>
+                            </div>
+                            {field.value === 1 && (
+                              <div className="mt-2 flex items-center text-xs text-primary">
+                                <Check className="h-3 w-3 mr-1" /> Selected
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div 
+                            className={cn(
+                              "border rounded-lg p-4 cursor-pointer transition-all",
+                              field.value === 3 
+                                ? "border-primary bg-primary-50 dark:bg-primary-900/20" 
+                                : "hover:border-gray-400 dark:hover:border-gray-600"
+                            )}
+                            onClick={() => {
+                              field.onChange(3);
+                              form.setValue("amount", 14);
+                            }}
+                          >
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <h4 className="font-medium">3 Months</h4>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Popular</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-lg font-bold text-primary">$14</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">$4.67/mo</p>
+                              </div>
+                            </div>
+                            <div className="mt-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-xs px-1.5 py-0.5 rounded inline-block">
+                              Save 7%
+                            </div>
+                            {field.value === 3 && (
+                              <div className="mt-1 flex items-center text-xs text-primary">
+                                <Check className="h-3 w-3 mr-1" /> Selected
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div 
+                            className={cn(
+                              "border rounded-lg p-4 cursor-pointer transition-all",
+                              field.value === 6 
+                                ? "border-primary bg-primary-50 dark:bg-primary-900/20" 
+                                : "hover:border-gray-400 dark:hover:border-gray-600"
+                            )}
+                            onClick={() => {
+                              field.onChange(6);
+                              form.setValue("amount", 25);
+                            }}
+                          >
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <h4 className="font-medium">6 Months</h4>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Best Value</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-lg font-bold text-primary">$25</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">$4.17/mo</p>
+                              </div>
+                            </div>
+                            <div className="mt-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-xs px-1.5 py-0.5 rounded inline-block">
+                              Save 17%
+                            </div>
+                            {field.value === 6 && (
+                              <div className="mt-1 flex items-center text-xs text-primary">
+                                <Check className="h-3 w-3 mr-1" /> Selected
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div 
+                            className={cn(
+                              "border rounded-lg p-4 cursor-pointer transition-all",
+                              field.value === 12 
+                                ? "border-primary bg-primary-50 dark:bg-primary-900/20" 
+                                : "hover:border-gray-400 dark:hover:border-gray-600"
+                            )}
+                            onClick={() => {
+                              field.onChange(12);
+                              form.setValue("amount", 45);
+                            }}
+                          >
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <h4 className="font-medium">12 Months</h4>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Annual</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-lg font-bold text-primary">$45</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">$3.75/mo</p>
+                              </div>
+                            </div>
+                            <div className="mt-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-xs px-1.5 py-0.5 rounded inline-block">
+                              Save 25%
+                            </div>
+                            {field.value === 12 && (
+                              <div className="mt-1 flex items-center text-xs text-primary">
+                                <Check className="h-3 w-3 mr-1" /> Selected
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                   
-                  {/* Duration */}
-                  <FormField
-                    control={form.control}
-                    name="durationMonths"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Subscription Duration</FormLabel>
-                        <Select 
-                          onValueChange={(value) => field.onChange(parseInt(value))} 
-                          defaultValue={field.value.toString()}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select duration" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="1">1 Month (${(premiumPrice * 1).toFixed(2)})</SelectItem>
-                            <SelectItem value="3">3 Months (${(premiumPrice * 3).toFixed(2)})</SelectItem>
-                            <SelectItem value="6">6 Months (${(premiumPrice * 6).toFixed(2)})</SelectItem>
-                            <SelectItem value="12">12 Months (${(premiumPrice * 12).toFixed(2)})</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormDescription>
-                          How many months of premium you're purchasing
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {/* Hidden Amount field that gets set based on duration selection */}
+                  <input type="hidden" {...form.register("amount", { valueAsNumber: true })} />
                   
                   {/* Payment Proof */}
                   <FormField
                     control={form.control}
                     name="proofImage"
-                    render={({ field }) => (
+                    render={({ field: { value, onChange, ...fieldProps } }) => (
                       <FormItem>
                         <FormLabel>
                           <div className="flex items-center gap-1">
@@ -369,14 +466,37 @@ export default function PremiumPage() {
                           </div>
                         </FormLabel>
                         <FormControl>
-                          <Input 
-                            placeholder="URL to screenshot or payment confirmation" 
-                            {...field} 
-                          />
+                          <div className="flex flex-col space-y-2">
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              className="cursor-pointer"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  // Convert the file to a base64 string
+                                  const reader = new FileReader();
+                                  reader.onload = (event) => {
+                                    onChange(event.target?.result as string);
+                                  };
+                                  reader.readAsDataURL(file);
+                                }
+                              }}
+                              {...fieldProps}
+                            />
+                            {value && value.startsWith('data:image') && (
+                              <div className="mt-2 border rounded-md overflow-hidden">
+                                <img 
+                                  src={value} 
+                                  alt="Payment proof preview" 
+                                  className="max-h-48 object-contain mx-auto"
+                                />
+                              </div>
+                            )}
+                          </div>
                         </FormControl>
                         <FormDescription>
-                          Paste a URL to a screenshot of your payment confirmation. 
-                          You can use image hosting services like imgur.com
+                          Upload a screenshot of your payment confirmation
                         </FormDescription>
                         <FormMessage />
                       </FormItem>

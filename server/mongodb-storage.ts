@@ -412,7 +412,12 @@ export class MongoStorage implements IStorage {
     
     const payment: PremiumPayment = {
       id: nextId,
-      ...data,
+      userId: data.userId,
+      amount: data.amount,
+      method: data.method,
+      durationMonths: data.durationMonths,
+      proofImage: data.proofImage,
+      notes: data.notes || null,
       status: 'pending',
       createdAt: new Date(),
       processedAt: null
