@@ -25,55 +25,76 @@ export default function GamesList({ games, limit = 4 }: GamesListProps) {
   const displayGames = limit ? games.slice(0, limit) : games;
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="font-semibold text-lg">Popular Games</h3>
-        <Link href="/games">
-          <a className="text-primary-600 dark:text-primary-400 hover:underline text-sm font-medium">
-            View All Games
-          </a>
-        </Link>
-      </div>
-      
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
         {displayGames.map((game) => (
-          <Card key={game.id} className="overflow-hidden group">
+          <Card 
+            key={game.id} 
+            className="overflow-hidden group border-0 shadow-md hover:shadow-xl transition-all duration-300 hover:translate-y-[-4px]"
+          >
             <div className="relative">
               <img 
                 src={game.imageUrl} 
                 alt={game.name} 
-                className="w-full h-36 object-cover" 
+                className="w-full h-40 object-cover" 
               />
-              <div className="absolute inset-0 bg-black/60 opacity-0 transition-opacity flex items-center justify-center group-hover:opacity-100 game-overlay">
-                <Link href={`/games?game=${game.id}`}>
-                  <Button>
-                    Play Now
-                  </Button>
-                </Link>
-              </div>
-            </div>
-            <CardContent className="p-4">
-              <h4 className="font-medium">{game.name}</h4>
-              <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
-                <i className="ri-gamepad-line mr-1"></i>
-                <span>{game.category} • {game.difficulty}</span>
-              </div>
-              <div className="mt-3 flex justify-between items-center">
-                <div className="flex items-center">
-                  <i className="ri-coin-line text-amber-500 mr-1"></i>
-                  <span className="text-sm font-medium">Up to {game.maxEarning}/hr</span>
+              
+              {/* Game difficulty indicator */}
+              <div className="absolute top-3 left-3">
+                <div className={`text-xs px-2 py-1 rounded-full backdrop-blur-sm font-medium
+                  ${game.difficulty === 'Easy' ? 'bg-green-500/70 text-white' : 
+                    game.difficulty === 'Medium' ? 'bg-yellow-500/70 text-white' : 
+                    'bg-red-500/70 text-white'}`
+                }>
+                  {game.difficulty}
                 </div>
+              </div>
+              
+              {/* Game badges */}
+              <div className="absolute top-3 right-3 flex space-x-1">
                 {game.isNew && (
-                  <Badge variant="outline" className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-none">
+                  <Badge className="bg-blue-500/70 text-white backdrop-blur-sm border-0">
                     New
                   </Badge>
                 )}
                 {game.isPopular && (
-                  <Badge variant="outline" className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-none">
-                    Popular
+                  <Badge className="bg-purple-500/70 text-white backdrop-blur-sm border-0">
+                    Hot
                   </Badge>
                 )}
               </div>
+              
+              {/* Hover overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 transition-opacity flex flex-col items-center justify-end p-4 group-hover:opacity-100">
+                <Link to={`/games?game=${game.id}`}>
+                  <Button className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white border-0 shadow-lg px-6">
+                    <div className="flex items-center">
+                      <i className="ri-gamepad-line mr-2"></i> Play Now
+                    </div>
+                  </Button>
+                </Link>
+              </div>
+            </div>
+            
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <h4 className="font-bold text-lg">{game.name}</h4>
+                <div className="flex items-center bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-1 rounded-full text-xs font-medium">
+                  <i className="ri-coin-line mr-1"></i>
+                  <span>{game.maxEarning}</span>
+                </div>
+              </div>
+              
+              <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-2">
+                <div className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
+                  <i className="ri-gamepad-line mr-1"></i>
+                  <span>{game.category}</span>
+                </div>
+              </div>
+              
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 line-clamp-2">
+                {game.description || "Play this exciting game to earn coins and have fun!"}
+              </p>
             </CardContent>
           </Card>
         ))}
