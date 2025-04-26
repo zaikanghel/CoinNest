@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.invalidateQueries({ queryKey: ["/api/games"] });
       
       // Navigate to dashboard
-      window.location.href = "/";
+      window.location.href = "/dashboard";
     },
     onError: (error: Error) => {
       toast({
@@ -69,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.setQueryData(["/api/user"], user);
       toast({
         title: "Registration successful",
-        description: `Welcome to EarnPlay, ${user.username}!`,
+        description: `Welcome to IdleCash, ${user.username}!`,
         variant: "default",
       });
       // Force refresh queries
@@ -79,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.invalidateQueries({ queryKey: ["/api/games"] });
       
       // Navigate to dashboard
-      window.location.href = "/";
+      window.location.href = "/dashboard";
     },
     onError: (error: Error) => {
       toast({
@@ -101,6 +101,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: "You have been successfully logged out.",
         variant: "default",
       });
+      // Redirect to landing page after logout
+      window.location.href = "/";
     },
     onError: (error: Error) => {
       toast({
