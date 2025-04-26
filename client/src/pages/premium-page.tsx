@@ -19,10 +19,19 @@ import { Crown, CreditCard, AlertCircle, Check, ChevronRight } from "lucide-reac
 
 // Form schema for premium subscription
 const subscriptionSchema = z.object({
-  paymentMethod: z.enum(["paypal", "gcash", "bank"], {
+  method: z.enum(["paypal", "gcash", "bank_transfer", "crypto"], {
     required_error: "Please select a payment method",
   }),
-  receiptId: z.string().min(4, "Please enter a valid receipt ID or transaction reference"),
+  amount: z.number({
+    required_error: "Amount is required",
+    invalid_type_error: "Amount must be a number",
+  }),
+  durationMonths: z.number({
+    required_error: "Duration is required",
+    invalid_type_error: "Duration must be a number",
+  }),
+  proofImage: z.string().min(5, "Please upload proof of payment"),
+  notes: z.string().optional(),
 });
 
 type SubscriptionFormData = z.infer<typeof subscriptionSchema>;
@@ -48,8 +57,11 @@ export default function PremiumPage() {
   const form = useForm<SubscriptionFormData>({
     resolver: zodResolver(subscriptionSchema),
     defaultValues: {
-      paymentMethod: "paypal",
-      receiptId: "",
+      method: "paypal",
+      amount: premiumPrice,
+      durationMonths: 1,
+      proofImage: "",
+      notes: "",
     },
   });
 
@@ -258,9 +270,10 @@ export default function PremiumPage() {
               
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+                  {/* Payment Method */}
                   <FormField
                     control={form.control}
-                    name="paymentMethod"
+                    name="method"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Payment Method</FormLabel>
@@ -276,7 +289,8 @@ export default function PremiumPage() {
                           <SelectContent>
                             <SelectItem value="paypal">PayPal</SelectItem>
                             <SelectItem value="gcash">GCash</SelectItem>
-                            <SelectItem value="bank">Bank Transfer</SelectItem>
+                            <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                            <SelectItem value="crypto">Cryptocurrency</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormDescription>
@@ -287,17 +301,99 @@ export default function PremiumPage() {
                     )}
                   />
                   
+                  {/* Amount */}
                   <FormField
                     control={form.control}
-                    name="receiptId"
+                    name="amount"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Receipt ID / Transaction Reference</FormLabel>
+                        <FormLabel>Amount</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter your payment reference" {...field} />
+                          <Input 
+                            type="number" 
+                            placeholder="Amount paid" 
+                            {...field}
+                            onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                            value={field.value}
+                          />
                         </FormControl>
                         <FormDescription>
-                          The transaction ID or receipt number from your payment
+                          The amount you paid in USD (default: ${premiumPrice})
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  {/* Duration */}
+                  <FormField
+                    control={form.control}
+                    name="durationMonths"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Subscription Duration</FormLabel>
+                        <Select 
+                          onValueChange={(value) => field.onChange(parseInt(value))} 
+                          defaultValue={field.value.toString()}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select duration" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="1">1 Month (${(premiumPrice * 1).toFixed(2)})</SelectItem>
+                            <SelectItem value="3">3 Months (${(premiumPrice * 3).toFixed(2)})</SelectItem>
+                            <SelectItem value="6">6 Months (${(premiumPrice * 6).toFixed(2)})</SelectItem>
+                            <SelectItem value="12">12 Months (${(premiumPrice * 12).toFixed(2)})</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          How many months of premium you're purchasing
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  {/* Payment Proof */}
+                  <FormField
+                    control={form.control}
+                    name="proofImage"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Payment Proof</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="URL to screenshot or payment confirmation" 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Paste a URL to a screenshot of your payment confirmation. 
+                          You can use image hosting services like imgur.com
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  {/* Notes */}
+                  <FormField
+                    control={form.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Additional Notes</FormLabel>
+                        <FormControl>
+                          <textarea 
+                            className="flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            placeholder="Any additional information about your payment" 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Optional: any details that might help verify your payment
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
