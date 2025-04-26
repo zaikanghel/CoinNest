@@ -44,6 +44,7 @@ export default function AdminPage() {
   const [showPremiumPaymentModal, setShowPremiumPaymentModal] = useState(false);
   const [showAllWithdrawals, setShowAllWithdrawals] = useState(false);
   const [showAllPremiumPayments, setShowAllPremiumPayments] = useState(false);
+  const [revokePremiumId, setRevokePremiumId] = useState<number | null>(null);
 
   // Redirect if not admin
   if (user && !user.isAdmin) {
@@ -171,6 +172,7 @@ export default function AdminPage() {
       });
       setShowPremiumPaymentModal(false);
       queryClient.invalidateQueries({ queryKey: ["/api/admin/premium/payments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
     },
     onError: (error: Error) => {
       toast({
@@ -178,6 +180,31 @@ export default function AdminPage() {
         description: error.message,
         variant: "destructive"
       });
+    }
+  });
+  
+  // Revoke premium mutation
+  const revokePremiumMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      const res = await apiRequest("DELETE", `/api/admin/premium/${userId}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Premium revoked",
+        description: "The user's premium subscription has been revoked",
+        variant: "default"
+      });
+      setRevokePremiumId(null);
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+      setRevokePremiumId(null);
     }
   });
 
@@ -223,6 +250,18 @@ export default function AdminPage() {
 
   const onSettingSubmit = (data: SettingFormData) => {
     updateSettingMutation.mutate(data);
+  };
+  
+  const handleRevokePremium = (userId: number) => {
+    // Set the ID being processed
+    setRevokePremiumId(userId);
+    
+    // Confirm before revoking
+    if (window.confirm("Are you sure you want to revoke this user's premium status? This action cannot be undone.")) {
+      revokePremiumMutation.mutate(userId);
+    } else {
+      setRevokePremiumId(null);
+    }
   };
 
   return (
@@ -607,10 +646,11 @@ export default function AdminPage() {
                                   variant="outline"
                                   size="sm"
                                   className="bg-red-100 hover:bg-red-200 text-red-600 border-red-200"
-                                  onClick={() => {/* Revoke premium logic */}}
+                                  onClick={() => handleRevokePremium(user.id)}
+                                  disabled={revokePremiumMutation.isPending}
                                 >
                                   <XCircle className="h-4 w-4 mr-1" />
-                                  Revoke
+                                  {revokePremiumMutation.isPending && revokePremiumId === user.id ? 'Revoking...' : 'Revoke'}
                                 </Button>
                               </TableCell>
                             </TableRow>
