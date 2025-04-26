@@ -19,19 +19,19 @@ function App() {
   return (
     <TooltipProvider>
       <AfkProvider>
-        <Switch>
-          <Route path="/auth" component={AuthPage} />
-          <ProtectedRoute path="/" component={DashboardPage} />
-          <ProtectedRoute path="/games" component={GamesPage} />
-          <ProtectedRoute path="/afk" component={AfkPage} />
-          <ProtectedRoute path="/leaderboard" component={LeaderboardPage} />
-          <ProtectedRoute path="/wallet" component={WalletPage} />
-          <ProtectedRoute path="/referrals" component={ReferralsPage} />
-          {user?.isAdmin && (
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+          <Switch>
+            <Route path="/auth" component={AuthPage} />
+            <ProtectedRoute path="/" component={DashboardPage} />
+            <ProtectedRoute path="/games" component={GamesPage} />
+            <ProtectedRoute path="/afk" component={AfkPage} />
+            <ProtectedRoute path="/leaderboard" component={LeaderboardPage} />
+            <ProtectedRoute path="/wallet" component={WalletPage} />
+            <ProtectedRoute path="/referrals" component={ReferralsPage} />
             <ProtectedRoute path="/admin" component={AdminPage} />
-          )}
-          <Route component={NotFound} />
-        </Switch>
+            <Route component={NotFound} />
+          </Switch>
+        </div>
       </AfkProvider>
     </TooltipProvider>
   );

@@ -42,6 +42,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: `Welcome back, ${user.username}!`,
         variant: "default",
       });
+      // Force refresh queries
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/activities"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/games"] });
+      
+      // Navigate to dashboard
+      window.location.href = "/";
     },
     onError: (error: Error) => {
       toast({
@@ -64,6 +72,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: `Welcome to EarnPlay, ${user.username}!`,
         variant: "default",
       });
+      // Force refresh queries
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/activities"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/games"] });
+      
+      // Navigate to dashboard
+      window.location.href = "/";
     },
     onError: (error: Error) => {
       toast({
