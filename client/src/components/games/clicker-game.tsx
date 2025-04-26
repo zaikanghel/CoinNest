@@ -184,10 +184,19 @@ export default function ClickerGame({ onClose }: ClickerGameProps) {
     });
   };
   
+  // Track if score has been submitted
+  const [scoreSubmitted, setScoreSubmitted] = useState(false);
+  
   // Submit score mutation
   const submitScoreMutation = useMutation({
-    mutationFn: async (data: { score: number, timeSpent: number }) => {
+    mutationFn: async (data: { score: number, timeSpent: number, clickCount: number }) => {
       const res = await apiRequest("POST", "/api/games/clicker-quest/score", data);
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to submit score");
+      }
+      
       return res.json();
     },
     onSuccess: (data) => {
@@ -201,6 +210,7 @@ export default function ClickerGame({ onClose }: ClickerGameProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/activities"] });
       queryClient.invalidateQueries({ queryKey: ["/api/games/clicker-quest/leaderboard"] });
       setIsSubmitting(false);
+      setScoreSubmitted(true);
     },
     onError: (error: Error) => {
       toast({
@@ -214,10 +224,21 @@ export default function ClickerGame({ onClose }: ClickerGameProps) {
   
   // Submit the score
   const submitScore = () => {
+    // Prevent multiple submissions
+    if (scoreSubmitted) {
+      toast({
+        title: "Score already submitted",
+        description: "You've already submitted your score for this session",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     submitScoreMutation.mutate({
       score: score,
-      timeSpent: timeElapsed
+      timeSpent: timeElapsed,
+      clickCount: clickCount  // Send the actual click count
     });
   };
   

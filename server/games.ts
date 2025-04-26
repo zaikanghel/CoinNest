@@ -61,7 +61,7 @@ export function setupGameRoutes(app: Express) {
     }
     
     const { gameId } = req.params;
-    const { score, timeSpent } = req.body;
+    const { score, timeSpent, clickCount } = req.body;
     
     if (
       score === undefined || 
@@ -162,25 +162,33 @@ export function setupGameRoutes(app: Express) {
         final coinsEarned=${coinsEarned}`);
         
     } else if (gameId === "clicker-quest") {
-      // For clicker game, score is raw points accumulated through clicks
-      // In clicker-game.tsx, each click gives clickPower points (starts at 1, increases with upgrades)
-      // We need to normalize based on average clickPower
+      // For clicker game, calculate rewards using the actual clickCount if provided
+      // This is much more accurate than trying to estimate from the score
       
-      // Estimate clicks more precisely based on total score
-      // Average clickPower might be around 2-3 after a few upgrades
-      const averageClickPower = Math.max(1, Math.min(3, Math.sqrt(score / 50)));
-      const estimatedClicks = Math.max(1, Math.round(score / averageClickPower));
+      // If clickCount is provided (from the client), use it directly
+      let actualClicks = 0;
       
-      // Apply base reward per estimated click (reward is per click)
-      const baseReward = estimatedClicks * clickerReward;
+      if (clickCount && typeof clickCount === 'number') {
+        // Use the actual click count from the client
+        actualClicks = Math.max(1, Math.min(500, clickCount)); // Reasonable limits to prevent abuse
+        console.log(`Using actual clicks from client: ${actualClicks}`);
+      } else {
+        // Fall back to estimating clicks from score if clickCount not provided
+        const averageClickPower = Math.max(1, Math.min(3, Math.sqrt(score / 50)));
+        actualClicks = Math.max(1, Math.round(score / averageClickPower));
+        console.log(`Estimating clicks from score: ${actualClicks}`);
+      }
+      
+      // Apply base reward per click
+      const baseReward = actualClicks * clickerReward;
       
       // Apply maximum per game limit
       coinsEarned = Math.min(Math.round(baseReward), maxEarnings);
       
       console.log(`Clicker quest calculation:
         score=${score}
-        averageClickPower=${averageClickPower}
-        estimatedClicks=${estimatedClicks}
+        clickCount=${clickCount || 'not provided'}
+        actualClicks=${actualClicks}
         baseReward=${baseReward}
         maxPerGame=${maxEarnings}
         final coinsEarned=${coinsEarned}`);
