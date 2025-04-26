@@ -82,11 +82,11 @@ export default function GamesPage() {
   };
   
   // Get daily game limit from settings
-  const dailyGameLimit = parseInt(settings.game_daily_limit || "1000");
+  const dailyGameLimit = parseInt(settings.game_daily_limit || "200");
   
   // Calculate daily game progress
-  const dailyGamesEarnings = stats?.dailyGamesEarnings || 0;
-  const dailyGamesProgress = (dailyGamesEarnings / dailyGameLimit) * 100;
+  const gameEarnings = stats?.gameEarnings || 0;
+  const dailyGamesProgress = (gameEarnings / dailyGameLimit) * 100;
 
   return (
     <MainLayout pageTitle="Games">
@@ -109,7 +109,7 @@ export default function GamesPage() {
                     <div className="w-full">
                       <div className="flex justify-between text-xs mb-1">
                         <span>Progress</span>
-                        <span>{dailyGamesEarnings}/{dailyGameLimit} coins</span>
+                        <span>{gameEarnings}/{dailyGameLimit} coins</span>
                       </div>
                       <Progress 
                         value={dailyGamesProgress} 
@@ -117,7 +117,7 @@ export default function GamesPage() {
                       />
                     </div>
                   </div>
-                  {dailyGamesEarnings >= dailyGameLimit && (
+                  {gameEarnings >= dailyGameLimit && (
                     <Alert className="flex-shrink-0 md:max-w-[280px] bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800/50">
                       <Info className="h-4 w-4 mt-0.5" />
                       <AlertDescription className="ml-2">
