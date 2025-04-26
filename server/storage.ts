@@ -67,7 +67,7 @@ export class MemStorage implements IStorage {
   private withdrawals: Map<number, Withdrawal>;
   private gameScores: Map<number, GameScore>;
   private settings: Map<string, Setting>;
-  sessionStore: session.SessionStore;
+  sessionStore: session.Store;
   
   currentUserId: number;
   currentActivityId: number;
@@ -146,6 +146,9 @@ export class MemStorage implements IStorage {
     const referralCode = nanoid(8);
     const now = new Date();
     
+    // Ensure referredBy is null if undefined
+    const referredBy = insertUser.referredBy ?? null;
+    
     // Initialize with default values
     const user: User = { 
       ...insertUser, 
@@ -160,7 +163,8 @@ export class MemStorage implements IStorage {
       dailyAfkEarned: 0,
       lastAfkReset: now,
       lastActive: now,
-      isAdmin: false
+      isAdmin: false,
+      referredBy
     };
     
     this.users.set(id, user);

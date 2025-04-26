@@ -113,7 +113,9 @@ export const registerSchema = insertUserSchema.extend({
   username: z.string().min(3, "Username must be at least 3 characters"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   email: z.string().email("Please enter a valid email"),
-  referredBy: z.string().optional()
+  referredBy: z.union([z.number(), z.string(), z.null()]).nullable().optional().transform(val => 
+    typeof val === 'string' && val ? parseInt(val, 10) || null : val
+  )
 });
 
 export const withdrawalSchema = z.object({
