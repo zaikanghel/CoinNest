@@ -20,7 +20,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { 
   Loader2, Settings, Users, Wallet, CheckCircle, XCircle, Crown, 
-  Download, Trash2, AlertCircle, Plus, Edit
+  Download, Trash2, AlertCircle, Plus, Edit, MessageSquare,
+  MailOpen, MailQuestion, Check
 } from "lucide-react";
 import { getColorFromString, getUserInitials, getRelativeTime } from "@/lib/utils";
 import { useLocation } from "wouter";
@@ -45,6 +46,14 @@ const userEditSchema = z.object({
 
 type UserEditFormData = z.infer<typeof userEditSchema>;
 
+// Support ticket response form schema
+const ticketResponseSchema = z.object({
+  adminResponse: z.string().min(1, "Response is required"),
+  status: z.enum(["open", "in_progress", "closed"])
+});
+
+type TicketResponseFormData = z.infer<typeof ticketResponseSchema>;
+
 export default function AdminPage() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -67,6 +76,11 @@ export default function AdminPage() {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [showEditUserModal, setShowEditUserModal] = useState(false);
   const [isCleaningUp, setIsCleaningUp] = useState(false);
+  
+  // Support ticket state
+  const [showAllSupportTickets, setShowAllSupportTickets] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState<any>(null);
+  const [showTicketResponseModal, setShowTicketResponseModal] = useState(false);
 
   // Redirect if not admin
   if (user && !user.isAdmin) {
@@ -158,7 +172,21 @@ export default function AdminPage() {
     }
   });
 
-  const isLoading = isLoadingUsers || isLoadingWithdrawals || isLoadingSettings || isLoadingPremiumPayments;
+  // Fetch support tickets (open only or all)
+  const { data: supportTickets, isLoading: isLoadingSupportTickets } = useQuery({
+    queryKey: ["/api/admin/support/tickets", showAllSupportTickets],
+    queryFn: async () => {
+      const url = showAllSupportTickets 
+        ? "/api/admin/support/tickets" 
+        : "/api/admin/support/tickets?status=open";
+      const res = await fetch(url, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch support tickets");
+      return res.json();
+    }
+  });
+
+  const isLoading = isLoadingUsers || isLoadingWithdrawals || isLoadingSettings || 
+                   isLoadingPremiumPayments || isLoadingSupportTickets;
 
   // Process withdrawal mutation
   const processWithdrawalMutation = useMutation({
