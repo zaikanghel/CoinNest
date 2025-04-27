@@ -33,7 +33,7 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
 
   const emailData = {
     to: params.to,
-    from: params.from || 'support@idlecash.com', // Default sender
+    from: params.from || 'support@coinnest.com', // Default sender
     subject: params.subject,
     text: params.text || '',
     html: params.html || ''
