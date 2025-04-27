@@ -230,6 +230,16 @@ export default function PremiumPage() {
                     </p>
                   </div>
                 </div>
+                
+                <div className="flex items-start gap-2">
+                  <Check className="h-5 w-5 text-green-500 mt-0.5" />
+                  <div>
+                    <p className="font-medium">Priority Withdrawals</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Your withdrawal requests are processed before regular users
+                    </p>
+                  </div>
+                </div>
               </div>
             </CardContent>
             <CardFooter>

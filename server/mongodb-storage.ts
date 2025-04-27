@@ -248,14 +248,39 @@ export class MongoStorage implements IStorage {
   }
 
   async getPendingWithdrawals(): Promise<Withdrawal[]> {
-    if (!this.withdrawalsCollection) throw new Error("Database not initialized");
+    if (!this.withdrawalsCollection || !this.usersCollection) throw new Error("Database not initialized");
     
-    const withdrawals = await this.withdrawalsCollection
+    // Get all pending withdrawals
+    const pendingWithdrawals = await this.withdrawalsCollection
       .find({ status: 'pending' })
-      .sort({ createdAt: 1 })
       .toArray();
     
-    return withdrawals.map(withdrawal => this.mapToWithdrawal(withdrawal));
+    // Map each withdrawal to include isPremium status from the user
+    const withdrawalsWithUserInfo = await Promise.all(
+      pendingWithdrawals.map(async (withdrawal) => {
+        const user = await this.usersCollection!.findOne({ id: withdrawal.userId });
+        const isPremium = user?.isPremium && 
+                         user?.premiumUntil && 
+                         new Date(user.premiumUntil) > new Date();
+        
+        return {
+          ...this.mapToWithdrawal(withdrawal),
+          isPremiumUser: isPremium
+        };
+      })
+    );
+    
+    // Sort withdrawals: first by premium status (premium first), then by date
+    withdrawalsWithUserInfo.sort((a, b) => {
+      // First sort by premium status
+      if (a.isPremiumUser && !b.isPremiumUser) return -1;
+      if (!a.isPremiumUser && b.isPremiumUser) return 1;
+      
+      // If premium status is the same, sort by date (oldest first)
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    });
+    
+    return withdrawalsWithUserInfo;
   }
   
   async getAllWithdrawals(): Promise<Withdrawal[]> {

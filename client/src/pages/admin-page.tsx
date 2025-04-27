@@ -529,9 +529,16 @@ export default function AdminPage() {
                                     </AvatarFallback>
                                   </Avatar>
                                 )}
-                                <span className="font-medium">
-                                  {users?.find((u: any) => u.id === withdrawal.userId)?.username || `User #${withdrawal.userId}`}
-                                </span>
+                                <div className="flex flex-col">
+                                  <span className="font-medium">
+                                    {users?.find((u: any) => u.id === withdrawal.userId)?.username || `User #${withdrawal.userId}`}
+                                  </span>
+                                  {withdrawal.isPremiumUser && (
+                                    <span className="text-xs px-1.5 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-sm font-medium">
+                                      Premium
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </TableCell>
                             <TableCell>
