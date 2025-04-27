@@ -155,14 +155,23 @@ export type InsertSupportTicket = z.infer<typeof insertSupportTicketSchema>;
 
 // Additional schemas for client validation
 export const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email"),
-  password: z.string().min(6, "Password must be at least 6 characters")
+  email: z.string().email("Please enter a valid email")
+    .transform(val => val.toLowerCase()),
+  password: z.string().min(1, "Password is required")
 });
 
 export const registerSchema = insertUserSchema.extend({
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  email: z.string().email("Please enter a valid email"),
+  username: z.string().min(3, "Username must be at least 3 characters")
+    .max(30, "Username must be less than 30 characters")
+    .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number")
+    .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
+  email: z.string().email("Please enter a valid email")
+    .transform(val => val.toLowerCase()), // Ensure emails are stored in lowercase
   referredBy: z.union([z.number(), z.string(), z.null()]).nullable().optional().transform(val => 
     typeof val === 'string' && val ? parseInt(val, 10) || null : val
   )

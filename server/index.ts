@@ -7,6 +7,9 @@ import { setupAfkRoutes } from "./afk";
 import { setupGameRoutes } from "./games";
 import { setupPremiumRoutes } from "./premium";
 import { setupSupportRoutes } from "./support";
+import rateLimit from "express-rate-limit";
+import cors from "cors";
+import helmet from "helmet";
 import dotenv from "dotenv";
 
 // Load environment variables
@@ -19,9 +22,45 @@ if (!process.env.MONGODB_URI) {
 }
 
 const app = express();
+
+// Apply security middleware
+// Content Security Policy and other security headers
+app.use(helmet());
+
+// CORS configuration
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' ? process.env.CORS_ALLOWED_ORIGINS?.split(',') || ['https://yourdomain.com'] : true,
+  credentials: true
+}));
+
+// General rate limiter for all API requests
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: { message: "Too many requests from this IP, please try again later" }
+});
+
+// Apply rate limiting to all API routes
+app.use("/api", apiLimiter);
+
+// More strict rate limiter for authentication endpoints
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // limit each IP to 5 requests per windowMs
+  message: { message: "Too many authentication attempts, please try again later" }
+});
+
+// Apply stricter rate limiting to authentication routes
+app.use("/api/login", authLimiter);
+app.use("/api/register", authLimiter);
+
 // Increase JSON payload limit to 10MB to handle base64 encoded images
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
+
+// Import and apply sanitization middleware
+import { sanitizeRequestBody } from './middleware/sanitize';
+app.use(sanitizeRequestBody);
 
 app.use((req, res, next) => {
   const start = Date.now();
