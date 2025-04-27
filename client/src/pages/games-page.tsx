@@ -92,8 +92,9 @@ export default function GamesPage() {
     setGameToPlay(null);
   };
   
-  // Get daily game limit from settings
-  const dailyGameLimit = parseInt(settings.game_daily_limit || "200");
+  // Get daily game limit from the API instead of settings
+  const dailyGameLimit = stats?.dailyGameLimit || parseInt(settings.game_daily_limit || "200");
+  const baseGameLimit = stats?.baseDailyGameLimit || parseInt(settings.game_daily_limit || "200");
   
   // Calculate daily game progress
   const gameEarnings = stats?.gameEarnings || 0;

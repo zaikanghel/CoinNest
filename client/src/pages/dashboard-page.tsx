@@ -21,6 +21,8 @@ interface StatsResponse {
   dailyProgress: string;
   dailyProgressPercent: number;
   gameEarnings: number;
+  dailyGameLimit: number;
+  baseDailyGameLimit: number;
   referralEarnings: number;
   totalReferrals: number;
 }
@@ -159,8 +161,21 @@ export default function DashboardPage() {
                 title="Game Earnings"
                 value={stats?.gameEarnings.toString() || "0"}
                 icon="ri-gamepad-line"
-                trend={{ value: 8, label: "vs last week" }}
-                iconClass="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300"
+                progress={
+                  stats ? {
+                    value: stats.gameEarnings,
+                    max: stats.dailyGameLimit,
+                    color: "bg-indigo-500",
+                    premium: stats.isPremiumActive ? {
+                      baseMax: stats.baseDailyGameLimit,
+                      bonus: stats.dailyGameLimit - stats.baseDailyGameLimit
+                    } : undefined
+                  } as ProgressConfig : undefined
+                }
+                iconClass={stats?.isPremiumActive 
+                  ? "bg-gradient-to-r from-indigo-100 to-purple-200 dark:from-indigo-900/30 dark:to-purple-800/30 text-indigo-600"
+                  : "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300"
+                }
               />
               
               <StatsCard

@@ -264,6 +264,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const conversionRate = parseInt(conversionRateStr || "100");
     const monetaryValue = (user.totalEarned / conversionRate).toFixed(2);
     
+    // Calculate today's game earnings based on activity logs instead of using the cumulative total
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Get all of today's game scores for this user
+    const todaysGameScores = await storage.getUserGameScores(user.id);
+    
+    // Filter to just today's scores and sum up the coins earned
+    const todaysGameEarnings = todaysGameScores
+      .filter(gameScore => {
+        const scoreDate = new Date(gameScore.createdAt);
+        return scoreDate >= today;
+      })
+      .reduce((sum, gameScore) => sum + gameScore.coinsEarned, 0);
+    
+    // Get game daily limit from settings
+    const dailyGameLimitStr = await storage.getSetting("game_daily_limit");
+    const baseDailyGameLimit = parseInt(dailyGameLimitStr || "200");
+    
+    // Apply premium bonus to game limit if applicable
+    let dailyGameLimit = baseDailyGameLimit;
+    if (isPremiumActive) {
+      const premiumGameLimitBonusStr = await storage.getSetting("premium_daily_limit_bonus");
+      const gameBonus = parseInt(premiumGameLimitBonusStr || "200");
+      dailyGameLimit = baseDailyGameLimit + gameBonus;
+    }
+    
+    console.log(`[STATS] Daily game earnings for user ${user.id}: ${todaysGameEarnings}/${dailyGameLimit}`);
+    
     res.json({
       balance: user.balance,
       totalEarnings: monetaryValue,
@@ -273,7 +302,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       isPremiumActive,
       dailyProgress: `${user.dailyAfkEarned}/${dailyAfkLimit}`,
       dailyProgressPercent: Math.min(100, Math.round((user.dailyAfkEarned / dailyAfkLimit) * 100)),
-      gameEarnings: user.gamesEarned,
+      gameEarnings: todaysGameEarnings,
+      dailyGameLimit: dailyGameLimit,
+      baseDailyGameLimit: baseDailyGameLimit,
       referralEarnings: user.referralEarned,
       totalReferrals: (await storage.listUsers().then(users => users.filter(u => u.referredBy === user.id))).length
     });
