@@ -183,6 +183,24 @@ export function setupPremiumRoutes(app: Express) {
     res.json(payments);
   });
   
+  // Get payment account information for a specific method
+  app.get("/api/premium/payment-accounts/:method", async (req, res) => {
+    const { method } = req.params;
+    
+    if (!method || !["paypal", "gcash", "bank_transfer", "crypto"].includes(method)) {
+      return res.status(400).json({ message: "Invalid payment method" });
+    }
+    
+    const settingKey = `payment_account_${method}`;
+    const accountInfo = await storage.getSetting(settingKey);
+    
+    if (!accountInfo) {
+      return res.json({ accountInfo: "Payment information not configured. Please contact support." });
+    }
+    
+    res.json({ accountInfo: accountInfo });
+  });
+  
   // Admin endpoint to get all premium payments
   app.get("/api/admin/premium/payments", async (req, res) => {
     if (!req.isAuthenticated() || !req.user.isAdmin) {

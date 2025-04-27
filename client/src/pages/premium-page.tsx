@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,7 +16,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useSettings } from "@/hooks/use-settings";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
-import { Crown, CreditCard, AlertCircle, Check, ChevronRight, Upload } from "lucide-react";
+import { Crown, CreditCard, AlertCircle, Check, ChevronRight, Upload, Copy } from "lucide-react";
 
 // Form schema for premium subscription
 const subscriptionSchema = z.object({
