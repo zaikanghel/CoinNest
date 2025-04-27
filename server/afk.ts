@@ -1,6 +1,46 @@
 import { Express } from "express";
 import { storage } from "./storage";
 
+// Function to add commission to referrer when a user earns coins
+async function addReferralCommission(userId: number, amount: number) {
+  try {
+    // Check if the user was referred by someone
+    const user = await storage.getUser(userId);
+    if (!user || !user.referredBy) return;
+    
+    // Get the referrer
+    const referrer = await storage.getUser(user.referredBy);
+    if (!referrer) return;
+    
+    // Get the commission percentage from settings
+    const referralPercentStr = await storage.getSetting("referral_percent");
+    const referralPercent = parseInt(referralPercentStr || "5");
+    
+    // Calculate commission (round down to nearest integer)
+    const commission = Math.floor(amount * (referralPercent / 100));
+    
+    if (commission <= 0) return; // Skip if commission is too small
+    
+    // Update referrer's balance and stats
+    await storage.updateUser(referrer.id, {
+      balance: referrer.balance + commission,
+      totalEarned: referrer.totalEarned + commission,
+      referralEarned: referrer.referralEarned + commission
+    });
+    
+    // Record the commission activity
+    await storage.createActivity({
+      userId: referrer.id,
+      type: "referral_commission",
+      amount: commission,
+      description: `Commission from ${user.username}'s earnings`
+    });
+    
+  } catch (error) {
+    console.error("Failed to process referral commission:", error);
+  }
+}
+
 export function setupAfkRoutes(app: Express) {
   // Start AFK earning session
   app.post("/api/afk/start", async (req, res) => {
