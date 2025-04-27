@@ -1572,6 +1572,67 @@ export default function AdminPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* User Edit Modal */}
+      <Dialog open={showEditUserModal} onOpenChange={setShowEditUserModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+            <DialogDescription>
+              {selectedUser && `Update ${selectedUser.username}'s account details`}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedUser && (
+            <Form {...userEditForm}>
+              <form onSubmit={userEditForm.handleSubmit(onUserEditSubmit)} className="space-y-4">
+                <div className="flex items-center mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                  <Avatar className="h-10 w-10 mr-3">
+                    <AvatarFallback className={getColorFromString(selectedUser.username)}>
+                      {getUserInitials(selectedUser.username)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <div className="font-medium">{selectedUser.username}</div>
+                    <div className="text-sm text-gray-500">{selectedUser.email}</div>
+                  </div>
+                </div>
+                
+                <FormField
+                  control={userEditForm.control}
+                  name="balance"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Balance (coins)</FormLabel>
+                      <FormControl>
+                        <Input type="number" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <div className="flex items-center justify-between text-sm text-gray-500 p-2 bg-gray-50 dark:bg-gray-800 rounded-md">
+                  <div>Last active: {selectedUser.lastActive ? getRelativeTime(selectedUser.lastActive) : 'Never'}</div>
+                  <div>Joined: {selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleDateString() : 'Unknown'}</div>
+                </div>
+                
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setShowEditUserModal(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={updateUserMutation.isPending}>
+                    {updateUserMutation.isPending && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    Save Changes
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          )}
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 }
