@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { storage } from "./storage";
 import { contactFormSchema } from "@shared/schema";
 import { z } from "zod";
+import { sendSupportTicketConfirmation, sendTicketResponseNotification } from "./email";
 
 export function setupSupportRoutes(app: Express) {
   // Endpoint to submit a support ticket

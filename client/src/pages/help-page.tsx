@@ -184,11 +184,11 @@ export default function HelpPage() {
   // Support ticket mutation
   const submitTicketMutation = useMutation({
     mutationFn: (data: ContactFormValues) => {
-      return apiRequest({
-        url: '/api/support/tickets',
-        method: 'POST',
+      return apiRequest(
+        'POST',
+        '/api/support/tickets',
         data
-      });
+      );
     },
     onSuccess: () => {
       toast({
