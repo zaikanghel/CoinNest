@@ -9,11 +9,31 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, TrophyIcon, Calendar, Users } from "lucide-react";
 import { getColorFromString, getUserInitials } from "@/lib/utils";
 
+// Type definitions for the leaderboard data
+interface GameEntry {
+  score: number;
+  coinsEarned: number;
+  date: string;
+  user: {
+    id: number;
+    username: string;
+  };
+}
+
+interface TopEarner {
+  rank: number;
+  username: string;
+  totalEarned: number;
+  afkEarned: number;
+  gamesEarned: number;
+  referralEarned: number;
+}
+
 export default function LeaderboardPage() {
   const [leaderboardType, setLeaderboardType] = useState("games");
 
   // Fetch games leaderboard
-  const { data: gamesLeaderboard, isLoading: isLoadingGamesLeaderboard } = useQuery({
+  const { data: gamesLeaderboard, isLoading: isLoadingGamesLeaderboard } = useQuery<GameEntry[]>({
     queryKey: ["/api/games/memory-match/leaderboard"],
     queryFn: async () => {
       const res = await fetch("/api/games/memory-match/leaderboard", { credentials: "include" });
@@ -23,7 +43,7 @@ export default function LeaderboardPage() {
   });
 
   // Fetch clicker game leaderboard
-  const { data: clickerLeaderboard, isLoading: isLoadingClickerLeaderboard } = useQuery({
+  const { data: clickerLeaderboard, isLoading: isLoadingClickerLeaderboard } = useQuery<GameEntry[]>({
     queryKey: ["/api/games/clicker-quest/leaderboard"],
     queryFn: async () => {
       const res = await fetch("/api/games/clicker-quest/leaderboard", { credentials: "include" });
@@ -33,7 +53,7 @@ export default function LeaderboardPage() {
   });
 
   // Fetch top earners for the earnings leaderboard
-  const { data: topEarners, isLoading: isLoadingTopEarners } = useQuery({
+  const { data: topEarners, isLoading: isLoadingTopEarners } = useQuery<TopEarner[]>({
     queryKey: ["/api/leaderboard/top-earners"],
     queryFn: async () => {
       const res = await fetch("/api/leaderboard/top-earners", { credentials: "include" });
@@ -105,7 +125,7 @@ export default function LeaderboardPage() {
                         </div>
                         <Separator />
                         {gamesLeaderboard?.length > 0 ? (
-                          gamesLeaderboard.map((entry: any, index: number) => (
+                          gamesLeaderboard.map((entry: GameEntry, index: number) => (
                             <div key={index} className="grid grid-cols-12 py-3 text-sm items-center">
                               <div className="col-span-1">
                                 {index === 0 ? (
@@ -160,7 +180,7 @@ export default function LeaderboardPage() {
                         </div>
                         <Separator />
                         {clickerLeaderboard?.length > 0 ? (
-                          clickerLeaderboard.map((entry: any, index: number) => (
+                          clickerLeaderboard.map((entry: GameEntry, index: number) => (
                             <div key={index} className="grid grid-cols-12 py-3 text-sm items-center">
                               <div className="col-span-1">
                                 {index === 0 ? (
@@ -218,8 +238,8 @@ export default function LeaderboardPage() {
                           <div className="col-span-2">Referrals</div>
                         </div>
                         <Separator />
-                        {getTopEarners().length > 0 ? (
-                          getTopEarners().map((user, index) => (
+                        {topEarners?.length > 0 ? (
+                          topEarners.map((user: TopEarner, index: number) => (
                             <div key={index} className="grid grid-cols-12 py-3 text-sm items-center">
                               <div className="col-span-1">
                                 {index === 0 ? (
