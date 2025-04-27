@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -14,6 +15,7 @@ import { Search, HelpCircle, MessageSquareText, LifeBuoy, FileText, Info, Loader
 import MainLayout from "@/components/layout/main-layout";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import UserSupportTickets from "@/components/support-tickets";
 
 // FAQs data
 const faqsData = [
@@ -362,6 +364,9 @@ export default function HelpPage() {
                         </div>
                       </div>
                     </div>
+
+                    {/* User's support tickets section */}
+                    <UserSupportTickets />
                   </div>
                   
                   <div>
