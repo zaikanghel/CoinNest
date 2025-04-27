@@ -3,6 +3,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth-page";
 import LandingPage from "@/pages/landing-page";
+import TermsOfServicePage from "@/pages/terms-of-service";
+import PrivacyPolicyPage from "@/pages/privacy-policy";
+import ContactPage from "@/pages/contact";
 import DashboardPage from "@/pages/dashboard-page";
 import GamesPage from "@/pages/games-page";
 import AfkPage from "@/pages/afk-page";
@@ -32,6 +35,9 @@ function App() {
               <Switch>
                 <Route path="/" component={LandingPage} />
                 <Route path="/auth" component={AuthPage} />
+                <Route path="/terms-of-service" component={TermsOfServicePage} />
+                <Route path="/privacy-policy" component={PrivacyPolicyPage} />
+                <Route path="/contact" component={ContactPage} />
                 <ProtectedRoute path="/dashboard" component={DashboardPage} />
                 <ProtectedRoute path="/games" component={GamesPage} />
                 <ProtectedRoute path="/afk" component={AfkPage} />
