@@ -17,6 +17,7 @@ export class MongoStorage implements IStorage {
   private gameScoresCollection: Collection | null = null;
   private settingsCollection: Collection | null = null;
   private premiumPaymentsCollection: Collection | null = null;
+  private supportTicketsCollection: Collection | null = null;
   sessionStore: session.Store;
 
   constructor(mongoUri: string) {
@@ -39,6 +40,7 @@ export class MongoStorage implements IStorage {
       this.gameScoresCollection = this.db.collection("gameScores");
       this.settingsCollection = this.db.collection("settings");
       this.premiumPaymentsCollection = this.db.collection("premiumPayments");
+      this.supportTicketsCollection = this.db.collection("supportTickets");
       
       // Initialize default settings if they don't exist
       await this.initDefaultSettings();
@@ -622,5 +624,118 @@ export class MongoStorage implements IStorage {
     );
     
     return result ? this.mapToUser(result) : undefined;
+  }
+
+  // Support Ticket operations
+  async createSupportTicket(data: {
+    userId?: number;
+    name: string;
+    email: string;
+    subject: string;
+    message: string;
+  }): Promise<SupportTicket> {
+    if (!this.supportTicketsCollection) throw new Error("Database not initialized");
+    
+    // Get the current max id
+    const maxIdTicket = await this.supportTicketsCollection.find().sort({ id: -1 }).limit(1).toArray();
+    const nextId = maxIdTicket.length > 0 ? maxIdTicket[0].id + 1 : 1;
+    
+    const now = new Date();
+    
+    const ticket: SupportTicket = {
+      id: nextId,
+      ...data,
+      status: 'open',
+      adminResponse: null,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    await this.supportTicketsCollection.insertOne(ticket);
+    return ticket;
+  }
+  
+  async getSupportTickets(status?: string): Promise<SupportTicket[]> {
+    if (!this.supportTicketsCollection) throw new Error("Database not initialized");
+    
+    const query = status ? { status } : {};
+    
+    const tickets = await this.supportTicketsCollection
+      .find(query)
+      .sort({ createdAt: -1 })
+      .toArray();
+    
+    return tickets.map(ticket => this.mapToSupportTicket(ticket));
+  }
+  
+  async getSupportTicketsByUser(userId: number): Promise<SupportTicket[]> {
+    if (!this.supportTicketsCollection) throw new Error("Database not initialized");
+    
+    const tickets = await this.supportTicketsCollection
+      .find({ userId })
+      .sort({ createdAt: -1 })
+      .toArray();
+    
+    return tickets.map(ticket => this.mapToSupportTicket(ticket));
+  }
+  
+  async getSupportTicket(id: number): Promise<SupportTicket | undefined> {
+    if (!this.supportTicketsCollection) throw new Error("Database not initialized");
+    
+    const ticket = await this.supportTicketsCollection.findOne({ id });
+    return ticket ? this.mapToSupportTicket(ticket) : undefined;
+  }
+  
+  async updateSupportTicket(
+    id: number,
+    updates: { 
+      status?: string;
+      adminResponse?: string;
+    }
+  ): Promise<SupportTicket | undefined> {
+    if (!this.supportTicketsCollection) throw new Error("Database not initialized");
+    
+    // Always update the updatedAt timestamp
+    const updateData = {
+      ...updates,
+      updatedAt: new Date()
+    };
+    
+    const result = await this.supportTicketsCollection.findOneAndUpdate(
+      { id },
+      { $set: updateData },
+      { returnDocument: 'after' }
+    );
+    
+    return result ? this.mapToSupportTicket(result) : undefined;
+  }
+
+  // Mapping functions
+  private mapToUser(doc: any): User {
+    return { ...doc, _id: undefined };
+  }
+  
+  private mapToActivity(doc: any): Activity {
+    return { ...doc, _id: undefined };
+  }
+  
+  private mapToWithdrawal(doc: any): Withdrawal {
+    return { ...doc, _id: undefined };
+  }
+  
+  private mapToGameScore(doc: any): GameScore {
+    return { ...doc, _id: undefined };
+  }
+  
+  private mapToSetting(doc: any): Setting {
+    return { ...doc, _id: undefined };
+  }
+  
+  private mapToPremiumPayment(doc: any): PremiumPayment {
+    return { ...doc, _id: undefined };
+  }
+
+  private mapToSupportTicket(doc: any): SupportTicket {
+    return { ...doc, _id: undefined };
   }
 }

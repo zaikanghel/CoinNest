@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { setupAfkRoutes } from "./afk";
 import { setupGameRoutes } from "./games";
+import { setupSupportRoutes } from "./support";
 import { z } from "zod";
 import { withdrawalSchema, User } from "@shared/schema";
 
@@ -16,6 +17,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Setup game routes
   setupGameRoutes(app);
+  
+  // Setup support routes
+  setupSupportRoutes(app);
   
   // Wallet and withdrawals routes
   app.get("/api/wallet", async (req, res) => {
