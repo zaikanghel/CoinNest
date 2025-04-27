@@ -1,11 +1,12 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { createStorage, setStorage } from "./storage";
+import { createStorage, setStorage, storage } from "./storage";
 import { setupAuth } from "./auth";
 import { setupAfkRoutes } from "./afk";
 import { setupGameRoutes } from "./games";
 import { setupPremiumRoutes } from "./premium";
+import { setupSupportRoutes } from "./support";
 import dotenv from "dotenv";
 
 // Load environment variables
@@ -69,7 +70,25 @@ app.use((req, res, next) => {
     // Setup premium subscription routes
     setupPremiumRoutes(app);
     
+    // Setup support routes
+    setupSupportRoutes(app);
+    
     const server = await registerRoutes(app);
+    
+    // Setup scheduled cleanup for closed support tickets (runs every day)
+    const CLEANUP_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
+    const CLOSED_TICKET_RETENTION_DAYS = 30; // Keep closed tickets for 30 days
+    
+    setInterval(async () => {
+      try {
+        const deletedCount = await storage.cleanupOldClosedTickets(CLOSED_TICKET_RETENTION_DAYS);
+        if (deletedCount > 0) {
+          log(`[CLEANUP] Deleted ${deletedCount} old closed support tickets`);
+        }
+      } catch (error) {
+        log(`[ERROR] Failed to clean up old support tickets: ${error}`);
+      }
+    }, CLEANUP_INTERVAL_MS);
 
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
       const status = err.status || err.statusCode || 500;

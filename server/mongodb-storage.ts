@@ -654,7 +654,8 @@ export class MongoStorage implements IStorage {
       }
     }
     
-    const ticket: SupportTicket = {
+    // Create ticket object with MongoDB-specific fields
+    const ticket = {
       id: nextId,
       userId: data.userId ?? null,
       name: data.name,
@@ -716,7 +717,7 @@ export class MongoStorage implements IStorage {
     const now = new Date();
     
     // Always update the updatedAt timestamp
-    const updateData = {
+    const updateData: any = {
       ...updates,
       updatedAt: now
     };

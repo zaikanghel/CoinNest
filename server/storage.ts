@@ -100,6 +100,7 @@ export interface IStorage {
       adminResponse?: string;
     }
   ): Promise<SupportTicket | undefined>;
+  cleanupOldClosedTickets(days?: number): Promise<number>;
 
   // Session store
   sessionStore: session.Store;

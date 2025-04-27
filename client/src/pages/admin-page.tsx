@@ -1502,6 +1502,7 @@ export default function AdminPage() {
                           <TableHead>Name</TableHead>
                           <TableHead>Email</TableHead>
                           <TableHead>Status</TableHead>
+                          <TableHead>Priority</TableHead>
                           <TableHead>Date</TableHead>
                           <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
@@ -1522,6 +1523,15 @@ export default function AdminPage() {
                                  ticket.status === 'in_progress' ? 'In Progress' : 
                                  ticket.status === 'closed' ? 'Closed' : ticket.status}
                               </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {ticket.isPremium ? (
+                                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800">
+                                  Priority
+                                </Badge>
+                              ) : (
+                                <span className="text-muted-foreground text-sm">Normal</span>
+                              )}
                             </TableCell>
                             <TableCell>
                               {getRelativeTime(new Date(ticket.createdAt))}
@@ -1925,7 +1935,14 @@ export default function AdminPage() {
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-medium">{selectedTicket.name}</p>
+                    <div className="flex items-center">
+                      <p className="font-medium">{selectedTicket.name}</p>
+                      {selectedTicket.isPremium && (
+                        <Badge variant="outline" className="ml-2 bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800">
+                          Priority
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-xs text-muted-foreground">{selectedTicket.email}</p>
                   </div>
                   <span className="ml-auto text-xs text-muted-foreground">

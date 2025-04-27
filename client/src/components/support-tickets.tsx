@@ -16,6 +16,9 @@ type SupportTicket = {
   adminResponse: string | null;
   createdAt: string;
   updatedAt: string;
+  isPremium?: boolean;
+  priority?: number;
+  closedAt?: string | null;
 };
 
 export default function UserSupportTickets() {
@@ -121,6 +124,11 @@ export default function UserSupportTickets() {
               </div>
               <div className="flex items-center space-x-2">
                 {getStatusBadge(ticket.status)}
+                {ticket.isPremium && (
+                  <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800">
+                    Priority
+                  </Badge>
+                )}
                 <Button 
                   variant="ghost" 
                   size="sm" 
