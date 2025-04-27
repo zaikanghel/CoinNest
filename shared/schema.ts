@@ -86,6 +86,24 @@ export const supportTickets = pgTable("support_tickets", {
   updatedAt: timestamp("updated_at").notNull().defaultNow()
 });
 
+export const dailyRewards = pgTable("daily_rewards", {
+  id: serial("id").primaryKey(),
+  day: integer("day").notNull(), // Day number (1-7)
+  reward: integer("reward").notNull(), // Number of coins as reward
+  description: text("description").notNull(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow()
+});
+
+export const userDailyRewards = pgTable("user_daily_rewards", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  day: integer("day").notNull(), // Current streak day (1-7)
+  lastClaimedAt: timestamp("last_claimed_at").notNull().defaultNow(),
+  streakStartedAt: timestamp("streak_started_at").notNull().defaultNow(),
+  completedDays: integer("completed_days").notNull().default(0), // Total number of completed days
+  hasCompletedWeek: boolean("has_completed_week").notNull().default(false) // Whether user has completed a full week
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -142,6 +160,17 @@ export const insertSupportTicketSchema = createInsertSchema(supportTickets).omit
   updatedAt: true
 });
 
+export const insertDailyRewardSchema = createInsertSchema(dailyRewards).omit({
+  id: true,
+  updatedAt: true
+});
+
+export const insertUserDailyRewardSchema = createInsertSchema(userDailyRewards).omit({
+  id: true,
+  lastClaimedAt: true,
+  streakStartedAt: true
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -151,7 +180,11 @@ export type GameScore = typeof gameScores.$inferSelect;
 export type Setting = typeof settings.$inferSelect;
 export type PremiumPayment = typeof premiumPayments.$inferSelect;
 export type SupportTicket = typeof supportTickets.$inferSelect;
+export type DailyReward = typeof dailyRewards.$inferSelect;
+export type UserDailyReward = typeof userDailyRewards.$inferSelect;
 export type InsertSupportTicket = z.infer<typeof insertSupportTicketSchema>;
+export type InsertDailyReward = z.infer<typeof insertDailyRewardSchema>;
+export type InsertUserDailyReward = z.infer<typeof insertUserDailyRewardSchema>;
 
 // Additional schemas for client validation
 export const loginSchema = z.object({

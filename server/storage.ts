@@ -82,6 +82,26 @@ export interface IStorage {
     premiumStarted?: Date
   ): Promise<User | undefined>;
 
+  // Daily Rewards operations
+  getDailyRewards(): Promise<DailyReward[]>;
+  getDailyReward(day: number): Promise<DailyReward | undefined>;
+  createOrUpdateDailyReward(data: InsertDailyReward): Promise<DailyReward>;
+  getUserDailyReward(userId: number): Promise<UserDailyReward | undefined>;
+  createUserDailyReward(data: {
+    userId: number;
+    day: number;
+  }): Promise<UserDailyReward>;
+  updateUserDailyReward(
+    userId: number,
+    updates: Partial<UserDailyReward>
+  ): Promise<UserDailyReward | undefined>;
+  claimDailyReward(userId: number): Promise<{
+    reward: number;
+    day: number;
+    hasCompletedWeek: boolean;
+    message: string;
+  }>;
+
   // Support operations
   createSupportTicket(data: {
     userId?: number;

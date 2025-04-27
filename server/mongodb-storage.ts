@@ -1,6 +1,10 @@
 import { MongoClient, ObjectId, Db, Collection } from "mongodb";
-import { users, activities, withdrawals, gameScores, settings, supportTickets } from "@shared/schema";
-import type { User, Activity, Withdrawal, GameScore, Setting, InsertUser, PremiumPayment, SupportTicket } from "@shared/schema";
+import { users, activities, withdrawals, gameScores, settings, supportTickets, dailyRewards, userDailyRewards } from "@shared/schema";
+import type { 
+  User, Activity, Withdrawal, GameScore, Setting, InsertUser, 
+  PremiumPayment, SupportTicket, DailyReward, UserDailyReward,
+  InsertDailyReward, InsertUserDailyReward
+} from "@shared/schema";
 import { IStorage } from "./storage";
 import { nanoid } from "nanoid";
 import session from "express-session";
@@ -18,6 +22,8 @@ export class MongoStorage implements IStorage {
   private settingsCollection: Collection | null = null;
   private premiumPaymentsCollection: Collection | null = null;
   private supportTicketsCollection: Collection | null = null;
+  private dailyRewardsCollection: Collection | null = null;
+  private userDailyRewardsCollection: Collection | null = null;
   sessionStore: session.Store;
 
   constructor(mongoUri: string) {
@@ -41,9 +47,13 @@ export class MongoStorage implements IStorage {
       this.settingsCollection = this.db.collection("settings");
       this.premiumPaymentsCollection = this.db.collection("premiumPayments");
       this.supportTicketsCollection = this.db.collection("supportTickets");
+      this.dailyRewardsCollection = this.db.collection("dailyRewards");
+      this.userDailyRewardsCollection = this.db.collection("userDailyRewards");
       
       // Initialize default settings if they don't exist
       await this.initDefaultSettings();
+      // Initialize default daily rewards
+      await this.initDefaultDailyRewards();
     } catch (error) {
       console.error("Failed to connect to MongoDB:", error);
       throw error;
@@ -77,7 +87,17 @@ export class MongoStorage implements IStorage {
       { key: 'premium_price', value: '4.99' }, // monthly price in USD
       { key: 'premium_afk_multiplier', value: '2' }, // multiplier for premium earnings
       { key: 'premium_daily_limit_bonus', value: '200' }, // additional daily limit for premium
-      { key: 'captcha_disabled_premium', value: 'true' } // whether captchas are disabled for premium
+      { key: 'captcha_disabled_premium', value: 'true' }, // whether captchas are disabled for premium
+
+      // Daily rewards settings
+      { key: 'daily_reward_day1', value: '50' }, // Day 1 reward
+      { key: 'daily_reward_day2', value: '75' }, // Day 2 reward
+      { key: 'daily_reward_day3', value: '100' }, // Day 3 reward
+      { key: 'daily_reward_day4', value: '125' }, // Day 4 reward
+      { key: 'daily_reward_day5', value: '150' }, // Day 5 reward
+      { key: 'daily_reward_day6', value: '175' }, // Day 6 reward
+      { key: 'daily_reward_day7', value: '250' }, // Day 7 reward
+      { key: 'daily_reward_cooldown', value: '86400' } // Cooldown in seconds (24 hours)
     ];
 
     for (const setting of defaultSettings) {
@@ -90,6 +110,64 @@ export class MongoStorage implements IStorage {
         });
       } else {
         console.log(`Setting already exists: ${setting.key} = ${exists.value}`);
+      }
+    }
+  }
+  
+  private async initDefaultDailyRewards(): Promise<void> {
+    if (!this.dailyRewardsCollection) throw new Error("Database not initialized");
+    
+    console.log("Initializing default daily rewards in MongoDB...");
+
+    const defaultRewards = [
+      {
+        day: 1,
+        reward: 50,
+        description: "Welcome Bonus"
+      },
+      {
+        day: 2,
+        reward: 75,
+        description: "Streak Day 2"
+      },
+      {
+        day: 3,
+        reward: 100,
+        description: "Streak Day 3"
+      },
+      {
+        day: 4,
+        reward: 125,
+        description: "Halfway Bonus"
+      },
+      {
+        day: 5,
+        reward: 150,
+        description: "Streak Day 5"
+      },
+      {
+        day: 6,
+        reward: 175,
+        description: "Almost There!"
+      },
+      {
+        day: 7,
+        reward: 250,
+        description: "Weekly Completion Bonus"
+      }
+    ];
+
+    for (const reward of defaultRewards) {
+      const exists = await this.dailyRewardsCollection.findOne({ day: reward.day });
+      if (!exists) {
+        console.log(`Creating default daily reward for day ${reward.day}: ${reward.reward} coins`);
+        await this.dailyRewardsCollection.insertOne({
+          ...reward,
+          id: reward.day, // Use day as ID for simplicity
+          updatedAt: new Date()
+        });
+      } else {
+        console.log(`Daily reward for day ${reward.day} already exists: ${exists.reward} coins`);
       }
     }
   }
