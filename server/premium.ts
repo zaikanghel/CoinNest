@@ -190,13 +190,52 @@ export function setupPremiumRoutes(app: Express) {
     }
     
     const showAll = req.query.all === "true";
+    const processed = req.query.processed === "true";
     
-    if (showAll) {
+    if (processed) {
+      const processedPayments = await storage.getProcessedPremiumPayments();
+      res.json(processedPayments);
+    } else if (showAll) {
       const allPayments = await storage.getAllPremiumPayments();
       res.json(allPayments);
     } else {
       const pendingPayments = await storage.getPendingPremiumPayments();
       res.json(pendingPayments);
+    }
+  });
+  
+  // Admin endpoint to delete processed premium payments
+  app.delete("/api/admin/premium/payments/processed", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+    
+    try {
+      // Delete all processed premium payments (approved or rejected)
+      const deletedCount = await storage.deleteProcessedPremiumPayments();
+      
+      // Log the action
+      if (deletedCount > 0) {
+        await storage.createActivity({
+          userId: req.user.id,
+          type: "admin_action",
+          amount: 0,
+          description: `Deleted ${deletedCount} processed premium payments`
+        });
+      }
+      
+      res.json({ 
+        success: true, 
+        deletedCount,
+        message: `Successfully deleted ${deletedCount} processed premium payments`
+      });
+    } catch (error: any) {
+      console.error("Error deleting processed premium payments:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error deleting processed premium payments",
+        error: error.message
+      });
     }
   });
   

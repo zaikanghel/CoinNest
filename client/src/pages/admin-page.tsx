@@ -48,6 +48,8 @@ export default function AdminPage() {
   const [showPremiumPaymentModal, setShowPremiumPaymentModal] = useState(false);
   const [showAllWithdrawals, setShowAllWithdrawals] = useState(false);
   const [showAllPremiumPayments, setShowAllPremiumPayments] = useState(false);
+  const [showProcessedPremiumPayments, setShowProcessedPremiumPayments] = useState(false);
+  const [showDeletePremiumPaymentsConfirm, setShowDeletePremiumPaymentsConfirm] = useState(false);
   const [revokePremiumId, setRevokePremiumId] = useState<number | null>(null);
 
   // Redirect if not admin
