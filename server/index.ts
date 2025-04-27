@@ -25,7 +25,26 @@ const app = express();
 
 // Apply security middleware
 // Content Security Policy and other security headers
-app.use(helmet());
+// Use a more relaxed configuration in development
+if (process.env.NODE_ENV === 'development') {
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          connectSrc: ["'self'", "ws:", "wss:"],
+          imgSrc: ["'self'", "data:"],
+          fontSrc: ["'self'", "data:"],
+        },
+      },
+    })
+  );
+} else {
+  // Use strict security in production
+  app.use(helmet());
+}
 
 // CORS configuration
 app.use(cors({
