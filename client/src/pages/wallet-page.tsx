@@ -198,9 +198,10 @@ export default function WalletPage() {
                     <div className="grid grid-cols-12 p-4 font-medium text-sm bg-gray-50 dark:bg-gray-800/50">
                       <div className="col-span-3">Date</div>
                       <div className="col-span-2">Amount</div>
-                      <div className="col-span-3">Method</div>
+                      <div className="col-span-2">Method</div>
                       <div className="col-span-2">Status</div>
                       <div className="col-span-2">Processed</div>
+                      <div className="col-span-1">Priority</div>
                     </div>
                     {wallet.withdrawals.map((withdrawal: any) => (
                       <div 
@@ -216,7 +217,7 @@ export default function WalletPage() {
                         <div className="col-span-2 font-semibold text-gray-900 dark:text-gray-100">
                           {withdrawal.amount.toLocaleString()} coins
                         </div>
-                        <div className="col-span-3">
+                        <div className="col-span-2">
                           <span className="capitalize px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-xs">
                             {withdrawal.method}
                           </span>
@@ -226,6 +227,13 @@ export default function WalletPage() {
                         </div>
                         <div className="col-span-2 text-gray-500">
                           {withdrawal.processedAt ? new Date(withdrawal.processedAt).toLocaleDateString() : '-'}
+                        </div>
+                        <div className="col-span-1">
+                          {withdrawal.isPremium && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
+                              <span className="mr-0.5">⭐</span>
+                            </span>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -321,6 +329,17 @@ export default function WalletPage() {
                       their own transaction fees which will be deducted from your withdrawal amount.
                     </p>
                   </div>
+                  
+                  <div className="p-5 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+                    <h3 className="font-bold mb-2 flex items-center text-gray-900 dark:text-gray-100">
+                      <i className="ri-vip-crown-line mr-2 text-purple-500"></i>
+                      What is premium withdrawal priority?
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 ml-6">
+                      Premium members enjoy priority processing for all withdrawal requests. This means your withdrawals will be processed 
+                      before regular users, reducing wait times significantly. Upgrade to premium to get your earnings faster!
+                    </p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -347,9 +366,20 @@ export default function WalletPage() {
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
                 {/* Current Balance Display */}
-                <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg flex justify-between items-center mb-2">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Current Balance:</span>
-                  <span className="font-bold text-gray-900 dark:text-gray-100">{wallet?.balance.toLocaleString()} coins</span>
+                <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg flex flex-col gap-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Current Balance:</span>
+                    <span className="font-bold text-gray-900 dark:text-gray-100">{wallet?.balance.toLocaleString()} coins</span>
+                  </div>
+
+                  {user?.isPremium && user?.premiumUntil && new Date(user.premiumUntil) > new Date() && (
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-500">Withdrawal Priority:</span>
+                      <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-full font-medium">
+                        Premium (Faster Processing)
+                      </span>
+                    </div>
+                  )}
                 </div>
                 
                 <FormField
@@ -450,9 +480,20 @@ export default function WalletPage() {
                 {/* Info box */}
                 <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg text-xs text-blue-600 dark:text-blue-400 flex items-start">
                   <i className="ri-information-line mr-2 mt-0.5"></i>
-                  <p>
-                    Withdrawals are processed within 1-3 business days. Make sure your account details are correct to avoid delays.
-                  </p>
+                  <div>
+                    <p>
+                      Withdrawals are processed within 1-3 business days. Make sure your account details are correct to avoid delays.
+                    </p>
+                    {user?.isPremium && user?.premiumUntil && new Date(user.premiumUntil) > new Date() ? (
+                      <p className="mt-2 font-medium">
+                        As a premium member, your withdrawal will be prioritized for faster processing.
+                      </p>
+                    ) : (
+                      <p className="mt-2">
+                        <span className="text-purple-600 dark:text-purple-400 font-medium">Premium members</span> enjoy priority processing for faster withdrawals.
+                      </p>
+                    )}
+                  </div>
                 </div>
                 
                 <DialogFooter className="pt-2">
