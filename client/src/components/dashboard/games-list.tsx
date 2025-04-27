@@ -21,8 +21,9 @@ type GamesListProps = {
 };
 
 export default function GamesList({ games, limit = 4 }: GamesListProps) {
-  // Apply limit to games
-  const displayGames = limit ? games.slice(0, limit) : games;
+  // Make sure games is an array, and apply the limit
+  const gamesArray = Array.isArray(games) ? games : [];
+  const displayGames = limit ? gamesArray.slice(0, limit) : gamesArray;
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">

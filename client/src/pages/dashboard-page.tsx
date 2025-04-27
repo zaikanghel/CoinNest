@@ -25,6 +25,27 @@ interface StatsResponse {
   totalReferrals: number;
 }
 
+interface Game {
+  id: string;
+  name: string;
+  description: string;
+  difficulty: string;
+  category: string;
+  maxEarning: number;
+  baseReward: number;
+  isNew: boolean;
+  isPopular: boolean;
+  imageUrl: string;
+}
+
+interface GamesResponse {
+  games: Game[];
+  dailyGameLimit: number;
+  baseDailyGameLimit: number;
+  isPremiumActive: boolean;
+  dailyLimitBonus: number;
+}
+
 export default function DashboardPage() {
   const { user } = useAuth();
   const { showExpiredDialog } = usePremiumNotification();
@@ -49,7 +70,7 @@ export default function DashboardPage() {
   });
 
   // Fetch games
-  const { data: games, isLoading: isLoadingGames } = useQuery({
+  const { data: games, isLoading: isLoadingGames } = useQuery<GamesResponse>({
     queryKey: ["/api/games"],
     queryFn: async () => {
       const res = await fetch("/api/games", { credentials: "include" });
@@ -176,7 +197,7 @@ export default function DashboardPage() {
                   </span>
                 </Link>
               </div>
-              <GamesList games={games || []} />
+              <GamesList games={games?.games || []} />
             </div>
             
             {/* Test section for developers - will be hidden in production */}
