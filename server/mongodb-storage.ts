@@ -642,6 +642,18 @@ export class MongoStorage implements IStorage {
     
     const now = new Date();
     
+    // Check if user is premium to set priority
+    let isPremium = false;
+    let priority = 0;
+    
+    if (data.userId) {
+      const user = await this.getUser(data.userId);
+      if (user && user.isPremium) {
+        isPremium = true;
+        priority = 10; // Higher priority for premium users
+      }
+    }
+    
     const ticket: SupportTicket = {
       id: nextId,
       userId: data.userId ?? null,
@@ -652,7 +664,9 @@ export class MongoStorage implements IStorage {
       status: 'open',
       adminResponse: null,
       createdAt: now,
-      updatedAt: now
+      updatedAt: now,
+      isPremium, // Add this field for filtering/sorting
+      priority   // Add this field for sorting
     };
     
     await this.supportTicketsCollection.insertOne(ticket);
@@ -666,7 +680,7 @@ export class MongoStorage implements IStorage {
     
     const tickets = await this.supportTicketsCollection
       .find(query)
-      .sort({ createdAt: -1 })
+      .sort({ priority: -1, createdAt: -1 }) // Sort by priority (premium users) first, then by date
       .toArray();
     
     return tickets.map(ticket => this.mapToSupportTicket(ticket));
@@ -699,11 +713,18 @@ export class MongoStorage implements IStorage {
   ): Promise<SupportTicket | undefined> {
     if (!this.supportTicketsCollection) throw new Error("Database not initialized");
     
+    const now = new Date();
+    
     // Always update the updatedAt timestamp
     const updateData = {
       ...updates,
-      updatedAt: new Date()
+      updatedAt: now
     };
+    
+    // If status is being changed to 'closed', add closedAt timestamp
+    if (updates.status === 'closed') {
+      updateData.closedAt = now;
+    }
     
     const result = await this.supportTicketsCollection.findOneAndUpdate(
       { id },
@@ -716,5 +737,22 @@ export class MongoStorage implements IStorage {
 
   private mapToSupportTicket(doc: any): SupportTicket {
     return { ...doc, _id: undefined };
+  }
+
+  // Delete closed tickets older than specified days
+  async cleanupOldClosedTickets(days: number = 30): Promise<number> {
+    if (!this.supportTicketsCollection) {
+      await this.connect();
+    }
+    
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    
+    const result = await this.supportTicketsCollection!.deleteMany({
+      status: "closed",
+      updatedAt: { $lt: cutoffDate }
+    });
+    
+    return result.deletedCount;
   }
 }
