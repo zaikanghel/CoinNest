@@ -81,6 +81,15 @@ export default function AdminPage() {
   const [showAllSupportTickets, setShowAllSupportTickets] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const [showTicketResponseModal, setShowTicketResponseModal] = useState(false);
+  
+  // Support ticket response form
+  const ticketResponseForm = useForm<TicketResponseFormData>({
+    resolver: zodResolver(ticketResponseSchema),
+    defaultValues: {
+      adminResponse: "",
+      status: "in_progress"
+    }
+  });
 
   // Redirect if not admin
   if (user && !user.isAdmin) {
@@ -352,6 +361,27 @@ export default function AdminPage() {
     }
   };
   
+  // Open ticket response modal
+  const openTicketResponseModal = (ticket: any) => {
+    setSelectedTicket(ticket);
+    
+    // Set form default values
+    ticketResponseForm.setValue("adminResponse", ticket.adminResponse || "");
+    ticketResponseForm.setValue("status", ticket.status || "in_progress");
+    
+    setShowTicketResponseModal(true);
+  };
+  
+  // Submit ticket response
+  const onTicketResponseSubmit = (data: TicketResponseFormData) => {
+    if (selectedTicket) {
+      respondToTicketMutation.mutate({
+        ...data,
+        ticketId: selectedTicket.id
+      });
+    }
+  };
+  
   // Fetch processed withdrawals for download
   const { data: processedWithdrawals, refetch: refetchProcessedWithdrawals } = useQuery({
     queryKey: ["/api/admin/withdrawals/processed"],
@@ -376,6 +406,31 @@ export default function AdminPage() {
         variant: "default"
       });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/withdrawals"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+  
+  // Support ticket response mutation
+  const respondToTicketMutation = useMutation({
+    mutationFn: async (data: TicketResponseFormData & { ticketId: number }) => {
+      const { ticketId, ...ticketData } = data;
+      const res = await apiRequest("POST", `/api/admin/support/tickets/${ticketId}`, ticketData);
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Ticket updated",
+        description: "Your response has been saved and the ticket has been updated",
+        variant: "default"
+      });
+      setShowTicketResponseModal(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/support/tickets"] });
     },
     onError: (error: Error) => {
       toast({
