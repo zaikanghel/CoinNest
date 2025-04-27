@@ -100,7 +100,7 @@ export default function DashboardPage() {
               
               <div className="relative z-10 px-8 py-6 text-white">
                 <h2 className="text-2xl md:text-3xl font-bold">
-                  Welcome to Your IdleCash Dashboard
+                  Welcome to Your CoinNest Dashboard
                 </h2>
                 <p className="mt-2 max-w-2xl opacity-90">
                   Start earning passively by keeping this tab open or boost your earnings by playing games!
