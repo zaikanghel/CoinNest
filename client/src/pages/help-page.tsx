@@ -505,7 +505,7 @@ export default function HelpPage() {
                       <CardTitle className="text-lg">Referral Program</CardTitle>
                     </CardHeader>
                     <CardContent className="flex-grow text-sm text-muted-foreground">
-                      <p>How to earn extra coins by referring friends and family to IdleCash, including promotion strategies.</p>
+                      <p>How to earn extra coins by referring friends and family to CoinNest, including promotion strategies.</p>
                     </CardContent>
                     <div className="p-4 pt-0 mt-auto">
                       <Button variant="outline" className="w-full">Read Guide</Button>
