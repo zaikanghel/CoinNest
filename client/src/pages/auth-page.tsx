@@ -54,7 +54,7 @@ export default function AuthPage() {
       username: "",
       email: "",
       password: "",
-      referredBy: "",
+      referredBy: null,
     },
   });
 
@@ -271,11 +271,16 @@ export default function AuthPage() {
                     <FormField
                       control={registerForm.control}
                       name="referredBy"
-                      render={({ field }) => (
+                      render={({ field: { value, onChange, ...fieldProps } }) => (
                         <FormItem>
                           <FormLabel>Referral Code (Optional)</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter referral code if you have one" {...field} />
+                            <Input 
+                              placeholder="Enter referral code if you have one" 
+                              value={value === null ? "" : value} 
+                              onChange={(e) => onChange(e.target.value || null)}
+                              {...fieldProps} 
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
