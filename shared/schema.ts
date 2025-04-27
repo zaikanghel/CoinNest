@@ -73,6 +73,19 @@ export const premiumPayments = pgTable("premium_payments", {
   processedAt: timestamp("processed_at")
 });
 
+export const supportTickets = pgTable("support_tickets", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id"), // Can be null for non-logged in users
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  subject: text("subject").notNull(),
+  message: text("message").notNull(),
+  status: text("status").notNull().default("open"), // 'open', 'in_progress', 'closed'
+  adminResponse: text("admin_response"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow()
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -121,6 +134,14 @@ export const insertPremiumPaymentSchema = createInsertSchema(premiumPayments).om
   processedAt: true
 });
 
+export const insertSupportTicketSchema = createInsertSchema(supportTickets).omit({
+  id: true,
+  status: true,
+  adminResponse: true,
+  createdAt: true,
+  updatedAt: true
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -129,6 +150,8 @@ export type Withdrawal = typeof withdrawals.$inferSelect;
 export type GameScore = typeof gameScores.$inferSelect;
 export type Setting = typeof settings.$inferSelect;
 export type PremiumPayment = typeof premiumPayments.$inferSelect;
+export type SupportTicket = typeof supportTickets.$inferSelect;
+export type InsertSupportTicket = z.infer<typeof insertSupportTicketSchema>;
 
 // Additional schemas for client validation
 export const loginSchema = z.object({
@@ -163,7 +186,15 @@ export const premiumPaymentSchema = z.object({
   notes: z.string().optional()
 });
 
+export const contactFormSchema = z.object({
+  name: z.string().min(2, { message: "Name must be at least 2 characters" }),
+  email: z.string().email({ message: "Please enter a valid email address" }),
+  subject: z.string().min(5, { message: "Subject must be at least 5 characters" }),
+  message: z.string().min(10, { message: "Message must be at least 10 characters" }),
+});
+
 export type LoginData = z.infer<typeof loginSchema>;
 export type RegisterData = z.infer<typeof registerSchema>;
 export type WithdrawalData = z.infer<typeof withdrawalSchema>;
 export type PremiumPaymentData = z.infer<typeof premiumPaymentSchema>;
+export type ContactFormData = z.infer<typeof contactFormSchema>;

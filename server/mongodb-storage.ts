@@ -1,6 +1,6 @@
 import { MongoClient, ObjectId, Db, Collection } from "mongodb";
-import { users, activities, withdrawals, gameScores, settings } from "@shared/schema";
-import type { User, Activity, Withdrawal, GameScore, Setting, InsertUser, PremiumPayment } from "@shared/schema";
+import { users, activities, withdrawals, gameScores, settings, supportTickets } from "@shared/schema";
+import type { User, Activity, Withdrawal, GameScore, Setting, InsertUser, PremiumPayment, SupportTicket } from "@shared/schema";
 import { IStorage } from "./storage";
 import { nanoid } from "nanoid";
 import session from "express-session";

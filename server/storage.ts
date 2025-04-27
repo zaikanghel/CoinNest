@@ -1,4 +1,4 @@
-import type { User, Activity, Withdrawal, GameScore, Setting, InsertUser, PremiumPayment } from "@shared/schema";
+import type { User, Activity, Withdrawal, GameScore, Setting, InsertUser, PremiumPayment, SupportTicket } from "@shared/schema";
 import session from "express-session";
 import { MongoStorage } from "./mongodb-storage";
 
@@ -81,6 +81,25 @@ export interface IStorage {
     premiumUntil?: Date,
     premiumStarted?: Date
   ): Promise<User | undefined>;
+
+  // Support operations
+  createSupportTicket(data: {
+    userId?: number;
+    name: string;
+    email: string;
+    subject: string;
+    message: string;
+  }): Promise<SupportTicket>;
+  getSupportTickets(status?: string): Promise<SupportTicket[]>;
+  getSupportTicketsByUser(userId: number): Promise<SupportTicket[]>;
+  getSupportTicket(id: number): Promise<SupportTicket | undefined>;
+  updateSupportTicket(
+    id: number, 
+    updates: { 
+      status?: string;
+      adminResponse?: string;
+    }
+  ): Promise<SupportTicket | undefined>;
 
   // Session store
   sessionStore: session.Store;
