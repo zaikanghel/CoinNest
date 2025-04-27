@@ -1112,6 +1112,14 @@ export default function AdminPage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
+                    <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded mb-4 flex items-center">
+                      <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0" />
+                      <span>
+                        <strong className="font-bold">Captcha Update:</strong>{" "}
+                        The captcha_interval now represents the number of points a user must earn before seeing a captcha verification.
+                        Previously, this was based on seconds. Higher values = less frequent captchas.
+                      </span>
+                    </div>
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -2196,7 +2204,7 @@ function getSettingDescription(key: string): string {
     'referral_percent': 'Percentage of referred user earnings',
     'min_withdrawal': 'Minimum coins required for withdrawal',
     'conversion_rate': 'Number of coins per dollar for withdrawals',
-    'captcha_interval': 'Time in seconds between captcha checks',
+    'captcha_interval': 'Number of points earned before captcha verification',
     'game_memory_reward': 'Base reward for memory game matches',
     'game_clicker_reward': 'Reward per click in clicker game',
     'game_max_earnings': 'Maximum earnings per game session',
