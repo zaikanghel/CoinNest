@@ -22,7 +22,7 @@ export default function LandingPage() {
               className="mb-6"
             >
               <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
-                EarnPlay
+                CoinNest
               </h1>
               <p className="text-xl md:text-2xl font-medium text-gray-600 dark:text-gray-300">
                 Turn Free Time Into Real Rewards
@@ -40,7 +40,7 @@ export default function LandingPage() {
                 <span className="text-primary">Into Real Rewards</span>
               </h2>
               <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-                EarnPlay lets you earn rewards by keeping a tab open in your browser or playing mini-games. 
+                CoinNest lets you earn rewards by keeping a tab open in your browser or playing mini-games. 
                 Simple to use, free to join - create an account, enjoy the experience, and watch your coins accumulate.
               </p>
             </motion.div>
@@ -101,7 +101,7 @@ export default function LandingPage() {
       <section className="bg-gradient-to-b from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 py-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose EarnPlay?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose CoinNest?</h2>
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               We've built the most rewarding gaming and earning platform for everyone
             </p>
@@ -170,7 +170,7 @@ export default function LandingPage() {
               </div>
               <h3 className="text-xl font-bold mb-2">Works On Any Device</h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Run EarnPlay on your desktop, tablet, or mobile phone - earn rewards from anywhere.
+                Run CoinNest on your desktop, tablet, or mobile phone - earn rewards from anywhere.
               </p>
             </div>
           </div>
@@ -184,7 +184,7 @@ export default function LandingPage() {
             <div className="max-w-3xl mx-auto text-center">
               <h2 className="text-3xl md:text-4xl font-bold mb-6">Start Earning Today</h2>
               <p className="text-lg mb-8 opacity-90">
-                Join thousands of users who are already earning passive income with IdleCash. 
+                Join thousands of users who are already earning rewards with CoinNest. 
                 It takes less than a minute to sign up and start earning.
               </p>
               <Button asChild size="lg" className="bg-white text-primary hover:bg-white/90 font-bold px-10 py-6 text-lg">
@@ -199,14 +199,14 @@ export default function LandingPage() {
       <footer className="bg-gray-100 dark:bg-gray-900 py-10">
         <div className="container mx-auto px-4">
           <div className="text-center">
-            <h3 className="text-xl font-bold text-primary mb-2">IdleCash</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">The easiest way to earn passive income online</p>
+            <h3 className="text-xl font-bold text-primary mb-2">CoinNest</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Turn your free time into real rewards</p>
             <div className="flex justify-center space-x-4 mb-6">
               <Link to="/terms-of-service" className="text-gray-500 hover:text-primary">Terms of Service</Link>
               <Link to="/privacy-policy" className="text-gray-500 hover:text-primary">Privacy Policy</Link>
               <Link to="/contact" className="text-gray-500 hover:text-primary">Contact</Link>
             </div>
-            <p className="text-xs text-gray-400">© {new Date().getFullYear()} IdleCash. All rights reserved.</p>
+            <p className="text-xs text-gray-400">© {new Date().getFullYear()} CoinNest. All rights reserved.</p>
           </div>
         </div>
       </footer>
