@@ -1182,7 +1182,103 @@ export default function AdminPage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="text-lg font-medium mb-3">Payment Accounts</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+                          <Card className="p-4">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h3 className="font-medium">PayPal Account</h3>
+                                <span className="text-sm text-gray-500 truncate max-w-xs block">
+                                  {settings?.find((s: Setting) => s.key === 'payment_account_paypal')?.value || 'Not configured'}
+                                </span>
+                              </div>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => openSettingModal(settings?.find((s: Setting) => s.key === 'payment_account_paypal') || {
+                                  key: 'payment_account_paypal',
+                                  value: '',
+                                  id: 0
+                                })}
+                              >
+                                {settings?.find((s: Setting) => s.key === 'payment_account_paypal') ? 'Edit' : 'Add'}
+                              </Button>
+                            </div>
+                          </Card>
+                          
+                          <Card className="p-4">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h3 className="font-medium">GCash Account</h3>
+                                <span className="text-sm text-gray-500 truncate max-w-xs block">
+                                  {settings?.find((s: Setting) => s.key === 'payment_account_gcash')?.value || 'Not configured'}
+                                </span>
+                              </div>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => openSettingModal(settings?.find((s: Setting) => s.key === 'payment_account_gcash') || {
+                                  key: 'payment_account_gcash',
+                                  value: '',
+                                  id: 0
+                                })}
+                              >
+                                {settings?.find((s: Setting) => s.key === 'payment_account_gcash') ? 'Edit' : 'Add'}
+                              </Button>
+                            </div>
+                          </Card>
+                          
+                          <Card className="p-4">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h3 className="font-medium">Bank Account</h3>
+                                <span className="text-sm text-gray-500 truncate max-w-xs block">
+                                  {settings?.find((s: Setting) => s.key === 'payment_account_bank_transfer')?.value || 'Not configured'}
+                                </span>
+                              </div>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => openSettingModal(settings?.find((s: Setting) => s.key === 'payment_account_bank_transfer') || {
+                                  key: 'payment_account_bank_transfer',
+                                  value: '',
+                                  id: 0
+                                })}
+                              >
+                                {settings?.find((s: Setting) => s.key === 'payment_account_bank_transfer') ? 'Edit' : 'Add'}
+                              </Button>
+                            </div>
+                          </Card>
+                          
+                          <Card className="p-4">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h3 className="font-medium">Crypto Wallet</h3>
+                                <span className="text-sm text-gray-500 truncate max-w-xs block">
+                                  {settings?.find((s: Setting) => s.key === 'payment_account_crypto')?.value || 'Not configured'}
+                                </span>
+                              </div>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => openSettingModal(settings?.find((s: Setting) => s.key === 'payment_account_crypto') || {
+                                  key: 'payment_account_crypto',
+                                  value: '',
+                                  id: 0
+                                })}
+                              >
+                                {settings?.find((s: Setting) => s.key === 'payment_account_crypto') ? 'Edit' : 'Add'}
+                              </Button>
+                            </div>
+                          </Card>
+                        </div>
+                      </div>
+                      
+                      <Separator />
+                      
+                      <h3 className="text-lg font-medium mb-3">Premium Features</h3>
                       <div className="grid grid-cols-2 gap-4">
                         <Card className="p-4">
                           <div className="flex justify-between items-start">

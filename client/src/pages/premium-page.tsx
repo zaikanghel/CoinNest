@@ -42,6 +42,8 @@ export default function PremiumPage() {
   const { settings } = useSettings();
   const { toast } = useToast();
   const [step, setStep] = useState<"info" | "payment" | "confirmation">("info");
+  const [paymentAccountInfo, setPaymentAccountInfo] = useState<string | null>(null);
+  const [isLoadingAccountInfo, setIsLoadingAccountInfo] = useState(false);
   
   // Check if the user is already premium
   const isPremium = user?.isPremium || false;
@@ -90,8 +92,49 @@ export default function PremiumPage() {
     },
   });
 
+  // Function to fetch payment account information
+  const fetchPaymentAccountInfo = async (method: string) => {
+    if (!method) return;
+    
+    try {
+      setIsLoadingAccountInfo(true);
+      const response = await fetch(`/api/premium/payment-accounts/${method}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        setPaymentAccountInfo(data.accountInfo);
+      } else {
+        setPaymentAccountInfo("Payment information not available. Please contact support.");
+      }
+    } catch (error) {
+      console.error("Error fetching payment account info:", error);
+      setPaymentAccountInfo("Error loading payment information. Please try again.");
+    } finally {
+      setIsLoadingAccountInfo(false);
+    }
+  };
+  
+  // When payment method changes, fetch the corresponding account info
+  useEffect(() => {
+    const method = form.watch("method");
+    if (method) {
+      fetchPaymentAccountInfo(method);
+    }
+  }, [form.watch("method")]);
+  
   const handleSubmit = (data: SubscriptionFormData) => {
     subscriptionMutation.mutate(data);
+  };
+  
+  // Function to copy payment details to clipboard
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      toast({
+        title: "Copied to clipboard",
+        description: "Payment information has been copied to your clipboard",
+        variant: "default",
+      });
+    });
   };
 
   return (
@@ -311,6 +354,39 @@ export default function PremiumPage() {
                       </FormItem>
                     )}
                   />
+                  
+                  {/* Payment Account Information */}
+                  {paymentAccountInfo && (
+                    <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 p-4 border border-blue-200 dark:border-blue-800 mt-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-medium text-blue-800 dark:text-blue-300 mb-1">
+                            {form.watch("method") === "paypal" ? "PayPal Account" : 
+                             form.watch("method") === "gcash" ? "GCash Account" :
+                             form.watch("method") === "bank_transfer" ? "Bank Account" :
+                             form.watch("method") === "crypto" ? "Crypto Wallet" : "Payment Account"}
+                          </h3>
+                          <p className="text-sm text-blue-700 dark:text-blue-400 whitespace-pre-wrap">
+                            {isLoadingAccountInfo ? "Loading account information..." : paymentAccountInfo}
+                          </p>
+                        </div>
+                        {!isLoadingAccountInfo && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => copyToClipboard(paymentAccountInfo)}
+                            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                      <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+                        Please send your payment to this account and upload proof of payment below.
+                      </p>
+                    </div>
+                  )}
                   
                   {/* Duration & Amount Combined */}
                   <FormField
