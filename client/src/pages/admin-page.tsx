@@ -94,17 +94,16 @@ export default function AdminPage() {
     }
   });
 
-  // Debug - temporarily allow non-admin access for testing
-  // Will show a warning instead of redirecting
-  const isNotAdminButTesting = user && !user.isAdmin;
-  
-  // Comment out the redirect for testing support ticket feature
-  /*
+  // Properly restrict admin page access to admin users only
   if (user && !user.isAdmin) {
     navigate("/dashboard");
+    toast({
+      title: "Access Denied",
+      description: "You don't have administrator privileges to access this page.",
+      variant: "destructive"
+    });
     return null;
   }
-  */
   
   // Handle cleanup of duplicate game scores
   const cleanupDuplicateScores = async () => {
@@ -817,15 +816,6 @@ export default function AdminPage() {
 
   return (
     <MainLayout pageTitle="Admin Dashboard">
-      {isNotAdminButTesting && (
-        <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4 flex items-center">
-          <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0" />
-          <span>
-            <strong className="font-bold">Testing Mode:</strong>{" "}
-            You don't have admin privileges. Some features will not work properly.
-          </span>
-        </div>
-      )}
       <div className="space-y-6">
         {isLoading ? (
           <div className="flex items-center justify-center h-96">
