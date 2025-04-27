@@ -77,6 +77,9 @@ export default function AdminPage() {
   const [showEditUserModal, setShowEditUserModal] = useState(false);
   const [isCleaningUp, setIsCleaningUp] = useState(false);
   
+  // Setting state
+  const [selectedSetting, setSelectedSetting] = useState<Setting | null>(null);
+  
   // Support ticket state
   const [showAllSupportTickets, setShowAllSupportTickets] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
