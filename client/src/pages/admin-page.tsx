@@ -1515,10 +1515,7 @@ export default function AdminPage() {
                               <Button 
                                 variant="ghost" 
                                 size="sm"
-                                onClick={() => {
-                                  setSelectedTicket(ticket);
-                                  setShowTicketResponseModal(true);
-                                }}
+                                onClick={() => openTicketResponseModal(ticket)}
                               >
                                 <MessageSquare className="h-4 w-4 mr-2" />
                                 {ticket.adminResponse ? 'Update Response' : 'Respond'}
@@ -1878,6 +1875,141 @@ export default function AdminPage() {
               </form>
             </Form>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Support Ticket Response Modal */}
+      <Dialog 
+        open={showTicketResponseModal} 
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowTicketResponseModal(false);
+          }
+        }}
+      >
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Respond to Support Ticket</DialogTitle>
+            <DialogDescription>
+              {selectedTicket && (
+                <div className="mt-2">
+                  <span className="font-medium">Subject:</span> {selectedTicket?.subject}
+                </div>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedTicket && (
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+              {/* User message */}
+              <div className="bg-muted p-4 rounded-lg">
+                <div className="flex items-center mb-2">
+                  <Avatar className="h-8 w-8 mr-2">
+                    <AvatarFallback className={getColorFromString(selectedTicket.name)}>
+                      {getUserInitials(selectedTicket.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium">{selectedTicket.name}</p>
+                    <p className="text-xs text-muted-foreground">{selectedTicket.email}</p>
+                  </div>
+                  <span className="ml-auto text-xs text-muted-foreground">
+                    {new Date(selectedTicket.createdAt).toLocaleString()}
+                  </span>
+                </div>
+                <p className="whitespace-pre-wrap">{selectedTicket.message}</p>
+              </div>
+              
+              {/* Previous admin response if any */}
+              {selectedTicket.adminResponse && (
+                <div className="bg-primary/10 p-4 rounded-lg">
+                  <div className="flex items-center mb-2">
+                    <Avatar className="h-8 w-8 mr-2">
+                      <AvatarFallback className="bg-primary text-primary-foreground">
+                        <Crown className="h-4 w-4" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">Admin</p>
+                      <p className="text-xs text-muted-foreground">
+                        Previous response
+                      </p>
+                    </div>
+                    <span className="ml-auto text-xs text-muted-foreground">
+                      {selectedTicket.updatedAt && new Date(selectedTicket.updatedAt).toLocaleString()}
+                    </span>
+                  </div>
+                  <p className="whitespace-pre-wrap">{selectedTicket.adminResponse}</p>
+                </div>
+              )}
+            </div>
+          )}
+          
+          {/* Response form */}
+          <Form {...ticketResponseForm}>
+            <form onSubmit={ticketResponseForm.handleSubmit(onTicketResponseSubmit)} className="space-y-4 py-2">
+              <FormField
+                control={ticketResponseForm.control}
+                name="adminResponse"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Your Response</FormLabel>
+                    <FormControl>
+                      <textarea 
+                        className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        placeholder="Enter your response to the user..."
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={ticketResponseForm.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Ticket Status</FormLabel>
+                    <FormControl>
+                      <select
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        {...field}
+                      >
+                        <option value="open">Open</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="closed">Closed</option>
+                      </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <DialogFooter className="pt-4">
+                <Button variant="outline" onClick={() => setShowTicketResponseModal(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={respondToTicketMutation.isPending}
+                >
+                  {respondToTicketMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="mr-2 h-4 w-4" />
+                      {selectedTicket?.adminResponse ? "Update Response" : "Send Response"}
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </MainLayout>
