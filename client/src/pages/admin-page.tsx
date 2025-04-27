@@ -1465,6 +1465,24 @@ export default function AdminPage() {
                       {showAllSupportTickets 
                         ? "All support tickets from users" 
                         : "Open support tickets that need attention"}
+                      {supportTickets && supportTickets.length > 0 && (
+                        <div className="mt-1 font-medium">
+                          {supportTickets.filter((t: any) => t.isPremium).length > 0 && (
+                            <span className="text-amber-600 dark:text-amber-400">
+                              {supportTickets.filter((t: any) => t.isPremium).length} priority
+                            </span>
+                          )}
+                          {supportTickets.filter((t: any) => t.isPremium).length > 0 && 
+                           supportTickets.filter((t: any) => !t.isPremium).length > 0 && (
+                            <span className="mx-1">•</span>
+                          )}
+                          {supportTickets.filter((t: any) => !t.isPremium).length > 0 && (
+                            <span className="text-muted-foreground">
+                              {supportTickets.filter((t: any) => !t.isPremium).length} regular
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </CardDescription>
                   </div>
                   <div className="flex space-x-2">
