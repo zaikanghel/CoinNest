@@ -67,11 +67,13 @@ export interface IStorage {
   getPremiumPaymentsByUser(userId: number): Promise<PremiumPayment[]>;
   getPendingPremiumPayments(): Promise<PremiumPayment[]>;
   getAllPremiumPayments(): Promise<PremiumPayment[]>;
+  getProcessedPremiumPayments(): Promise<PremiumPayment[]>;
   updatePremiumPaymentStatus(
     id: number,
     status: string,
     processedAt?: Date
   ): Promise<PremiumPayment | undefined>;
+  deleteProcessedPremiumPayments(): Promise<number>;
   updateUserPremiumStatus(
     userId: number,
     isPremium: boolean,

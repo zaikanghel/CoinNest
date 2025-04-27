@@ -529,6 +529,29 @@ export class MongoStorage implements IStorage {
     
     return result ? this.mapToPremiumPayment(result) : undefined;
   }
+  
+  async getProcessedPremiumPayments(): Promise<PremiumPayment[]> {
+    if (!this.premiumPaymentsCollection) throw new Error("Database not initialized");
+    
+    const payments = await this.premiumPaymentsCollection
+      .find({ 
+        status: { $in: ['approved', 'rejected'] }
+      })
+      .sort({ createdAt: -1 })
+      .toArray();
+    
+    return payments.map(payment => this.mapToPremiumPayment(payment));
+  }
+  
+  async deleteProcessedPremiumPayments(): Promise<number> {
+    if (!this.premiumPaymentsCollection) throw new Error("Database not initialized");
+    
+    const result = await this.premiumPaymentsCollection.deleteMany({
+      status: { $in: ['approved', 'rejected'] }
+    });
+    
+    return result.deletedCount;
+  }
 
   async updateUserPremiumStatus(
     userId: number,
