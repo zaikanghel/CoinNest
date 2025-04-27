@@ -27,20 +27,31 @@ type GameData = {
   imageUrl: string;
 };
 
+interface GamesResponse {
+  games: GameData[];
+  dailyGameLimit: number;
+  baseDailyGameLimit: number;
+  isPremiumActive: boolean;
+  dailyLimitBonus: number;
+}
+
 export default function GamesPage() {
   const [gameToPlay, setGameToPlay] = useState<GameData | null>(null);
   const [showGameModal, setShowGameModal] = useState(false);
   const { settings } = useSettings();
 
   // Fetch available games
-  const { data: games, isLoading } = useQuery({
+  const { data: gamesData, isLoading } = useQuery<GamesResponse>({
     queryKey: ["/api/games"],
     queryFn: async () => {
       const res = await fetch("/api/games", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch games");
-      return res.json() as Promise<GameData[]>;
+      return res.json();
     }
   });
+  
+  // Extract the games array from the response
+  const games = gamesData?.games || [];
 
   // Fetch user stats for daily limits
   const { data: stats, isLoading: isLoadingStats } = useQuery({
