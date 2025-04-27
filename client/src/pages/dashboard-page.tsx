@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import MainLayout from "@/components/layout/main-layout";
-import StatsCard from "@/components/dashboard/stats-card";
+import StatsCard, { ProgressConfig } from "@/components/dashboard/stats-card";
 import AfkCard from "@/components/dashboard/afk-card";
 import ActivityList from "@/components/dashboard/activity-list";
 import GamesList from "@/components/dashboard/games-list";
@@ -117,15 +117,17 @@ export default function DashboardPage() {
                 title="Today's Earnings"
                 value={stats?.dailyEarnings.toString() || "0"}
                 icon="ri-calendar-check-line"
-                progress={{
-                  value: stats?.dailyEarnings || 0,
-                  max: stats?.dailyLimit || 200,
-                  color: "bg-warning-500",
-                  premium: stats?.isPremiumActive ? {
-                    baseMax: stats?.baseDailyLimit || 200,
-                    bonus: stats?.dailyLimit - (stats?.baseDailyLimit || 200)
-                  } : undefined
-                }}
+                progress={
+                  stats ? {
+                    value: stats.dailyEarnings,
+                    max: stats.dailyLimit,
+                    color: "bg-warning-500",
+                    premium: stats.isPremiumActive ? {
+                      baseMax: stats.baseDailyLimit,
+                      bonus: stats.dailyLimit - stats.baseDailyLimit
+                    } : undefined
+                  } as ProgressConfig : undefined
+                }
                 iconClass={stats?.isPremiumActive 
                   ? "bg-gradient-to-r from-amber-100 to-yellow-200 dark:from-amber-900/30 dark:to-yellow-800/30 text-amber-600"
                   : "bg-warning-100 dark:bg-warning-900/30 text-warning-500"

@@ -1,28 +1,34 @@
 import { Progress } from "@/components/ui/progress";
 
-type StatsCardProps = {
+export interface ProgressConfig {
+  value: number;
+  max: number;
+  color?: string;
+  premium?: {
+    baseMax: number;
+    bonus: number;
+  };
+}
+
+export interface TrendConfig {
+  value: number;
+  label?: string;
+}
+
+export interface DetailConfig {
+  label: string;
+  value: number | string;
+}
+
+export interface StatsCardProps {
   title: string;
   value: string;
   icon: string;
   iconClass?: string;
-  trend?: {
-    value: number;
-    label?: string;
-  };
-  progress?: {
-    value: number;
-    max: number;
-    color?: string;
-    premium?: {
-      baseMax: number;
-      bonus: number;
-    }
-  };
-  detail?: {
-    label: string;
-    value: number | string;
-  };
-};
+  trend?: TrendConfig;
+  progress?: ProgressConfig;
+  detail?: DetailConfig;
+}
 
 export default function StatsCard({
   title,
