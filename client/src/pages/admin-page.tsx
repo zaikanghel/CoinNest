@@ -327,35 +327,42 @@ export default function AdminPage() {
       doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 23);
       
       // Table headers
-      const headers = ["ID", "User ID", "Amount", "Method", "Status", "Created", "Processed"];
+      const headers = ["ID", "Username", "Email", "Amount", "Method", "Status", "Created", "Processed"];
       
-      // Define table data
-      const data = processedWithdrawals.map((w: any) => [
-        w.id,
-        w.userId,
-        w.amount,
-        w.method,
-        w.status,
-        new Date(w.createdAt).toLocaleDateString(),
-        w.processedAt ? new Date(w.processedAt).toLocaleDateString() : 'N/A'
-      ]);
+      // Define table data with user information
+      const data = processedWithdrawals.map((w: any) => {
+        // Find the user for this withdrawal
+        const user = users?.find((u: any) => u.id === w.userId);
+        
+        return [
+          w.id,
+          user?.username || `User #${w.userId}`,
+          user?.email || 'N/A',
+          w.amount,
+          w.method,
+          w.status,
+          new Date(w.createdAt).toLocaleDateString(),
+          w.processedAt ? new Date(w.processedAt).toLocaleDateString() : 'N/A'
+        ];
+      });
       
       // Add the table (starting at y position 30)
       let startY = 30;
-      doc.setFontSize(9);
+      doc.setFontSize(8); // Smaller font size to fit more columns
       
       // Calculate column widths
       const pageWidth = doc.internal.pageSize.getWidth();
       const margin = 14;
       const usableWidth = pageWidth - 2 * margin;
       const colWidths = [
-        usableWidth * 0.08, // ID
-        usableWidth * 0.12, // User ID
-        usableWidth * 0.15, // Amount
-        usableWidth * 0.15, // Method
-        usableWidth * 0.15, // Status
-        usableWidth * 0.17, // Created
-        usableWidth * 0.18  // Processed
+        usableWidth * 0.06, // ID
+        usableWidth * 0.14, // Username
+        usableWidth * 0.18, // Email
+        usableWidth * 0.10, // Amount
+        usableWidth * 0.12, // Method
+        usableWidth * 0.10, // Status
+        usableWidth * 0.15, // Created
+        usableWidth * 0.15  // Processed
       ];
       
       // Draw header row
