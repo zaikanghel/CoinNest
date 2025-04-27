@@ -32,11 +32,13 @@ export interface IStorage {
   getWithdrawalsByUser(userId: number): Promise<Withdrawal[]>;
   getPendingWithdrawals(): Promise<Withdrawal[]>;
   getAllWithdrawals(): Promise<Withdrawal[]>;
+  getProcessedWithdrawals(): Promise<Withdrawal[]>;
   updateWithdrawalStatus(
     id: number,
     status: string,
     processedAt?: Date
   ): Promise<Withdrawal | undefined>;
+  deleteProcessedWithdrawals(): Promise<number>;
 
   // Game operations
   saveGameScore(data: {

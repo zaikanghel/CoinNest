@@ -268,6 +268,29 @@ export class MongoStorage implements IStorage {
     
     return withdrawals.map(withdrawal => this.mapToWithdrawal(withdrawal));
   }
+  
+  async getProcessedWithdrawals(): Promise<Withdrawal[]> {
+    if (!this.withdrawalsCollection) throw new Error("Database not initialized");
+    
+    const withdrawals = await this.withdrawalsCollection
+      .find({ 
+        status: { $in: ['approved', 'rejected'] }
+      })
+      .sort({ createdAt: -1 })
+      .toArray();
+    
+    return withdrawals.map(withdrawal => this.mapToWithdrawal(withdrawal));
+  }
+  
+  async deleteProcessedWithdrawals(): Promise<number> {
+    if (!this.withdrawalsCollection) throw new Error("Database not initialized");
+    
+    const result = await this.withdrawalsCollection.deleteMany({
+      status: { $in: ['approved', 'rejected'] }
+    });
+    
+    return result.deletedCount;
+  }
 
   async updateWithdrawalStatus(
     id: number,

@@ -198,6 +198,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(withdrawal);
   });
   
+  // Endpoint to get processed withdrawals for download
+  app.get("/api/admin/withdrawals/processed", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) {
+      return res.status(403).send("Forbidden");
+    }
+    
+    const processedWithdrawals = await storage.getProcessedWithdrawals();
+    res.json(processedWithdrawals);
+  });
+  
+  // Endpoint to delete processed withdrawals
+  app.delete("/api/admin/withdrawals/processed", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) {
+      return res.status(403).send("Forbidden");
+    }
+    
+    const deletedCount = await storage.deleteProcessedWithdrawals();
+    res.json({ 
+      success: true, 
+      deletedCount,
+      message: `Successfully deleted ${deletedCount} processed withdrawal records.`
+    });
+  });
+  
   app.get("/api/admin/settings", async (req, res) => {
     if (!req.isAuthenticated() || !req.user.isAdmin) {
       return res.status(403).send("Forbidden");
