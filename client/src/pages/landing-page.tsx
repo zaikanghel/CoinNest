@@ -22,10 +22,10 @@ export default function LandingPage() {
               className="mb-6"
             >
               <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
-                IdleCash
+                EarnPlay
               </h1>
               <p className="text-xl md:text-2xl font-medium text-gray-600 dark:text-gray-300">
-                Earn Money While You Sleep
+                Turn Free Time Into Real Rewards
               </p>
             </motion.div>
 
@@ -36,12 +36,12 @@ export default function LandingPage() {
               className="mb-10"
             >
               <h2 className="text-3xl md:text-4xl font-bold mb-6 leading-tight">
-                Start Earning Passive Income <br/>
-                <span className="text-primary">Without Active Work</span>
+                Turn Your Free Time <br/>
+                <span className="text-primary">Into Real Rewards</span>
               </h2>
               <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-                IdleCash allows you to earn real money just by keeping a tab open in your browser. 
-                No complex tasks, no skills required - just sign up, keep the site open, and watch your earnings grow.
+                EarnPlay lets you earn rewards by keeping a tab open in your browser or playing mini-games. 
+                Simple to use, free to join - create an account, enjoy the experience, and watch your coins accumulate.
               </p>
             </motion.div>
 
@@ -101,9 +101,9 @@ export default function LandingPage() {
       <section className="bg-gradient-to-b from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 py-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose IdleCash?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose EarnPlay?</h2>
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              We've built the simplest passive income platform for everyone
+              We've built the most rewarding gaming and earning platform for everyone
             </p>
           </div>
 
@@ -170,7 +170,7 @@ export default function LandingPage() {
               </div>
               <h3 className="text-xl font-bold mb-2">Works On Any Device</h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Run IdleCash on your desktop, tablet, or mobile phone - earn from anywhere.
+                Run EarnPlay on your desktop, tablet, or mobile phone - earn rewards from anywhere.
               </p>
             </div>
           </div>
