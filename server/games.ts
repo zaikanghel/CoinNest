@@ -28,6 +28,7 @@ export function setupGameRoutes(app: Express) {
     let dailyGameLimit = baseDailyGameLimit;
     let isPremiumActive = false;
     let dailyLimitBonus = 0;
+    let dailyEarned = 0;
     
     // If the user is authenticated, check for premium status
     if (req.isAuthenticated()) {
@@ -44,6 +45,30 @@ export function setupGameRoutes(app: Express) {
         // Apply daily limit bonus to mini-games as well
         dailyGameLimit = baseDailyGameLimit + dailyLimitBonus;
       }
+      
+      // Calculate today's game earnings based on activity logs
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Get all of today's game scores for this user
+      const userGameScores = await storage.getUserGameScores(user.id);
+      
+      // Filter to just today's scores and sum up the coins earned
+      const todaysEarnings = userGameScores
+        .filter(gameScore => {
+          // Parse the score date and reset hours to ensure proper date comparison
+          const scoreDate = new Date(gameScore.createdAt);
+          scoreDate.setHours(0, 0, 0, 0);
+          
+          // Compare dates to ensure we only count scores from today
+          return scoreDate.getTime() === today.getTime();
+        })
+        .reduce((sum, gameScore) => sum + gameScore.coinsEarned, 0);
+      
+      console.log(`[GAMES] Today's game earnings for user ${user.id}: ${todaysEarnings}/${dailyGameLimit}`);
+      
+      // Add today's earnings to the response
+      dailyEarned = todaysEarnings;
     }
     
     // These would typically be stored in the database,
@@ -75,13 +100,14 @@ export function setupGameRoutes(app: Express) {
       }
     ];
     
-    // Include premium information in the response
+    // Include premium information and daily earnings in the response
     res.json({
       games,
       dailyGameLimit,
       baseDailyGameLimit,
       isPremiumActive,
-      dailyLimitBonus
+      dailyLimitBonus,
+      dailyEarned
     });
   });
   
@@ -253,19 +279,35 @@ export function setupGameRoutes(app: Express) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    // Get all of today's game scores for this user
-    const todaysGameScores = await storage.getUserGameScores(user.id);
+    // Get all game scores for this user
+    const userGameScores = await storage.getUserGameScores(user.id);
     
     // Filter to just today's scores and sum up the coins earned
     let todaysEarnings = 0;
     
     if (!skipDailyLimit) {
-      todaysEarnings = todaysGameScores
+      // Make sure to properly compare dates by setting hours to 0
+      const todayDate = new Date();
+      todayDate.setHours(0, 0, 0, 0);
+      
+      todaysEarnings = userGameScores
         .filter(gameScore => {
+          // Parse the score date and reset hours to ensure proper date comparison
           const scoreDate = new Date(gameScore.createdAt);
-          return scoreDate >= today;
+          scoreDate.setHours(0, 0, 0, 0);
+          
+          // Compare dates to ensure we only count scores from today
+          return scoreDate.getTime() === todayDate.getTime();
         })
         .reduce((sum, gameScore) => sum + gameScore.coinsEarned, 0);
+      
+      console.log(`[GAMES] Today's earnings calculated: ${todaysEarnings} coins from ${
+        userGameScores.filter(gs => {
+          const scoreDate = new Date(gs.createdAt);
+          scoreDate.setHours(0, 0, 0, 0);
+          return scoreDate.getTime() === todayDate.getTime();
+        }).length
+      } games played today`);
     }
     
     console.log(`Daily earnings check:

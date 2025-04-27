@@ -274,10 +274,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Filter to just today's scores and sum up the coins earned
     const todaysGameEarnings = todaysGameScores
       .filter(gameScore => {
+        // Parse the score date and reset hours to ensure proper date comparison
         const scoreDate = new Date(gameScore.createdAt);
-        return scoreDate >= today;
+        scoreDate.setHours(0, 0, 0, 0);
+        
+        // Compare dates to ensure we only count scores from today
+        return scoreDate.getTime() === today.getTime();
       })
       .reduce((sum, gameScore) => sum + gameScore.coinsEarned, 0);
+    
+    console.log(`[STATS] Today's game earnings for user ${user.id}: ${todaysGameEarnings} coins`);
     
     // Get game daily limit from settings
     const dailyGameLimitStr = await storage.getSetting("game_daily_limit");

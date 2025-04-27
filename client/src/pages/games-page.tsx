@@ -33,6 +33,7 @@ interface GamesResponse {
   baseDailyGameLimit: number;
   isPremiumActive: boolean;
   dailyLimitBonus: number;
+  dailyEarned: number;
 }
 
 export default function GamesPage() {
@@ -93,11 +94,11 @@ export default function GamesPage() {
   };
   
   // Get daily game limit from the API instead of settings
-  const dailyGameLimit = stats?.dailyGameLimit || parseInt(settings.game_daily_limit || "200");
-  const baseGameLimit = stats?.baseDailyGameLimit || parseInt(settings.game_daily_limit || "200");
+  const dailyGameLimit = stats?.dailyGameLimit || games?.dailyGameLimit || parseInt(settings.game_daily_limit || "200");
+  const baseGameLimit = stats?.baseDailyGameLimit || games?.baseDailyGameLimit || parseInt(settings.game_daily_limit || "200");
   
-  // Calculate daily game progress
-  const gameEarnings = stats?.gameEarnings || 0;
+  // Calculate daily game progress - use either from stats API or games API
+  const gameEarnings = stats?.gameEarnings || games?.dailyEarned || 0;
   const dailyGamesProgress = (gameEarnings / dailyGameLimit) * 100;
 
   return (
@@ -148,7 +149,7 @@ export default function GamesPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {games?.map((game) => (
+                  {games?.games?.map((game) => (
                     <div key={game.id} className="bg-white dark:bg-dark-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden group">
                       <div className="relative">
                         <img 
