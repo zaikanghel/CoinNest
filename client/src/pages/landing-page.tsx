@@ -202,9 +202,9 @@ export default function LandingPage() {
             <h3 className="text-xl font-bold text-primary mb-2">IdleCash</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">The easiest way to earn passive income online</p>
             <div className="flex justify-center space-x-4 mb-6">
-              <a href="#" className="text-gray-500 hover:text-primary">Terms of Service</a>
-              <a href="#" className="text-gray-500 hover:text-primary">Privacy Policy</a>
-              <a href="#" className="text-gray-500 hover:text-primary">Contact</a>
+              <Link to="/terms-of-service" className="text-gray-500 hover:text-primary">Terms of Service</Link>
+              <Link to="/privacy-policy" className="text-gray-500 hover:text-primary">Privacy Policy</Link>
+              <Link to="/contact" className="text-gray-500 hover:text-primary">Contact</Link>
             </div>
             <p className="text-xs text-gray-400">© {new Date().getFullYear()} IdleCash. All rights reserved.</p>
           </div>
