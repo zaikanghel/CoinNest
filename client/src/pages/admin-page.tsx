@@ -20,7 +20,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { 
   Loader2, Settings, Users, Wallet, CheckCircle, XCircle, Crown, 
-  Download, Trash2, AlertCircle
+  Download, Trash2, AlertCircle, Plus, Edit
 } from "lucide-react";
 import { getColorFromString, getUserInitials, getRelativeTime } from "@/lib/utils";
 import { useLocation } from "wouter";
@@ -1042,12 +1042,32 @@ export default function AdminPage() {
                       </TableBody>
                     </Table>
                     
-                    <Button 
-                      className="mt-4" 
-                      onClick={() => openSettingModal()}
-                    >
-                      Add New Setting
-                    </Button>
+                    <div className="flex gap-4 mt-4">
+                      <Button 
+                        onClick={() => openSettingModal()}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add New Setting
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        onClick={cleanupDuplicateScores}
+                        disabled={isCleaningUp}
+                      >
+                        {isCleaningUp ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Cleaning up...
+                          </>
+                        ) : (
+                          <>
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Clean Up Duplicate Game Scores
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
                 
