@@ -644,7 +644,11 @@ export class MongoStorage implements IStorage {
     
     const ticket: SupportTicket = {
       id: nextId,
-      ...data,
+      userId: data.userId ?? null,
+      name: data.name,
+      email: data.email,
+      subject: data.subject,
+      message: data.message,
       status: 'open',
       adminResponse: null,
       createdAt: now,
@@ -708,31 +712,6 @@ export class MongoStorage implements IStorage {
     );
     
     return result ? this.mapToSupportTicket(result) : undefined;
-  }
-
-  // Mapping functions
-  private mapToUser(doc: any): User {
-    return { ...doc, _id: undefined };
-  }
-  
-  private mapToActivity(doc: any): Activity {
-    return { ...doc, _id: undefined };
-  }
-  
-  private mapToWithdrawal(doc: any): Withdrawal {
-    return { ...doc, _id: undefined };
-  }
-  
-  private mapToGameScore(doc: any): GameScore {
-    return { ...doc, _id: undefined };
-  }
-  
-  private mapToSetting(doc: any): Setting {
-    return { ...doc, _id: undefined };
-  }
-  
-  private mapToPremiumPayment(doc: any): PremiumPayment {
-    return { ...doc, _id: undefined };
   }
 
   private mapToSupportTicket(doc: any): SupportTicket {

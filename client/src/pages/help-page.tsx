@@ -12,6 +12,8 @@ import { z } from "zod";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Search, HelpCircle, MessageSquareText, LifeBuoy, FileText, Info, Loader2 } from "lucide-react";
 import MainLayout from "@/components/layout/main-layout";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 // FAQs data
 const faqsData = [
@@ -179,15 +181,34 @@ export default function HelpPage() {
     }, 500);
   };
 
+  // Support ticket mutation
+  const submitTicketMutation = useMutation({
+    mutationFn: (data: ContactFormValues) => {
+      return apiRequest({
+        url: '/api/support/tickets',
+        method: 'POST',
+        data
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Support ticket submitted",
+        description: "We'll get back to you as soon as possible!",
+      });
+      form.reset();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to submit ticket",
+        description: error.message || "Please try again later",
+        variant: "destructive",
+      });
+    }
+  });
+
   // Handle contact form submission
   function onSubmit(values: ContactFormValues) {
-    // Simulate form submission
-    toast({
-      title: "Message sent",
-      description: "We'll get back to you as soon as possible!",
-    });
-    
-    form.reset();
+    submitTicketMutation.mutate(values);
   }
 
   return (
@@ -412,9 +433,9 @@ export default function HelpPage() {
                         <Button 
                           type="submit" 
                           className="w-full"
-                          disabled={form.formState.isSubmitting}
+                          disabled={submitTicketMutation.isPending}
                         >
-                          {form.formState.isSubmitting ? (
+                          {submitTicketMutation.isPending ? (
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           ) : null}
                           Send Message
