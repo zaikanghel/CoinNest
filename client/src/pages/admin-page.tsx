@@ -435,7 +435,7 @@ export default function AdminPage() {
   const { data: processedPremiumPayments, refetch: refetchProcessedPremiumPayments } = useQuery({
     queryKey: ["/api/admin/premium/payments/processed"],
     queryFn: async () => {
-      const res = await fetch("/api/admin/premium/payments/processed", { credentials: "include" });
+      const res = await fetch("/api/admin/premium/payments?processed=true", { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch processed premium payments");
       return res.json();
     },
