@@ -24,16 +24,16 @@ const faqsData = [
     title: 'General',
     questions: [
       { 
-        question: "What is IdleCash?", 
-        answer: "IdleCash is a platform that allows you to earn virtual currency through idle time and playing games. You can convert your earnings to real money once you reach the minimum withdrawal threshold." 
+        question: "What is CoinNest?", 
+        answer: "CoinNest is a platform that allows you to earn virtual currency through idle time and playing games. You can convert your earnings to real money once you reach the minimum withdrawal threshold." 
       },
       { 
         question: "How do I start earning?", 
         answer: "You can start earning in two ways: by keeping the AFK page open to earn passively, or by playing games to earn actively. Navigate to the respective sections from the sidebar menu." 
       },
       { 
-        question: "Is IdleCash free to use?", 
-        answer: "Yes, IdleCash is completely free to use. However, premium members get additional benefits like higher earning rates." 
+        question: "Is CoinNest free to use?", 
+        answer: "Yes, CoinNest is completely free to use. However, premium members get additional benefits like higher earning rates." 
       },
       { 
         question: "How much can I earn per day?", 
@@ -298,7 +298,7 @@ export default function HelpPage() {
               <CardHeader>
                 <CardTitle>Frequently Asked Questions</CardTitle>
                 <CardDescription>
-                  Find answers to the most common questions about IdleCash
+                  Find answers to the most common questions about CoinNest
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -348,7 +348,7 @@ export default function HelpPage() {
                         </div>
                         <div>
                           <h4 className="font-medium">Email Support</h4>
-                          <p className="text-sm text-muted-foreground">support@idlecash.com</p>
+                          <p className="text-sm text-muted-foreground">support@coinnest.com</p>
                           <p className="text-xs text-muted-foreground mt-1">Response within 24-48 hours</p>
                         </div>
                       </div>
@@ -459,7 +459,7 @@ export default function HelpPage() {
               <CardHeader>
                 <CardTitle>Getting Started Guides</CardTitle>
                 <CardDescription>
-                  Learn how to maximize your earnings with IdleCash
+                  Learn how to maximize your earnings with CoinNest
                 </CardDescription>
               </CardHeader>
               <CardContent>

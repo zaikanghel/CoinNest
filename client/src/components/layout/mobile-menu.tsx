@@ -47,7 +47,7 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
           <div className="flex items-center justify-between">
             <div className="text-xl font-bold">
               <i className="ri-money-dollar-circle-line mr-2"></i>
-              IdleCash
+              CoinNest
             </div>
             <Button 
               variant="ghost" 

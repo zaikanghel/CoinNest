@@ -60,7 +60,7 @@ export default function MainLayout({ children, pageTitle }: MainLayoutProps) {
   return (
     <>
       <Head>
-        <title>{pageTitle} | IdleCash</title>
+        <title>{pageTitle} | CoinNest</title>
       </Head>
 
       <div className="min-h-screen flex bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
@@ -77,7 +77,7 @@ export default function MainLayout({ children, pageTitle }: MainLayoutProps) {
               <div className="flex items-center justify-center py-4 mb-4">
                 <div onClick={() => navigate("/dashboard")} className="cursor-pointer">
                   <div className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent font-poppins">
-                    <i className="ri-money-dollar-circle-line mr-2"></i>IdleCash
+                    <i className="ri-money-dollar-circle-line mr-2"></i>CoinNest
                   </div>
                 </div>
               </div>
