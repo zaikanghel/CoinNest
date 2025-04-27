@@ -28,7 +28,7 @@ export default function PrivacyPolicyPage() {
             <p className="text-sm text-gray-500 dark:text-gray-400">Last updated: April 27, 2025</p>
             
             <p>
-              At IdleCash, we take your privacy seriously. This Privacy Policy describes how we collect, use, and share 
+              At CoinNest, we take your privacy seriously. This Privacy Policy describes how we collect, use, and share 
               information when you use our services.
             </p>
             
@@ -112,7 +112,7 @@ export default function PrivacyPolicyPage() {
             
             <h3>8. Contact Us</h3>
             <p>
-              If you have any questions about this Privacy Policy, please contact us at <a href="mailto:privacy@idlecash.com" className="text-primary hover:underline">privacy@idlecash.com</a>.
+              If you have any questions about this Privacy Policy, please contact us at <a href="mailto:privacy@coinnest.com" className="text-primary hover:underline">privacy@coinnest.com</a>.
             </p>
           </div>
         </div>
@@ -122,14 +122,14 @@ export default function PrivacyPolicyPage() {
       <footer className="bg-gray-100 dark:bg-gray-900 py-10">
         <div className="container mx-auto px-4">
           <div className="text-center">
-            <h3 className="text-xl font-bold text-primary mb-2">IdleCash</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">The easiest way to earn passive income online</p>
+            <h3 className="text-xl font-bold text-primary mb-2">CoinNest</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Turn your free time into real rewards</p>
             <div className="flex justify-center space-x-4 mb-6">
               <Link to="/terms-of-service" className="text-gray-500 hover:text-primary">Terms of Service</Link>
               <Link to="/privacy-policy" className="text-gray-500 hover:text-primary">Privacy Policy</Link>
               <Link to="/contact" className="text-gray-500 hover:text-primary">Contact</Link>
             </div>
-            <p className="text-xs text-gray-400">© {new Date().getFullYear()} IdleCash. All rights reserved.</p>
+            <p className="text-xs text-gray-400">© {new Date().getFullYear()} CoinNest. All rights reserved.</p>
           </div>
         </div>
       </footer>

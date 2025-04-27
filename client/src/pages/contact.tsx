@@ -156,7 +156,7 @@ export default function ContactPage() {
                     <Mail className="h-5 w-5 text-primary mr-3 mt-1" />
                     <div>
                       <h3 className="font-medium">Email</h3>
-                      <p className="text-gray-600 dark:text-gray-300">support@idlecash.com</p>
+                      <p className="text-gray-600 dark:text-gray-300">support@coinnest.com</p>
                     </div>
                   </div>
                   
@@ -205,14 +205,14 @@ export default function ContactPage() {
       <footer className="bg-gray-100 dark:bg-gray-900 py-10 mt-10">
         <div className="container mx-auto px-4">
           <div className="text-center">
-            <h3 className="text-xl font-bold text-primary mb-2">IdleCash</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">The easiest way to earn passive income online</p>
+            <h3 className="text-xl font-bold text-primary mb-2">CoinNest</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Turn your free time into real rewards</p>
             <div className="flex justify-center space-x-4 mb-6">
               <Link to="/terms-of-service" className="text-gray-500 hover:text-primary">Terms of Service</Link>
               <Link to="/privacy-policy" className="text-gray-500 hover:text-primary">Privacy Policy</Link>
               <Link to="/contact" className="text-gray-500 hover:text-primary">Contact</Link>
             </div>
-            <p className="text-xs text-gray-400">© {new Date().getFullYear()} IdleCash. All rights reserved.</p>
+            <p className="text-xs text-gray-400">© {new Date().getFullYear()} CoinNest. All rights reserved.</p>
           </div>
         </div>
       </footer>
