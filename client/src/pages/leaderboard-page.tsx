@@ -124,7 +124,7 @@ export default function LeaderboardPage() {
                           <div className="col-span-2">Date</div>
                         </div>
                         <Separator />
-                        {gamesLeaderboard?.length > 0 ? (
+                        {gamesLeaderboard && gamesLeaderboard.length > 0 ? (
                           gamesLeaderboard.map((entry: GameEntry, index: number) => (
                             <div key={index} className="grid grid-cols-12 py-3 text-sm items-center">
                               <div className="col-span-1">
@@ -179,7 +179,7 @@ export default function LeaderboardPage() {
                           <div className="col-span-2">Date</div>
                         </div>
                         <Separator />
-                        {clickerLeaderboard?.length > 0 ? (
+                        {clickerLeaderboard && clickerLeaderboard.length > 0 ? (
                           clickerLeaderboard.map((entry: GameEntry, index: number) => (
                             <div key={index} className="grid grid-cols-12 py-3 text-sm items-center">
                               <div className="col-span-1">
@@ -238,7 +238,7 @@ export default function LeaderboardPage() {
                           <div className="col-span-2">Referrals</div>
                         </div>
                         <Separator />
-                        {topEarners?.length > 0 ? (
+                        {topEarners && topEarners.length > 0 ? (
                           topEarners.map((user: TopEarner, index: number) => (
                             <div key={index} className="grid grid-cols-12 py-3 text-sm items-center">
                               <div className="col-span-1">
