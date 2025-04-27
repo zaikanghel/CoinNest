@@ -67,7 +67,7 @@ export class MongoStorage implements IStorage {
       { key: 'referral_percent', value: '5' }, // percent of referred user earnings
       { key: 'min_withdrawal', value: '1000' }, // minimum coins for withdrawal
       { key: 'conversion_rate', value: '100' }, // coins per $1
-      { key: 'captcha_interval', value: '1200' }, // seconds between captcha checks
+      { key: 'captcha_interval', value: '1200' }, // points earned before captcha verification
       { key: 'game_memory_reward', value: '10' }, // coins per memory match
       { key: 'game_clicker_reward', value: '5' }, // coins per click
       { key: 'game_max_earnings', value: '200' }, // max coins per game session
