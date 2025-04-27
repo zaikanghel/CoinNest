@@ -1384,6 +1384,107 @@ export default function AdminPage() {
                 </CardContent>
               </Card>
             </TabsContent>
+            
+            {/* Support Tab Content */}
+            <TabsContent value="support">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle>Support Tickets</CardTitle>
+                    <CardDescription>
+                      {showAllSupportTickets 
+                        ? "All support tickets from users" 
+                        : "Open support tickets that need attention"}
+                    </CardDescription>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setShowAllSupportTickets(!showAllSupportTickets)}
+                    >
+                      {showAllSupportTickets ? (
+                        <>
+                          <MailOpen className="h-4 w-4 mr-2" />
+                          Show Open Only
+                        </>
+                      ) : (
+                        <>
+                          <MailQuestion className="h-4 w-4 mr-2" />
+                          Show All Tickets
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingSupportTickets ? (
+                    <div className="text-center py-10">
+                      <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+                      <p className="text-muted-foreground">Loading support tickets...</p>
+                    </div>
+                  ) : supportTickets && supportTickets.length > 0 ? (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[50px]">ID</TableHead>
+                          <TableHead>Subject</TableHead>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Date</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {supportTickets.map((ticket: any) => (
+                          <TableRow key={ticket.id}>
+                            <TableCell className="font-medium">{ticket.id}</TableCell>
+                            <TableCell>{ticket.subject}</TableCell>
+                            <TableCell>{ticket.name}</TableCell>
+                            <TableCell>{ticket.email}</TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={ticket.status === 'open' ? 'default' : 
+                                        ticket.status === 'closed' ? 'secondary' : 'outline'}
+                              >
+                                {ticket.status === 'open' ? 'Open' : 
+                                 ticket.status === 'in_progress' ? 'In Progress' : 
+                                 ticket.status === 'closed' ? 'Closed' : ticket.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {getRelativeTime(new Date(ticket.createdAt))}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedTicket(ticket);
+                                  setShowTicketResponseModal(true);
+                                }}
+                              >
+                                <MessageSquare className="h-4 w-4 mr-2" />
+                                {ticket.adminResponse ? 'Update Response' : 'Respond'}
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  ) : (
+                    <div className="text-center py-10">
+                      <p className="text-gray-500">
+                        {showAllSupportTickets 
+                          ? "No support tickets found" 
+                          : "No open support tickets"}
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
           </Tabs>
         )}
       </div>
