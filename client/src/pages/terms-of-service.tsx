@@ -29,13 +29,13 @@ export default function TermsOfServicePage() {
             
             <h3>1. Acceptance of Terms</h3>
             <p>
-              By accessing or using IdleCash services, you agree to be bound by these Terms of Service. If you do not agree 
+              By accessing or using CoinNest services, you agree to be bound by these Terms of Service. If you do not agree 
               to these terms, please do not use our service.
             </p>
             
             <h3>2. Description of Service</h3>
             <p>
-              IdleCash provides a platform where users can earn virtual currency by keeping the website active, playing mini-games, 
+              CoinNest provides a platform where users can earn virtual currency by keeping the website active, playing mini-games, 
               and participating in other activities. This currency can be converted to real money subject to the conditions outlined 
               in these terms.
             </p>
@@ -50,7 +50,7 @@ export default function TermsOfServicePage() {
             <h3>4. Virtual Currency and Rewards</h3>
             <p>
               Users earn virtual currency through various activities on the platform. This currency has no cash value until converted 
-              and withdrawn according to our conversion rates and minimum withdrawal requirements. IdleCash reserves the right to modify 
+              and withdrawn according to our conversion rates and minimum withdrawal requirements. CoinNest reserves the right to modify 
               conversion rates, earning rates, and withdrawal minimums at any time.
             </p>
             
@@ -68,7 +68,7 @@ export default function TermsOfServicePage() {
             
             <h3>6. Termination of Service</h3>
             <p>
-              IdleCash reserves the right to terminate or suspend your account and access to the service at any time, without notice, 
+              CoinNest reserves the right to terminate or suspend your account and access to the service at any time, without notice, 
               for conduct that we believe violates these Terms of Service or is harmful to other users, us, or third parties, or for 
               any other reason at our sole discretion.
             </p>
@@ -82,20 +82,20 @@ export default function TermsOfServicePage() {
             
             <h3>8. Limitation of Liability</h3>
             <p>
-              To the maximum extent permitted by law, IdleCash shall not be liable for any indirect, incidental, special, consequential, 
+              To the maximum extent permitted by law, CoinNest shall not be liable for any indirect, incidental, special, consequential, 
               or punitive damages, including without limitation, loss of profits, data, or other intangible losses, resulting from your 
               access to or use of or inability to access or use the service.
             </p>
             
             <h3>9. Governing Law</h3>
             <p>
-              These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which IdleCash operates, 
+              These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which CoinNest operates, 
               without regard to its conflict of law provisions.
             </p>
             
             <h3>10. Contact Information</h3>
             <p>
-              If you have any questions about these Terms, please contact us at <a href="mailto:support@idlecash.com" className="text-primary hover:underline">support@idlecash.com</a>.
+              If you have any questions about these Terms, please contact us at <a href="mailto:support@coinnest.com" className="text-primary hover:underline">support@coinnest.com</a>.
             </p>
           </div>
         </div>
@@ -105,14 +105,14 @@ export default function TermsOfServicePage() {
       <footer className="bg-gray-100 dark:bg-gray-900 py-10">
         <div className="container mx-auto px-4">
           <div className="text-center">
-            <h3 className="text-xl font-bold text-primary mb-2">IdleCash</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">The easiest way to earn passive income online</p>
+            <h3 className="text-xl font-bold text-primary mb-2">CoinNest</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Turn your free time into real rewards</p>
             <div className="flex justify-center space-x-4 mb-6">
               <Link to="/terms-of-service" className="text-gray-500 hover:text-primary">Terms of Service</Link>
               <Link to="/privacy-policy" className="text-gray-500 hover:text-primary">Privacy Policy</Link>
               <Link to="/contact" className="text-gray-500 hover:text-primary">Contact</Link>
             </div>
-            <p className="text-xs text-gray-400">© {new Date().getFullYear()} IdleCash. All rights reserved.</p>
+            <p className="text-xs text-gray-400">© {new Date().getFullYear()} CoinNest. All rights reserved.</p>
           </div>
         </div>
       </footer>
