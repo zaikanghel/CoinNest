@@ -53,8 +53,8 @@ export default function ReferralsPage() {
   const shareReferral = () => {
     if (navigator.share) {
       navigator.share({
-        title: "Join me on EarnPlay",
-        text: "Sign up to EarnPlay and earn coins by playing games and AFK activities!",
+        title: "Join me on CoinNest",
+        text: "Sign up to CoinNest and earn coins by playing games and AFK activities!",
         url: `${window.location.origin}/auth?ref=${referralData?.referralCode}`
       }).catch(error => {
         console.error("Error sharing:", error);
