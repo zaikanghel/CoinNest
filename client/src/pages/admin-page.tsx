@@ -22,9 +22,9 @@ import {
   Loader2, Settings, Users, Wallet, CheckCircle, XCircle, Crown, 
   Download, Trash2, AlertCircle
 } from "lucide-react";
-import { getColorFromString, getUserInitials } from "@/lib/utils";
+import { getColorFromString, getUserInitials, getRelativeTime } from "@/lib/utils";
 import { useLocation } from "wouter";
-import { Setting } from "@shared/schema";
+import { Setting, User } from "@shared/schema";
 import { jsPDF } from "jspdf";
 
 // Form schema for system settings
@@ -34,6 +34,16 @@ const settingSchema = z.object({
 });
 
 type SettingFormData = z.infer<typeof settingSchema>;
+
+// User edit form schema
+const userEditSchema = z.object({
+  balance: z.string().refine(
+    (val) => !isNaN(parseInt(val)), 
+    { message: "Balance must be a number" }
+  )
+});
+
+type UserEditFormData = z.infer<typeof userEditSchema>;
 
 export default function AdminPage() {
   const { user } = useAuth();
@@ -51,6 +61,11 @@ export default function AdminPage() {
   const [showProcessedPremiumPayments, setShowProcessedPremiumPayments] = useState(false);
   const [showDeletePremiumPaymentsConfirm, setShowDeletePremiumPaymentsConfirm] = useState(false);
   const [revokePremiumId, setRevokePremiumId] = useState<number | null>(null);
+  
+  // State for user management
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [showEditUserModal, setShowEditUserModal] = useState(false);
 
   // Redirect if not admin
   if (user && !user.isAdmin) {
@@ -472,6 +487,77 @@ export default function AdminPage() {
     }
   };
   
+  // User form for editing
+  const userEditForm = useForm<UserEditFormData>({
+    resolver: zodResolver(userEditSchema),
+    defaultValues: {
+      balance: ""
+    }
+  });
+  
+  // Function to determine if a user is currently active (was active in the last 5 minutes)
+  const isUserActive = (lastActiveDate: string | Date): boolean => {
+    if (!lastActiveDate) return false;
+    const lastActive = new Date(lastActiveDate);
+    const now = new Date();
+    const diffInMinutes = (now.getTime() - lastActive.getTime()) / (1000 * 60);
+    return diffInMinutes < 5; // Consider active if last active within 5 minutes
+  };
+  
+  // Filter users based on search query
+  const filteredUsers = users?.filter((user: any) => {
+    if (!searchQuery) return true;
+    
+    const lowercaseQuery = searchQuery.toLowerCase();
+    return (
+      user.email.toLowerCase().includes(lowercaseQuery) ||
+      user.username.toLowerCase().includes(lowercaseQuery)
+    );
+  });
+  
+  // Open edit user modal
+  const openEditUserModal = (user: any) => {
+    setSelectedUser(user);
+    userEditForm.setValue("balance", user.balance.toString());
+    setShowEditUserModal(true);
+  };
+  
+  // Update user mutation
+  const updateUserMutation = useMutation({
+    mutationFn: async (data: { id: number, balance: string }) => {
+      const res = await apiRequest("POST", `/api/admin/users/${data.id}`, { 
+        balance: parseInt(data.balance) 
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "User updated",
+        description: "The user has been updated successfully",
+        variant: "default"
+      });
+      setShowEditUserModal(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+  
+  // Handle user edit form submission
+  const onUserEditSubmit = (data: UserEditFormData) => {
+    if (selectedUser) {
+      updateUserMutation.mutate({
+        id: selectedUser.id,
+        balance: data.balance
+      });
+    }
+  };
+  
   // Generate PDF of processed premium payments
   const generatePremiumPaymentsPDF = async () => {
     try {
@@ -778,6 +864,16 @@ export default function AdminPage() {
                   <CardDescription>
                     Overview of all users in the system with their current statistics
                   </CardDescription>
+                  
+                  {/* Search bar for email */}
+                  <div className="mt-4">
+                    <Input
+                      placeholder="Search by email or username..."
+                      className="max-w-sm"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {users && users.length > 0 ? (
@@ -789,11 +885,13 @@ export default function AdminPage() {
                           <TableHead>Balance</TableHead>
                           <TableHead>Total Earned</TableHead>
                           <TableHead>Joined</TableHead>
+                          <TableHead>Last Active</TableHead>
                           <TableHead>Role</TableHead>
+                          <TableHead>Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {users.map((user: any) => (
+                        {filteredUsers?.map((user: any) => (
                           <TableRow key={user.id}>
                             <TableCell>
                               <div className="flex items-center">
@@ -808,7 +906,21 @@ export default function AdminPage() {
                             <TableCell>{user.email}</TableCell>
                             <TableCell>{user.balance.toLocaleString()} coins</TableCell>
                             <TableCell>{user.totalEarned.toLocaleString()} coins</TableCell>
-                            <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+                            <TableCell>
+                              {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 
+                               user.premiumStarted ? new Date(user.premiumStarted).toLocaleDateString() : 
+                               'N/A'}
+                            </TableCell>
+                            <TableCell>
+                              {user.lastActive && (
+                                <>
+                                  {getRelativeTime(user.lastActive)}
+                                  {isUserActive(user.lastActive) && (
+                                    <Badge className="ml-2 bg-green-500" variant="secondary">Active</Badge>
+                                  )}
+                                </>
+                              )}
+                            </TableCell>
                             <TableCell>
                               {user.isAdmin && (
                                 <Badge className="bg-blue-500">Admin</Badge>
@@ -819,6 +931,15 @@ export default function AdminPage() {
                               {!user.isAdmin && (!user.isPremium || new Date(user.premiumUntil) <= new Date()) && (
                                 <Badge variant="outline">User</Badge>
                               )}
+                            </TableCell>
+                            <TableCell>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openEditUserModal(user)}
+                              >
+                                Edit
+                              </Button>
                             </TableCell>
                           </TableRow>
                         ))}

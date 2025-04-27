@@ -5,7 +5,7 @@ import { setupAuth } from "./auth";
 import { setupAfkRoutes } from "./afk";
 import { setupGameRoutes } from "./games";
 import { z } from "zod";
-import { withdrawalSchema } from "@shared/schema";
+import { withdrawalSchema, User } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
@@ -138,6 +138,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     const users = await storage.listUsers();
     res.json(users);
+  });
+  
+  // Admin endpoint to update user data
+  app.post("/api/admin/users/:id", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) {
+      return res.status(403).send("Forbidden");
+    }
+    
+    const { id } = req.params;
+    const { balance } = req.body;
+    
+    try {
+      const userId = parseInt(id);
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const updates: Partial<User> = {};
+      
+      // Update balance if provided
+      if (balance !== undefined) {
+        const balanceAmount = parseInt(balance);
+        updates.balance = balanceAmount;
+        
+        // Create activity record for admin adjustment
+        const difference = balanceAmount - user.balance;
+        if (difference !== 0) {
+          await storage.createActivity({
+            userId: user.id,
+            type: "admin_adjustment",
+            amount: difference,
+            description: `Balance adjusted by admin (${req.user.username})`
+          });
+        }
+      }
+      
+      // Update last active time
+      updates.lastActive = new Date();
+      
+      const updatedUser = await storage.updateUser(userId, updates);
+      
+      if (!updatedUser) {
+        return res.status(500).json({ message: "Failed to update user" });
+      }
+      
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
   });
   
   app.get("/api/admin/withdrawals", async (req, res) => {
