@@ -1796,8 +1796,21 @@ export default function AdminPage() {
                   <FormItem>
                     <FormLabel>Value</FormLabel>
                     <FormControl>
-                      <Input placeholder="Setting value" {...field} />
+                      {field.name === "value" && selectedSetting?.key?.startsWith("payment_account_") ? (
+                        <textarea 
+                          className="flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          placeholder="Enter account details (can include multiple lines)"
+                          {...field}
+                        />
+                      ) : (
+                        <Input placeholder="Setting value" {...field} />
+                      )}
                     </FormControl>
+                    {field.name === "value" && selectedSetting?.key?.startsWith("payment_account_") && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        You can include multiple lines of text for payment details like account numbers, names, and instructions.
+                      </p>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
