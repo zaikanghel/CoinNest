@@ -8,7 +8,6 @@ import { Loader2, Crown } from "lucide-react";
 import { AfkProvider } from "@/hooks/use-afk";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { usePremiumNotification } from "@/hooks/use-premium-notification";
 import { Button } from "@/components/ui/button";
 
 interface StatsResponse {
@@ -50,7 +49,6 @@ interface GamesResponse {
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { showExpiredDialog } = usePremiumNotification();
   // Fetch user stats
   const { data: stats, isLoading: isLoadingStats } = useQuery<StatsResponse>({
     queryKey: ["/api/stats"],
