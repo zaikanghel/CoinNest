@@ -243,6 +243,7 @@ export default function AdminPage() {
         variant: "default"
       });
       setShowSettingModal(false);
+      setSelectedSetting(null);
       // Invalidate both admin settings and global settings
       queryClient.invalidateQueries({ queryKey: ["/api/admin/settings"] });
       queryClient.invalidateQueries({ queryKey: ["/api/settings/global"] });
@@ -332,9 +333,11 @@ export default function AdminPage() {
     if (setting) {
       form.setValue("key", setting.key);
       form.setValue("value", setting.value);
+      setSelectedSetting(setting);
     } else {
       form.setValue("key", "");
       form.setValue("value", "");
+      setSelectedSetting(null);
     }
     
     setShowSettingModal(true);
@@ -1768,6 +1771,7 @@ export default function AdminPage() {
         onOpenChange={(open) => {
           if (!open) {
             setShowSettingModal(false);
+            setSelectedSetting(null);
           }
         }}
       >
@@ -1820,7 +1824,13 @@ export default function AdminPage() {
               />
               
               <DialogFooter>
-                <Button variant="outline" onClick={() => setShowSettingModal(false)}>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowSettingModal(false);
+                    setSelectedSetting(null);
+                  }}
+                >
                   Cancel
                 </Button>
                 <Button type="submit" disabled={updateSettingMutation.isPending}>
