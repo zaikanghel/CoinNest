@@ -99,7 +99,7 @@ export default function AuthPage() {
         <div className="max-w-md mx-auto relative z-10">
           <div className="mb-8">
             <h1 className="text-4xl md:text-5xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-100">
-              IdleCash
+              CoinNest
             </h1>
             <div className="h-1 w-20 bg-white/40 rounded-full mb-6"></div>
           </div>
@@ -304,7 +304,7 @@ export default function AuthPage() {
                           Creating account...
                         </>
                       ) : (
-                        "Join IdleCash Now"
+                        "Join CoinNest Now"
                       )}
                     </Button>
                   </form>

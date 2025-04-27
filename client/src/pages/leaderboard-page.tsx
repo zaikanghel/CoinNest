@@ -79,7 +79,7 @@ export default function LeaderboardPage() {
                 <div className="flex items-center">
                   <TrophyIcon className="h-10 w-10 mr-4" />
                   <div>
-                    <h2 className="text-2xl font-bold">EarnPlay Leaderboards</h2>
+                    <h2 className="text-2xl font-bold">CoinNest Leaderboards</h2>
                     <p className="text-white/80">Compete with other players and earn rewards</p>
                   </div>
                 </div>
@@ -224,7 +224,7 @@ export default function LeaderboardPage() {
                     <CardHeader>
                       <CardTitle>All-Time Top Earners</CardTitle>
                       <CardDescription>
-                        Players who have earned the most coins on EarnPlay
+                        Players who have earned the most coins on CoinNest
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
