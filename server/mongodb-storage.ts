@@ -359,11 +359,23 @@ export class MongoStorage implements IStorage {
   async getTopScoresByGame(gameId: string, limit = 10): Promise<GameScore[]> {
     if (!this.gameScoresCollection) throw new Error("Database not initialized");
     
-    const scores = await this.gameScoresCollection
-      .find({ gameId })
-      .sort({ score: -1 })
-      .limit(limit)
-      .toArray();
+    // Use MongoDB aggregation to get only the highest score for each user
+    const scores = await this.gameScoresCollection.aggregate([
+      { $match: { gameId } },
+      { $sort: { score: -1, createdAt: -1 } }, // Sort by score descending and date descending
+      { $group: { 
+          _id: "$userId", 
+          score: { $first: "$score" },
+          coinsEarned: { $first: "$coinsEarned" },
+          gameId: { $first: "$gameId" },
+          userId: { $first: "$userId" },
+          createdAt: { $first: "$createdAt" },
+          id: { $first: "$id" }
+        }
+      },
+      { $sort: { score: -1 } }, // Sort the grouped results by score again
+      { $limit: limit }
+    ]).toArray();
     
     return scores.map(score => this.mapToGameScore(score));
   }

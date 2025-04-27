@@ -32,39 +32,17 @@ export default function LeaderboardPage() {
     }
   });
 
-  // Fetch all users to create earning leaderboard
-  const { data: users, isLoading: isLoadingUsers } = useQuery({
-    queryKey: ["/api/admin/users"],
+  // Fetch top earners for the earnings leaderboard
+  const { data: topEarners, isLoading: isLoadingTopEarners } = useQuery({
+    queryKey: ["/api/leaderboard/top-earners"],
     queryFn: async () => {
-      const res = await fetch("/api/admin/users", { credentials: "include" });
-      if (!res.ok) {
-        // If unauthorized, return an empty array
-        if (res.status === 401 || res.status === 403) {
-          return [];
-        }
-        throw new Error("Failed to fetch users");
-      }
+      const res = await fetch("/api/leaderboard/top-earners", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch top earners");
       return res.json();
     }
   });
 
-  const isLoading = isLoadingGamesLeaderboard || isLoadingClickerLeaderboard || isLoadingUsers;
-
-  const getTopEarners = () => {
-    if (!users || !Array.isArray(users)) return [];
-    
-    return [...users]
-      .sort((a, b) => b.totalEarned - a.totalEarned)
-      .slice(0, 10)
-      .map((user, index) => ({
-        rank: index + 1,
-        username: user.username,
-        totalEarned: user.totalEarned,
-        afkEarned: user.afkEarned,
-        gamesEarned: user.gamesEarned,
-        referralEarned: user.referralEarned
-      }));
-  };
+  const isLoading = isLoadingGamesLeaderboard || isLoadingClickerLeaderboard || isLoadingTopEarners;
 
   return (
     <MainLayout pageTitle="Leaderboard">

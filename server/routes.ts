@@ -308,6 +308,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(settings);
   });
   
+  // Top earners endpoint for leaderboard
+  app.get("/api/leaderboard/top-earners", async (req, res) => {
+    // Get all users and sort by totalEarned
+    const users = await storage.listUsers();
+    
+    // Map to a format suitable for the leaderboard, only including necessary fields
+    const topEarners = users
+      .sort((a, b) => b.totalEarned - a.totalEarned)
+      .slice(0, 10)
+      .map((user, index) => ({
+        rank: index + 1,
+        username: user.username,
+        totalEarned: user.totalEarned,
+        afkEarned: user.afkEarned,
+        gamesEarned: user.gamesEarned,
+        referralEarned: user.referralEarned
+      }));
+    
+    res.json(topEarners);
+  });
+  
   // Stats route for dashboard
   app.get("/api/stats", async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).send("Unauthorized");
