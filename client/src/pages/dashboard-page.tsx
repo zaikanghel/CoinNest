@@ -11,11 +11,25 @@ import { useAuth } from "@/hooks/use-auth";
 import { usePremiumNotification } from "@/hooks/use-premium-notification";
 import { Button } from "@/components/ui/button";
 
+interface StatsResponse {
+  balance: number;
+  totalEarnings: string;
+  dailyEarnings: number;
+  dailyLimit: number;
+  baseDailyLimit: number;
+  isPremiumActive: boolean;
+  dailyProgress: string;
+  dailyProgressPercent: number;
+  gameEarnings: number;
+  referralEarnings: number;
+  totalReferrals: number;
+}
+
 export default function DashboardPage() {
   const { user } = useAuth();
   const { showExpiredDialog } = usePremiumNotification();
   // Fetch user stats
-  const { data: stats, isLoading: isLoadingStats } = useQuery({
+  const { data: stats, isLoading: isLoadingStats } = useQuery<StatsResponse>({
     queryKey: ["/api/stats"],
     queryFn: async () => {
       const res = await fetch("/api/stats", { credentials: "include" });
