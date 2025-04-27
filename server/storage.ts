@@ -1,4 +1,8 @@
-import type { User, Activity, Withdrawal, GameScore, Setting, InsertUser, PremiumPayment, SupportTicket } from "@shared/schema";
+import type { 
+  User, Activity, Withdrawal, GameScore, Setting, InsertUser, 
+  PremiumPayment, SupportTicket, DailyReward, UserDailyReward, InsertDailyReward 
+} from "@shared/schema";
+import { implementDailyRewardMethods } from "./mongodb-storage-daily-rewards";
 import session from "express-session";
 import { MongoStorage } from "./mongodb-storage";
 
@@ -132,8 +136,12 @@ export async function createStorage(): Promise<IStorage> {
     throw new Error('MONGODB_URI environment variable is required');
   }
   
-  const mongoStorage = new MongoStorage(process.env.MONGODB_URI);
+  let mongoStorage = new MongoStorage(process.env.MONGODB_URI);
   await mongoStorage.connect();
+  
+  // Implement daily rewards methods
+  mongoStorage = await implementDailyRewardMethods(mongoStorage);
+  
   console.log('Using MongoDB for storage');
   return mongoStorage;
 }

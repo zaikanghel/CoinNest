@@ -26,6 +26,7 @@ export default function Sidebar({ isMobile, isOpen, onClose }: SidebarProps) {
     { href: "/dashboard", label: "Dashboard", icon: "ri-dashboard-line" },
     { href: "/afk", label: "AFK Earning", icon: "ri-time-line" },
     { href: "/games", label: "Games", icon: "ri-gamepad-line" },
+    { href: "/daily-rewards", label: "Daily Rewards", icon: "ri-calendar-check-line" },
     { href: "/leaderboard", label: "Leaderboard", icon: "ri-trophy-line" },
     { href: "/wallet", label: "Wallet", icon: "ri-wallet-3-line" },
     { href: "/referrals", label: "Referrals", icon: "ri-user-add-line" },

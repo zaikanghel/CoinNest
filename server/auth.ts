@@ -132,23 +132,15 @@ export function setupAuth(app: Express) {
           if (referrer) {
             referredBy = referrer.id;
             
-            // Get referral bonus amount from settings
-            const referralBonusStr = await storage.getSetting("referral_bonus");
-            const referralBonus = parseInt(referralBonusStr || "75");
+            // We'll store the referral relationship but NOT award the bonus immediately
+            // The bonus will be awarded when the referred user completes 7 days of daily rewards
             
-            // Add bonus to referrer
-            await storage.updateUser(referrer.id, {
-              balance: referrer.balance + referralBonus,
-              totalEarned: referrer.totalEarned + referralBonus,
-              referralEarned: referrer.referralEarned + referralBonus
-            });
-            
-            // Record the referral activity
+            // Record the referral activity without a bonus amount
             await storage.createActivity({
               userId: referrer.id,
-              type: "referral",
-              amount: referralBonus,
-              description: `Referral bonus from new user: ${userData.username}`
+              type: "referral_signup",
+              amount: 0,
+              description: `New user signed up through your referral: ${userData.username}. You'll receive a bonus when they complete 7 days of daily rewards.`
             });
           }
         } else if (typeof userData.referredBy === 'number') {
@@ -157,23 +149,15 @@ export function setupAuth(app: Express) {
           if (referrer) {
             referredBy = referrer.id;
             
-            // Get referral bonus amount from settings
-            const referralBonusStr = await storage.getSetting("referral_bonus");
-            const referralBonus = parseInt(referralBonusStr || "75");
+            // We'll store the referral relationship but NOT award the bonus immediately
+            // The bonus will be awarded when the referred user completes 7 days of daily rewards
             
-            // Add bonus to referrer
-            await storage.updateUser(referrer.id, {
-              balance: referrer.balance + referralBonus,
-              totalEarned: referrer.totalEarned + referralBonus,
-              referralEarned: referrer.referralEarned + referralBonus
-            });
-            
-            // Record the referral activity
+            // Record the referral activity without a bonus amount
             await storage.createActivity({
               userId: referrer.id,
-              type: "referral",
-              amount: referralBonus,
-              description: `Referral bonus from new user: ${userData.username}`
+              type: "referral_signup",
+              amount: 0,
+              description: `New user signed up through your referral: ${userData.username}. You'll receive a bonus when they complete 7 days of daily rewards.`
             });
           }
         }

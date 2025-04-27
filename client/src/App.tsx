@@ -17,6 +17,7 @@ import ProfilePage from "@/pages/profile-page";
 import SettingsPage from "@/pages/settings-page";
 import HelpPage from "@/pages/help-page";
 import PremiumPage from "@/pages/premium-page";
+import DailyRewardsPage from "@/pages/daily-rewards-page";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { AfkProvider } from "@/hooks/use-afk";
 import { useAuth } from "@/hooks/use-auth";
@@ -49,6 +50,7 @@ function App() {
                 <ProtectedRoute path="/settings" component={SettingsPage} />
                 <ProtectedRoute path="/help" component={HelpPage} />
                 <ProtectedRoute path="/premium" component={PremiumPage} />
+                <ProtectedRoute path="/daily-rewards" component={DailyRewardsPage} />
                 <Route component={NotFound} />
               </Switch>
             </div>
