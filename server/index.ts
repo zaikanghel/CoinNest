@@ -12,8 +12,11 @@ import dotenv from "dotenv";
 // Load environment variables
 dotenv.config();
 
-// Set MongoDB URI from environment variable or connection string
-process.env.MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://reddino037:NFYbVAsB4Yk383ld@smartcode.srnth.mongodb.net/";
+// Check for MongoDB URI environment variable
+if (!process.env.MONGODB_URI) {
+  console.error("MONGODB_URI environment variable is not set. Please set it in your environment or .env file.");
+  process.exit(1);
+}
 
 const app = express();
 // Increase JSON payload limit to 10MB to handle base64 encoded images
