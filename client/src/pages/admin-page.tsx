@@ -18,10 +18,14 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Settings, Users, Wallet, CheckCircle, XCircle, Crown } from "lucide-react";
+import { 
+  Loader2, Settings, Users, Wallet, CheckCircle, XCircle, Crown, 
+  Download, Trash2, AlertCircle
+} from "lucide-react";
 import { getColorFromString, getUserInitials } from "@/lib/utils";
 import { useLocation } from "wouter";
 import { Setting } from "@shared/schema";
+import { jsPDF } from "jspdf";
 
 // Form schema for system settings
 const settingSchema = z.object({
@@ -263,6 +267,160 @@ export default function AdminPage() {
       setRevokePremiumId(null);
     }
   };
+  
+  // Fetch processed withdrawals for download
+  const { data: processedWithdrawals, refetch: refetchProcessedWithdrawals } = useQuery({
+    queryKey: ["/api/admin/withdrawals/processed"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/withdrawals/processed", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch processed withdrawals");
+      return res.json();
+    },
+    enabled: false // Don't run this query automatically
+  });
+  
+  // Delete all processed withdrawals
+  const deleteProcessedWithdrawalsMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("DELETE", "/api/admin/withdrawals/processed");
+      return res.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Withdrawals deleted",
+        description: data.message || `Successfully deleted ${data.deletedCount} withdrawal records`,
+        variant: "default"
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/withdrawals"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+  
+  // Generate PDF of processed withdrawals
+  const generateWithdrawalsPDF = async () => {
+    try {
+      // Fetch the latest data first
+      await refetchProcessedWithdrawals();
+      
+      if (!processedWithdrawals || processedWithdrawals.length === 0) {
+        toast({
+          title: "No data",
+          description: "There are no processed withdrawals to download",
+          variant: "default"
+        });
+        return;
+      }
+      
+      // Create new PDF document
+      const doc = new jsPDF();
+      
+      // Add title
+      doc.setFontSize(16);
+      doc.text("Withdrawal History Report", 14, 15);
+      doc.setFontSize(11);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 23);
+      
+      // Table headers
+      const headers = ["ID", "User ID", "Amount", "Method", "Status", "Created", "Processed"];
+      
+      // Define table data
+      const data = processedWithdrawals.map((w: any) => [
+        w.id,
+        w.userId,
+        w.amount,
+        w.method,
+        w.status,
+        new Date(w.createdAt).toLocaleDateString(),
+        w.processedAt ? new Date(w.processedAt).toLocaleDateString() : 'N/A'
+      ]);
+      
+      // Add the table (starting at y position 30)
+      let startY = 30;
+      doc.setFontSize(9);
+      
+      // Calculate column widths
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 14;
+      const usableWidth = pageWidth - 2 * margin;
+      const colWidths = [
+        usableWidth * 0.08, // ID
+        usableWidth * 0.12, // User ID
+        usableWidth * 0.15, // Amount
+        usableWidth * 0.15, // Method
+        usableWidth * 0.15, // Status
+        usableWidth * 0.17, // Created
+        usableWidth * 0.18  // Processed
+      ];
+      
+      // Draw header row
+      let xPos = margin;
+      doc.setFont('helvetica', 'bold');
+      
+      headers.forEach((header, i) => {
+        doc.text(header, xPos, startY);
+        xPos += colWidths[i];
+      });
+      
+      doc.setFont('helvetica', 'normal');
+      startY += 6;
+      
+      // Draw data rows
+      data.forEach((row: any[], rowIndex: number) => {
+        // If we're going to overflow, add a new page
+        if (startY > doc.internal.pageSize.getHeight() - 15) {
+          doc.addPage();
+          startY = 20;
+          
+          // Re-add headers on new page
+          xPos = margin;
+          doc.setFont('helvetica', 'bold');
+          headers.forEach((header, i) => {
+            doc.text(header, xPos, startY);
+            xPos += colWidths[i];
+          });
+          doc.setFont('helvetica', 'normal');
+          startY += 6;
+        }
+        
+        // Draw each cell in row
+        xPos = margin;
+        row.forEach((cell: any, i: number) => {
+          doc.text(String(cell), xPos, startY);
+          xPos += colWidths[i];
+        });
+        
+        startY += 6;
+      });
+      
+      // Save the PDF
+      doc.save('withdrawal-history.pdf');
+      
+      toast({
+        title: "PDF Generated",
+        description: "Withdrawal history has been downloaded as PDF",
+        variant: "default"
+      });
+    } catch (error) {
+      toast({
+        title: "Error generating PDF",
+        description: (error as Error).message,
+        variant: "destructive"
+      });
+    }
+  };
+  
+  // Handle delete withdrawals action with confirmation
+  const handleDeleteWithdrawals = async () => {
+    if (window.confirm("Are you sure you want to delete all processed withdrawals? This action cannot be undone. Make sure to download a PDF backup first.")) {
+      deleteProcessedWithdrawalsMutation.mutate();
+    }
+  };
 
   return (
     <MainLayout pageTitle="Admin Dashboard">
@@ -305,12 +463,36 @@ export default function AdminPage() {
                           : "Review and approve or reject withdrawal requests"}
                       </CardDescription>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-500">Show All</span>
-                      <Switch 
-                        checked={showAllWithdrawals}
-                        onCheckedChange={setShowAllWithdrawals}
-                      />
+                    <div className="flex items-center gap-4">
+                      {showAllWithdrawals && (
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-blue-600 border-blue-200 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-900 dark:hover:bg-blue-900/20"
+                            onClick={generateWithdrawalsPDF}
+                          >
+                            <Download className="h-4 w-4 mr-1" />
+                            Export PDF
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-900 dark:hover:bg-red-900/20"
+                            onClick={handleDeleteWithdrawals}
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            Delete History
+                          </Button>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-500">Show All</span>
+                        <Switch 
+                          checked={showAllWithdrawals}
+                          onCheckedChange={setShowAllWithdrawals}
+                        />
+                      </div>
                     </div>
                   </div>
                 </CardHeader>
