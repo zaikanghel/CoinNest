@@ -430,6 +430,170 @@ export default function AdminPage() {
       deleteProcessedWithdrawalsMutation.mutate();
     }
   };
+  
+  // Fetch processed premium payments for download
+  const { data: processedPremiumPayments, refetch: refetchProcessedPremiumPayments } = useQuery({
+    queryKey: ["/api/admin/premium/payments/processed"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/premium/payments/processed", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch processed premium payments");
+      return res.json();
+    },
+    enabled: false // Don't run this query automatically
+  });
+  
+  // Delete all processed premium payments
+  const deleteProcessedPremiumPaymentsMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("DELETE", "/api/admin/premium/payments/processed");
+      return res.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Premium payments deleted",
+        description: data.message || `Successfully deleted ${data.deletedCount} premium payment records`,
+        variant: "default"
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/premium/payments"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+  
+  // Handle delete premium payments action with confirmation
+  const handleDeletePremiumPayments = async () => {
+    if (window.confirm("Are you sure you want to delete all processed premium payments? This action cannot be undone. Make sure to download a PDF backup first.")) {
+      deleteProcessedPremiumPaymentsMutation.mutate();
+    }
+  };
+  
+  // Generate PDF of processed premium payments
+  const generatePremiumPaymentsPDF = async () => {
+    try {
+      // Fetch the latest data first
+      await refetchProcessedPremiumPayments();
+      
+      if (!processedPremiumPayments || processedPremiumPayments.length === 0) {
+        toast({
+          title: "No data",
+          description: "There are no processed premium payments to download",
+          variant: "default"
+        });
+        return;
+      }
+      
+      // Create new PDF document
+      const doc = new jsPDF();
+      
+      // Add title
+      doc.setFontSize(16);
+      doc.text("Premium Payment History Report", 14, 15);
+      doc.setFontSize(11);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 23);
+      
+      // Table headers
+      const headers = ["ID", "Username", "Email", "Amount", "Duration", "Method", "Status", "Created", "Processed"];
+      
+      // Define table data with user information
+      const data = processedPremiumPayments.map((p: any) => {
+        // Find the user for this payment
+        const user = users?.find((u: any) => u.id === p.userId);
+        
+        return [
+          p.id,
+          user?.username || `User #${p.userId}`,
+          user?.email || 'N/A',
+          p.amount,
+          `${p.durationMonths} month(s)`,
+          p.method,
+          p.status,
+          new Date(p.createdAt).toLocaleDateString(),
+          p.processedAt ? new Date(p.processedAt).toLocaleDateString() : 'N/A'
+        ];
+      });
+      
+      // Add the table (starting at y position 30)
+      let startY = 30;
+      doc.setFontSize(8); // Smaller font size to fit more columns
+      
+      // Calculate column widths
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 14;
+      const usableWidth = pageWidth - 2 * margin;
+      const colWidths = [
+        usableWidth * 0.05, // ID
+        usableWidth * 0.13, // Username
+        usableWidth * 0.17, // Email
+        usableWidth * 0.08, // Amount
+        usableWidth * 0.11, // Duration
+        usableWidth * 0.10, // Method
+        usableWidth * 0.10, // Status
+        usableWidth * 0.13, // Created
+        usableWidth * 0.13  // Processed
+      ];
+      
+      // Draw header row
+      let xPos = margin;
+      doc.setFont('helvetica', 'bold');
+      
+      headers.forEach((header, i) => {
+        doc.text(header, xPos, startY);
+        xPos += colWidths[i];
+      });
+      
+      doc.setFont('helvetica', 'normal');
+      startY += 6;
+      
+      // Draw data rows
+      data.forEach((row: any[], rowIndex: number) => {
+        // If we're going to overflow, add a new page
+        if (startY > doc.internal.pageSize.getHeight() - 15) {
+          doc.addPage();
+          startY = 20;
+          
+          // Re-add headers on new page
+          xPos = margin;
+          doc.setFont('helvetica', 'bold');
+          headers.forEach((header, i) => {
+            doc.text(header, xPos, startY);
+            xPos += colWidths[i];
+          });
+          doc.setFont('helvetica', 'normal');
+          startY += 6;
+        }
+        
+        // Draw each cell in the row
+        xPos = margin;
+        row.forEach((cell, i) => {
+          doc.text(String(cell), xPos, startY);
+          xPos += colWidths[i];
+        });
+        
+        startY += 5;
+      });
+      
+      // Save the PDF
+      doc.save(`premium-payments-history-${new Date().toISOString().split('T')[0]}.pdf`);
+      
+      toast({
+        title: "PDF generated",
+        description: "Premium payments history has been downloaded",
+        variant: "default"
+      });
+    } catch (error: any) {
+      console.error("Error generating PDF:", error);
+      toast({
+        title: "Error generating PDF",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
 
   return (
     <MainLayout pageTitle="Admin Dashboard">
@@ -878,12 +1042,36 @@ export default function AdminPage() {
                           : "Review and approve or reject premium payment requests"}
                       </CardDescription>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-500">Show All</span>
-                      <Switch 
-                        checked={showAllPremiumPayments}
-                        onCheckedChange={setShowAllPremiumPayments}
-                      />
+                    <div className="flex items-center gap-4">
+                      {showAllPremiumPayments && (
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-blue-600 border-blue-200 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-900 dark:hover:bg-blue-900/20"
+                            onClick={generatePremiumPaymentsPDF}
+                          >
+                            <Download className="h-4 w-4 mr-1" />
+                            Export PDF
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-900 dark:hover:bg-red-900/20"
+                            onClick={handleDeletePremiumPayments}
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            Delete History
+                          </Button>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-500">Show All</span>
+                        <Switch 
+                          checked={showAllPremiumPayments}
+                          onCheckedChange={setShowAllPremiumPayments}
+                        />
+                      </div>
                     </div>
                   </div>
                 </CardHeader>
