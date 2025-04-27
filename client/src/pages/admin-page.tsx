@@ -757,7 +757,7 @@ export default function AdminPage() {
           </div>
         ) : (
           <Tabs defaultValue="withdrawals">
-            <TabsList className="grid w-full grid-cols-4 mb-6">
+            <TabsList className="grid w-full grid-cols-5 mb-6">
               <TabsTrigger value="withdrawals">
                 <Wallet className="h-4 w-4 mr-2" />
                 Withdrawals
@@ -773,6 +773,10 @@ export default function AdminPage() {
               <TabsTrigger value="premium">
                 <Crown className="h-4 w-4 mr-2" />
                 Premium
+              </TabsTrigger>
+              <TabsTrigger value="support">
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Support
               </TabsTrigger>
             </TabsList>
 
