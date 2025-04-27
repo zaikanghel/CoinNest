@@ -66,12 +66,51 @@ export default function AdminPage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [showEditUserModal, setShowEditUserModal] = useState(false);
+  const [isCleaningUp, setIsCleaningUp] = useState(false);
 
   // Redirect if not admin
   if (user && !user.isAdmin) {
     navigate("/dashboard");
     return null;
   }
+  
+  // Handle cleanup of duplicate game scores
+  const cleanupDuplicateScores = async () => {
+    if (isCleaningUp) return;
+    
+    try {
+      setIsCleaningUp(true);
+      
+      const res = await fetch("/api/admin/games/cleanup-duplicates", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+      
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to cleanup duplicate scores");
+      }
+      
+      const result = await res.json();
+      
+      toast({
+        title: "Cleanup successful",
+        description: `Deleted ${result.deletedCount} duplicate game scores`,
+        variant: "default"
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to cleanup duplicate scores",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCleaningUp(false);
+    }
+  };
 
   // Fetch users
   const { data: users, isLoading: isLoadingUsers } = useQuery({

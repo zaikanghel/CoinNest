@@ -395,6 +395,44 @@ export class MongoStorage implements IStorage {
     
     return scores.map(score => this.mapToGameScore(score));
   }
+  
+  async cleanupDuplicateGameScores(): Promise<{ deletedCount: number }> {
+    if (!this.gameScoresCollection) throw new Error("Database not initialized");
+    
+    // Get all unique game IDs
+    const games = await this.gameScoresCollection.distinct("gameId");
+    let totalDeletedCount = 0;
+    
+    // Process cleanup for each game
+    for (const gameId of games) {
+      // Get all unique users who have played this game
+      const users = await this.gameScoresCollection.distinct("userId", { gameId });
+      
+      // For each user, find their best score and delete the rest
+      for (const userId of users) {
+        // Find best score
+        const bestScore = await this.gameScoresCollection
+          .find({ gameId, userId })
+          .sort({ score: -1 })
+          .limit(1)
+          .toArray();
+          
+        if (bestScore.length > 0) {
+          // Delete all other scores for this user and game, keeping only the best one
+          const result = await this.gameScoresCollection.deleteMany({
+            gameId,
+            userId,
+            _id: { $ne: bestScore[0]._id }
+          });
+          
+          totalDeletedCount += result.deletedCount;
+        }
+      }
+    }
+    
+    console.log(`Cleaned up ${totalDeletedCount} duplicate game scores from database`);
+    return { deletedCount: totalDeletedCount };
+  }
 
   // Settings operations
   async getSetting(key: string): Promise<string | undefined> {

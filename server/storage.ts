@@ -49,6 +49,7 @@ export interface IStorage {
   }): Promise<GameScore>;
   getTopScoresByGame(gameId: string, limit?: number): Promise<GameScore[]>;
   getUserGameScores(userId: number, gameId?: string): Promise<GameScore[]>;
+  cleanupDuplicateGameScores(): Promise<{ deletedCount: number }>;
 
   // Settings operations
   getSetting(key: string): Promise<string | undefined>;

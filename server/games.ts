@@ -455,4 +455,34 @@ export function setupGameRoutes(app: Express) {
     
     res.json(scores);
   });
+  
+  // Admin endpoint to clean up duplicate game scores
+  app.post("/api/admin/games/cleanup-duplicates", async (req, res) => {
+    if (!req.isAuthenticated() || !req.user.isAdmin) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+    
+    try {
+      // Clean up duplicates for all games, keeping only the highest score for each user
+      const result = await storage.cleanupDuplicateGameScores();
+      
+      // Record this action in the admin's activity log
+      await storage.createActivity({
+        userId: req.user.id,
+        type: "admin_action",
+        amount: 0,
+        description: `Cleaned up ${result.deletedCount} duplicate game scores`
+      });
+      
+      // Return success response
+      res.json({
+        success: true,
+        deletedCount: result.deletedCount,
+        message: `Successfully deleted ${result.deletedCount} duplicate game score records.`
+      });
+    } catch (error: any) {
+      console.error("Error cleaning up duplicate game scores:", error);
+      res.status(500).json({ message: "Internal server error", error: error?.message || String(error) });
+    }
+  });
 }
