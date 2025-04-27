@@ -51,8 +51,8 @@ export default function GamesPage() {
     }
   });
   
-  // Extract the games array from the response
-  const games = gamesData?.games || [];
+  // Extract the games data from the response
+  const games = gamesData;
 
   // Fetch user stats for daily limits
   const { data: stats, isLoading: isLoadingStats } = useQuery({
@@ -149,7 +149,7 @@ export default function GamesPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {games?.games?.map((game) => (
+                  {games?.games?.map((game: GameData) => (
                     <div key={game.id} className="bg-white dark:bg-dark-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden group">
                       <div className="relative">
                         <img 
