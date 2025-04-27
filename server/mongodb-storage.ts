@@ -9,6 +9,7 @@ import { IStorage } from "./storage";
 import { nanoid } from "nanoid";
 import session from "express-session";
 import createMemoryStore from "memorystore";
+import { implementDailyRewardMethods } from "./mongodb-storage-daily-rewards";
 
 const MemoryStore = createMemoryStore(session);
 
