@@ -40,7 +40,7 @@ export default function DailyRewardsPage() {
 
   // Get all daily rewards
   const { data: rewards, isLoading: isLoadingRewards } = useQuery({
-    queryKey: ["/api/daily-rewards"],
+    queryKey: ["daily-rewards"],
     queryFn: () => apiRequest<DailyReward[]>("/api/daily-rewards"),
     enabled: !!user
   });
@@ -51,7 +51,7 @@ export default function DailyRewardsPage() {
     isLoading: isLoadingStatus,
     error 
   } = useQuery({
-    queryKey: ["/api/user/daily-reward"],
+    queryKey: ["user-daily-reward"],
     queryFn: () => apiRequest<UserRewardStatus>("/api/user/daily-reward"),
     enabled: !!user,
     refetchInterval: (data) => {
@@ -76,9 +76,9 @@ export default function DailyRewardsPage() {
       });
       
       // Invalidate queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ["/api/user/daily-reward"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/activities"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      queryClient.invalidateQueries({ queryKey: ["user-daily-reward"] });
+      queryClient.invalidateQueries({ queryKey: ["activities"] });
+      queryClient.invalidateQueries({ queryKey: ["user"] });
       
       setIsClaiming(false);
     },
