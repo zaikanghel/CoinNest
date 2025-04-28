@@ -22,22 +22,6 @@ export default function AuthPage() {
   // Get authentication context
   const { user, isLoading, loginMutation, registerMutation } = useAuth();
   
-  // Check for tab query parameter and set active tab
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const tabParam = params.get('tab');
-    if (tabParam === 'login' || tabParam === 'register') {
-      setActiveTab(tabParam);
-    }
-  }, []);
-
-  // Redirect if already logged in
-  useEffect(() => {
-    if (user) {
-      navigate("/dashboard");
-    }
-  }, [user, navigate]);
-
   // Login form
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -57,6 +41,30 @@ export default function AuthPage() {
       referredBy: null,
     },
   });
+
+  // Check for query parameters (tab and ref)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    // Handle tab parameter
+    const tabParam = params.get('tab');
+    if (tabParam === 'login' || tabParam === 'register') {
+      setActiveTab(tabParam);
+    }
+    
+    // Handle referral code
+    const refParam = params.get('ref');
+    if (refParam) {
+      setActiveTab('register'); // Switch to register tab if referral code is present
+      registerForm.setValue('referredBy', refParam); // Pre-fill the referral code
+    }
+  }, [registerForm]);
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
 
   // Handle login submit
   const onLoginSubmit = (values: z.infer<typeof loginSchema>) => {
