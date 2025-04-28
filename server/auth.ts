@@ -52,13 +52,14 @@ export function setupAuth(app: Express) {
     process.exit(1);
   }
 
+  // Default session settings
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
     cookie: {
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+      maxAge: 1000 * 60 * 60 * 24, // 1 day (default)
       httpOnly: true,
       secure: process.env.NODE_ENV === "production"
     }
@@ -209,6 +210,19 @@ export function setupAuth(app: Express) {
       if (err) return next(err);
       if (!user) {
         return res.status(401).json({ message: "Invalid email or password" });
+      }
+      
+      // Check if rememberMe was selected to extend the session
+      const rememberMe = req.body.rememberMe === true;
+      
+      // Set session expiration based on rememberMe preference
+      if (rememberMe && req.session.cookie) {
+        // Set to 30 days if remember me is selected
+        req.session.cookie.maxAge = 1000 * 60 * 60 * 24 * 30;
+        console.log("Extended session to 30 days due to 'Remember Me' option");
+      } else if (req.session.cookie) {
+        // Use default (1 day) if not remember me
+        req.session.cookie.maxAge = 1000 * 60 * 60 * 24;
       }
       
       req.login(user, (loginErr) => {

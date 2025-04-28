@@ -61,8 +61,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await apiRequest("POST", "/api/login", credentials);
       return await res.json();
     },
-    onSuccess: (user: SelectUser) => {
+    onSuccess: (user: SelectUser, variables) => {
       queryClient.setQueryData(["/api/user"], user);
+      
+      // If rememberMe is true, save login credentials to localStorage
+      if (variables.rememberMe) {
+        // Store email only (no password) for auto-fill suggestion next time
+        localStorage.setItem('savedEmail', variables.email);
+        localStorage.setItem('autoLogin', 'true');
+      } else {
+        // Clear any previously stored auto-login data
+        localStorage.removeItem('savedEmail');
+        localStorage.removeItem('autoLogin');
+      }
+      
       toast({
         title: "Login successful",
         description: `Welcome back, ${user.username}!`,
@@ -122,6 +134,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: () => {
       queryClient.setQueryData(["/api/user"], null);
+      
+      // Clear auto-login data when logging out
+      localStorage.removeItem('savedEmail');
+      localStorage.removeItem('autoLogin');
+      
       toast({
         title: "Logged out",
         description: "You have been successfully logged out.",

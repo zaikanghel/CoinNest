@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
@@ -22,14 +23,18 @@ export default function AuthPage() {
   
   // Get authentication context
   const { user, isLoading, loginMutation, registerMutation } = useAuth();
+  const { toast } = useToast();
   
-  // Login form
+  // Login form - check for saved email from localStorage
+  const savedEmail = typeof window !== 'undefined' ? localStorage.getItem('savedEmail') || "" : "";
+  const autoLogin = typeof window !== 'undefined' ? localStorage.getItem('autoLogin') === 'true' : false;
+  
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
+      email: savedEmail,
       password: "",
-      rememberMe: false,
+      rememberMe: autoLogin, // Pre-check the remember me box if auto-login is enabled
     },
   });
 
@@ -67,6 +72,29 @@ export default function AuthPage() {
       navigate("/dashboard");
     }
   }, [user, navigate]);
+  
+  // Auto-login effect
+  useEffect(() => {
+    // Only try auto-login if not already logged in and auto-login is enabled
+    if (!user && !isLoading && autoLogin && savedEmail) {
+      const storedPassword = ""; // We don't store passwords for security reasons
+      
+      // Show toast message 
+      toast({
+        title: "Auto-Login",
+        description: "Please enter your password to continue",
+        variant: "default",
+      });
+      
+      // Focus on password field (user needs to enter password manually)
+      setTimeout(() => {
+        const passwordInput = document.querySelector('input[type="password"]') as HTMLInputElement;
+        if (passwordInput) {
+          passwordInput.focus();
+        }
+      }, 500);
+    }
+  }, [user, isLoading, autoLogin, savedEmail]);
 
   // Handle login submit
   const onLoginSubmit = (values: z.infer<typeof loginSchema>) => {
