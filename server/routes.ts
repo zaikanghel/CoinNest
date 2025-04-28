@@ -105,8 +105,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated()) return res.status(401).send("Unauthorized");
     
     const user = req.user;
-    const referredUsers = await storage.listUsers()
-      .then(users => users.filter(u => u.referredBy === user.id));
+    
+    // Get all users first
+    const allUsers = await storage.listUsers();
+    
+    // Debug information
+    console.log(`Finding referrals for user ${user.id} (${user.username}), referral code: ${user.referralCode}`);
+    console.log(`Total users in system: ${allUsers.length}`);
+    
+    // Find users that were referred by this user
+    const referredUsers = allUsers.filter(u => {
+      const isReferred = u.referredBy === user.id;
+      if (isReferred) {
+        console.log(`Found referral: User ${u.id} (${u.username}) was referred by ${user.id}`);
+      }
+      return isReferred;
+    });
+    
+    console.log(`Found ${referredUsers.length} users referred by ${user.username}`);
     
     const referralBonusStr = await storage.getSetting("referral_bonus");
     const referralPercentStr = await storage.getSetting("referral_percent");

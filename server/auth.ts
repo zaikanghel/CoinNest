@@ -124,16 +124,17 @@ export function setupAuth(app: Express) {
       // Process referrer if provided
       let referredBy: number | null = null;
       if (userData.referredBy) {
-        // Handle both string and number referredBy values
-        const referralCode = typeof userData.referredBy === 'string' ? userData.referredBy : undefined;
+        console.log(`Processing referral, referredBy value: ${userData.referredBy}, type: ${typeof userData.referredBy}`);
         
-        if (referralCode) {
-          const referrer = await storage.getUserByReferralCode(referralCode);
+        // Handle referral code (string)
+        if (typeof userData.referredBy === 'string' && userData.referredBy.trim() !== '') {
+          const refCode = userData.referredBy.trim();
+          console.log(`Looking up referrer by code: ${refCode}`);
+          const referrer = await storage.getUserByReferralCode(refCode);
+          
           if (referrer) {
+            console.log(`Found referrer with ID ${referrer.id} for code ${refCode}`);
             referredBy = referrer.id;
-            
-            // We'll store the referral relationship but NOT award the bonus immediately
-            // The bonus will be awarded when the referred user completes 7 days of daily rewards
             
             // Record the referral activity without a bonus amount
             await storage.createActivity({
@@ -142,15 +143,18 @@ export function setupAuth(app: Express) {
               amount: 0,
               description: `New user signed up through your referral: ${userData.username}. You'll receive a bonus when they complete 7 days of daily rewards.`
             });
+          } else {
+            console.log(`No referrer found for code: ${refCode}`);
           }
-        } else if (typeof userData.referredBy === 'number') {
-          // If referredBy is already a number (user ID), use it directly
+        } 
+        // Handle user ID (number)
+        else if (typeof userData.referredBy === 'number' && userData.referredBy > 0) {
+          console.log(`Looking up referrer by ID: ${userData.referredBy}`);
           const referrer = await storage.getUser(userData.referredBy);
+          
           if (referrer) {
+            console.log(`Found referrer with ID ${referrer.id}`);
             referredBy = referrer.id;
-            
-            // We'll store the referral relationship but NOT award the bonus immediately
-            // The bonus will be awarded when the referred user completes 7 days of daily rewards
             
             // Record the referral activity without a bonus amount
             await storage.createActivity({
@@ -159,6 +163,8 @@ export function setupAuth(app: Express) {
               amount: 0,
               description: `New user signed up through your referral: ${userData.username}. You'll receive a bonus when they complete 7 days of daily rewards.`
             });
+          } else {
+            console.log(`No referrer found for ID: ${userData.referredBy}`);
           }
         }
       }
