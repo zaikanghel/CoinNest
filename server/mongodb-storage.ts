@@ -212,8 +212,32 @@ export class MongoStorage implements IStorage {
     const referralCode = nanoid(8);
     const now = new Date();
     
-    // Ensure referredBy is null if undefined
-    const referredBy = insertUser.referredBy ?? null;
+    // Process referredBy field - ensure it's numeric or null
+    let referredBy: number | null = null;
+    
+    if (insertUser.referredBy) {
+      console.log(`[STORAGE] Processing referredBy in createUser: ${insertUser.referredBy}, type: ${typeof insertUser.referredBy}`);
+      
+      if (typeof insertUser.referredBy === 'number') {
+        referredBy = insertUser.referredBy;
+        console.log(`[STORAGE] Using numeric referredBy: ${referredBy}`);
+      } 
+      else if (typeof insertUser.referredBy === 'string' && insertUser.referredBy.trim() !== '') {
+        // We're being given a referral code, need to look up the user ID
+        const refCode = insertUser.referredBy.trim();
+        console.log(`[STORAGE] Looking up user ID for referral code: ${refCode}`);
+        
+        const referrer = await this.getUserByReferralCode(refCode);
+        if (referrer) {
+          referredBy = referrer.id;
+          console.log(`[STORAGE] Found referrer ID: ${referredBy} for code: ${refCode}`);
+        } else {
+          console.log(`[STORAGE] No user found for referral code: ${refCode}`);
+        }
+      }
+    }
+    
+    console.log(`[STORAGE] Final referredBy value: ${referredBy}`);
     
     const user: User = {
       ...insertUser,

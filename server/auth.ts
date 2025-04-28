@@ -123,48 +123,60 @@ export function setupAuth(app: Express) {
       
       // Process referrer if provided
       let referredBy: number | null = null;
-      if (userData.referredBy) {
-        console.log(`Processing referral, referredBy value: ${userData.referredBy}, type: ${typeof userData.referredBy}`);
-        
+      const referralValue = userData.referredBy;
+      
+      console.log(`Processing referral, referredBy value: ${referralValue}, type: ${typeof referralValue}`);
+      
+      if (referralValue) {
         // Handle referral code (string)
-        if (typeof userData.referredBy === 'string' && userData.referredBy.trim() !== '') {
-          const refCode = userData.referredBy.trim();
+        if (typeof referralValue === 'string' && referralValue.trim() !== '') {
+          const refCode = referralValue.trim();
           console.log(`Looking up referrer by code: ${refCode}`);
-          const referrer = await storage.getUserByReferralCode(refCode);
           
-          if (referrer) {
-            console.log(`Found referrer with ID ${referrer.id} for code ${refCode}`);
-            referredBy = referrer.id;
+          try {
+            const referrer = await storage.getUserByReferralCode(refCode);
             
-            // Record the referral activity without a bonus amount
-            await storage.createActivity({
-              userId: referrer.id,
-              type: "referral_signup",
-              amount: 0,
-              description: `New user signed up through your referral: ${userData.username}. You'll receive a bonus when they complete 7 days of daily rewards.`
-            });
-          } else {
-            console.log(`No referrer found for code: ${refCode}`);
+            if (referrer) {
+              console.log(`Found referrer with ID ${referrer.id} for code ${refCode}`);
+              referredBy = referrer.id;
+              
+              // Record the referral activity without a bonus amount
+              await storage.createActivity({
+                userId: referrer.id,
+                type: "referral_signup",
+                amount: 0,
+                description: `New user signed up through your referral: ${userData.username}. You'll receive a bonus when they complete 7 days of daily rewards.`
+              });
+            } else {
+              console.log(`No referrer found for code: ${refCode}`);
+            }
+          } catch (error) {
+            console.error(`Error looking up referrer by code: ${refCode}`, error);
           }
         } 
         // Handle user ID (number)
-        else if (typeof userData.referredBy === 'number' && userData.referredBy > 0) {
-          console.log(`Looking up referrer by ID: ${userData.referredBy}`);
-          const referrer = await storage.getUser(userData.referredBy);
+        else if (typeof referralValue === 'number' && referralValue > 0) {
+          console.log(`Looking up referrer by ID: ${referralValue}`);
           
-          if (referrer) {
-            console.log(`Found referrer with ID ${referrer.id}`);
-            referredBy = referrer.id;
+          try {
+            const referrer = await storage.getUser(referralValue);
             
-            // Record the referral activity without a bonus amount
-            await storage.createActivity({
-              userId: referrer.id,
-              type: "referral_signup",
-              amount: 0,
-              description: `New user signed up through your referral: ${userData.username}. You'll receive a bonus when they complete 7 days of daily rewards.`
-            });
-          } else {
-            console.log(`No referrer found for ID: ${userData.referredBy}`);
+            if (referrer) {
+              console.log(`Found referrer with ID ${referrer.id}`);
+              referredBy = referrer.id;
+              
+              // Record the referral activity without a bonus amount
+              await storage.createActivity({
+                userId: referrer.id,
+                type: "referral_signup",
+                amount: 0,
+                description: `New user signed up through your referral: ${userData.username}. You'll receive a bonus when they complete 7 days of daily rewards.`
+              });
+            } else {
+              console.log(`No referrer found for ID: ${referralValue}`);
+            }
+          } catch (error) {
+            console.error(`Error looking up referrer by ID: ${referralValue}`, error);
           }
         }
       }

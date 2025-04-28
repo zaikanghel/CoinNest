@@ -205,9 +205,7 @@ export const registerSchema = insertUserSchema.extend({
     .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
   email: z.string().email("Please enter a valid email")
     .transform(val => val.toLowerCase()), // Ensure emails are stored in lowercase
-  referredBy: z.union([z.number(), z.string(), z.null()]).nullable().optional().transform(val => 
-    typeof val === 'string' && val ? parseInt(val, 10) || null : val
-  )
+  referredBy: z.union([z.number(), z.string(), z.null()]).nullable().optional()
 });
 
 export const withdrawalSchema = z.object({
