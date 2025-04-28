@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import MainLayout from "@/components/layout/main-layout";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -126,7 +126,7 @@ export default function DailyRewardsPage() {
   const isLoading = isLoadingRewards || isLoadingStatus;
 
   return (
-    <div className="container mx-auto px-4 py-10">
+    <MainLayout pageTitle="Daily Rewards">
       <div className="flex flex-col md:flex-row justify-between items-start gap-6">
         <div className="w-full md:w-2/3">
           <h1 className="text-3xl font-bold mb-6">Daily Rewards</h1>
@@ -312,6 +312,6 @@ export default function DailyRewardsPage() {
           </Card>
         </div>
       </div>
-    </div>
+    </MainLayout>
   );
 }
