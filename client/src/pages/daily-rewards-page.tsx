@@ -41,7 +41,15 @@ export default function DailyRewardsPage() {
   // Get all daily rewards
   const { data: rewards, isLoading: isLoadingRewards } = useQuery({
     queryKey: ["daily-rewards"],
-    queryFn: () => apiRequest<DailyReward[]>("/api/daily-rewards"),
+    queryFn: async () => {
+      const response = await fetch("/api/daily-rewards", {
+        credentials: "include"
+      });
+      if (!response.ok) {
+        throw new Error("Failed to fetch daily rewards");
+      }
+      return response.json();
+    },
     enabled: !!user
   });
 
@@ -52,7 +60,15 @@ export default function DailyRewardsPage() {
     error 
   } = useQuery({
     queryKey: ["user-daily-reward"],
-    queryFn: () => apiRequest<UserRewardStatus>("/api/user/daily-reward"),
+    queryFn: async () => {
+      const response = await fetch("/api/user/daily-reward", {
+        credentials: "include"
+      });
+      if (!response.ok) {
+        throw new Error("Failed to fetch reward status");
+      }
+      return response.json();
+    },
     enabled: !!user,
     refetchInterval: (data) => {
       // Refresh every minute if waiting for next claim
@@ -62,11 +78,17 @@ export default function DailyRewardsPage() {
 
   // Claim daily reward mutation
   const claimRewardMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       setIsClaiming(true);
-      return apiRequest("/api/user/daily-reward/claim", {
-        method: "POST"
+      const response = await fetch("/api/user/daily-reward/claim", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" }
       });
+      if (!response.ok) {
+        throw new Error("Failed to claim reward");
+      }
+      return response.json();
     },
     onSuccess: (data) => {
       toast({
