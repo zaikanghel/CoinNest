@@ -190,7 +190,8 @@ export type InsertUserDailyReward = z.infer<typeof insertUserDailyRewardSchema>;
 export const loginSchema = z.object({
   email: z.string().email("Please enter a valid email")
     .transform(val => val.toLowerCase()),
-  password: z.string().min(1, "Password is required")
+  password: z.string().min(1, "Password is required"),
+  rememberMe: z.boolean().optional().default(false)
 });
 
 export const registerSchema = insertUserSchema.extend({
