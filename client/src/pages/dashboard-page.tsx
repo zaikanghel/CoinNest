@@ -9,6 +9,9 @@ import { AfkProvider } from "@/hooks/use-afk";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
+import { useTour } from "@/hooks/use-tour";
+import { apiRequest } from "@/lib/queryClient";
 
 interface StatsResponse {
   balance: number;
@@ -49,6 +52,33 @@ interface GamesResponse {
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const { startTour } = useTour();
+  
+  // Check if user is new and start the tour if needed
+  useEffect(() => {
+    if (user) {
+      const checkOnboardingStatus = async () => {
+        try {
+          console.log("DashboardPage: Checking onboarding status for user", user.id);
+          const response = await apiRequest("GET", "/api/user/onboarding-status", {});
+          console.log("DashboardPage: Onboarding API response:", response);
+          
+          // If this is a new user (onboarding not completed), start the tour
+          if (response && !response.completedOnboarding) {
+            console.log("DashboardPage: Starting tour for new user");
+            setTimeout(() => {
+              startTour(); // Start the tour with a slight delay to ensure UI is ready
+            }, 1000);
+          }
+        } catch (error) {
+          console.error("DashboardPage: Error checking onboarding status:", error);
+        }
+      };
+      
+      checkOnboardingStatus();
+    }
+  }, [user, startTour]);
+  
   // Fetch user stats
   const { data: stats, isLoading: isLoadingStats } = useQuery<StatsResponse>({
     queryKey: ["/api/stats"],
