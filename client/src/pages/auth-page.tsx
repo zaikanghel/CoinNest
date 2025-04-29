@@ -215,7 +215,10 @@ export default function AuthPage() {
               {/* Login Form */}
               <TabsContent value="login">
                 <Form {...loginForm}>
-                  <form method="post" onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4" autoComplete="on" id="login-form" name="login-form">
+                  <form action="/api/login" method="post" onSubmit={(e) => {
+                    e.preventDefault();
+                    loginForm.handleSubmit(onLoginSubmit)(e);
+                  }} className="space-y-4" autoComplete="on" id="login-form" name="login-form">
                     <div className="space-y-2">
                       <div>
                         <label htmlFor="email" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Email</label>
@@ -250,28 +253,24 @@ export default function AuthPage() {
                         )}
                       </div>
                     </div>
-                    <FormField
-                      control={loginForm.control}
-                      name="rememberMe"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel>
-                              Remember me
-                            </FormLabel>
-                            <p className="text-sm text-muted-foreground">
-                              Stay logged in on this device
-                            </p>
-                          </div>
-                        </FormItem>
-                      )}
-                    />
+                    <div className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <input
+                        type="checkbox"
+                        id="rememberMe"
+                        name="rememberMe"
+                        checked={loginForm.getValues().rememberMe}
+                        onChange={(e) => loginForm.setValue('rememberMe', e.target.checked)}
+                        className="h-4 w-4 mt-1"
+                      />
+                      <div className="space-y-1 leading-none">
+                        <label htmlFor="rememberMe" className="text-sm font-medium leading-none">
+                          Remember me
+                        </label>
+                        <p className="text-sm text-muted-foreground">
+                          Stay logged in on this device
+                        </p>
+                      </div>
+                    </div>
                     {loginError && (
                       <Alert variant="destructive">
                         <AlertDescription>
@@ -300,7 +299,10 @@ export default function AuthPage() {
               {/* Register Form */}
               <TabsContent value="register">
                 <Form {...registerForm}>
-                  <form method="post" onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4" autoComplete="on" id="register-form" name="register-form">
+                  <form action="/api/register" method="post" onSubmit={(e) => {
+                    e.preventDefault();
+                    registerForm.handleSubmit(onRegisterSubmit)(e);
+                  }} className="space-y-4" autoComplete="on" id="register-form" name="register-form">
                     <FormField
                       control={registerForm.control}
                       name="username"
