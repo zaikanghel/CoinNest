@@ -24,29 +24,17 @@ import { useAuth } from "@/hooks/use-auth";
 import { SettingsProvider } from "@/hooks/use-settings";
 import { PremiumNotificationProvider } from "@/hooks/use-premium-notification";
 import { TourProvider } from "@/hooks/use-tour";
-import { ShepherdTour } from "react-shepherd";
+import { ShepherdJourneyProvider } from "react-shepherd";
 
 function App() {
   const { user } = useAuth();
-  
-  // Tour configuration
-  const tourOptions = {
-    defaultStepOptions: {
-      cancelIcon: {
-        enabled: true
-      },
-      classes: "shadow-md rounded-lg p-4",
-      scrollTo: { behavior: "smooth", block: "center" }
-    },
-    useModalOverlay: true
-  };
   
   return (
     <TooltipProvider>
       <SettingsProvider>
         <PremiumNotificationProvider>
           <AfkProvider>
-            <ShepherdTour tourOptions={tourOptions}>
+            <ShepherdJourneyProvider>
               <TourProvider>
                 <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
                   <Switch>
@@ -71,7 +59,7 @@ function App() {
                   </Switch>
                 </div>
               </TourProvider>
-            </ShepherdTour>
+            </ShepherdJourneyProvider>
           </AfkProvider>
         </PremiumNotificationProvider>
       </SettingsProvider>

@@ -21,7 +21,8 @@ export const users = pgTable("users", {
   lastAfkReset: timestamp("last_afk_reset").notNull().defaultNow(),
   isPremium: boolean("is_premium").notNull().default(false),
   premiumUntil: timestamp("premium_until"),
-  premiumStarted: timestamp("premium_started")
+  premiumStarted: timestamp("premium_started"),
+  onboardingCompleted: boolean("onboarding_completed").notNull().default(false)
 });
 
 export const activities = pgTable("activities", {
@@ -120,7 +121,8 @@ export const insertUserSchema = createInsertSchema(users).omit({
   balance: true,
   isPremium: true,
   premiumUntil: true,
-  premiumStarted: true
+  premiumStarted: true,
+  onboardingCompleted: true
 });
 
 export const insertActivitySchema = createInsertSchema(activities).omit({
