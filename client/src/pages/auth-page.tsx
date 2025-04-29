@@ -215,33 +215,41 @@ export default function AuthPage() {
               {/* Login Form */}
               <TabsContent value="login">
                 <Form {...loginForm}>
-                  <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4" autoComplete="on" id="login-form">
-                    <FormField
-                      control={loginForm.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input type="email" autoComplete="username" placeholder="Enter your email" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={loginForm.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Password</FormLabel>
-                          <FormControl>
-                            <Input type="password" autoComplete="current-password" placeholder="Enter your password" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  <form method="post" onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4" autoComplete="on" id="login-form" name="login-form">
+                    <div className="space-y-2">
+                      <div>
+                        <label htmlFor="email" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Email</label>
+                        <input 
+                          id="email"
+                          name="email" 
+                          type="email" 
+                          autoComplete="username"
+                          placeholder="Enter your email" 
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          value={loginForm.getValues().email}
+                          onChange={(e) => loginForm.setValue('email', e.target.value, { shouldValidate: true })}
+                        />
+                        {loginForm.formState.errors.email && (
+                          <p className="text-sm font-medium text-destructive">{loginForm.formState.errors.email.message}</p>
+                        )}
+                      </div>
+                      <div>
+                        <label htmlFor="password" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Password</label>
+                        <input 
+                          id="password"
+                          name="password" 
+                          type="password" 
+                          autoComplete="current-password"
+                          placeholder="Enter your password" 
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          value={loginForm.getValues().password}
+                          onChange={(e) => loginForm.setValue('password', e.target.value, { shouldValidate: true })}
+                        />
+                        {loginForm.formState.errors.password && (
+                          <p className="text-sm font-medium text-destructive">{loginForm.formState.errors.password.message}</p>
+                        )}
+                      </div>
+                    </div>
                     <FormField
                       control={loginForm.control}
                       name="rememberMe"
@@ -292,7 +300,7 @@ export default function AuthPage() {
               {/* Register Form */}
               <TabsContent value="register">
                 <Form {...registerForm}>
-                  <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4" autoComplete="on">
+                  <form method="post" onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4" autoComplete="on" id="register-form" name="register-form">
                     <FormField
                       control={registerForm.control}
                       name="username"
@@ -306,32 +314,40 @@ export default function AuthPage() {
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={registerForm.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input type="email" autoComplete="username" placeholder="Enter your email" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={registerForm.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Password</FormLabel>
-                          <FormControl>
-                            <Input type="password" autoComplete="new-password" placeholder="Create a password" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <div className="space-y-2">
+                      <div>
+                        <label htmlFor="register-email" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Email</label>
+                        <input 
+                          id="register-email"
+                          name="email" 
+                          type="email" 
+                          autoComplete="username"
+                          placeholder="Enter your email" 
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          value={registerForm.getValues().email}
+                          onChange={(e) => registerForm.setValue('email', e.target.value, { shouldValidate: true })}
+                        />
+                        {registerForm.formState.errors.email && (
+                          <p className="text-sm font-medium text-destructive">{registerForm.formState.errors.email.message}</p>
+                        )}
+                      </div>
+                      <div>
+                        <label htmlFor="register-password" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Password</label>
+                        <input 
+                          id="register-password"
+                          name="password" 
+                          type="password" 
+                          autoComplete="new-password"
+                          placeholder="Create a password" 
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          value={registerForm.getValues().password}
+                          onChange={(e) => registerForm.setValue('password', e.target.value, { shouldValidate: true })}
+                        />
+                        {registerForm.formState.errors.password && (
+                          <p className="text-sm font-medium text-destructive">{registerForm.formState.errors.password.message}</p>
+                        )}
+                      </div>
+                    </div>
                     <FormField
                       control={registerForm.control}
                       name="referredBy"
