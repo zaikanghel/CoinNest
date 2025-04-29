@@ -114,6 +114,15 @@ export function TourProvider({ children }: { children: ReactNode }) {
 
     // Dashboard tour steps
     if (location === "/dashboard") {
+      // First, log all available target elements in the DOM for debugging
+      console.log("Tour targets present in DOM:", {
+        dashboardWelcome: document.querySelector(".dashboard-welcome"),
+        balanceCard: document.querySelector(".stats-cards"),
+        afkCard: document.querySelector(".afk-card"),
+        activityList: document.querySelector(".activity-list"),
+        gamesHeader: document.querySelector(".games-list")
+      });
+
       tourRef.current.addStep({
         id: "welcome",
         text: `<div>
@@ -145,7 +154,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
           <p class="mb-2">Your balance can be withdrawn for real rewards once you reach the minimum threshold.</p>
         </div>`,
         attachTo: {
-          element: ".balance-card",
+          element: ".stats-cards",  // Use a more reliable target 
           on: "bottom"
         },
         buttons: [

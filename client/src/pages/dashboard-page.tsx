@@ -60,11 +60,18 @@ export default function DashboardPage() {
       const checkOnboardingStatus = async () => {
         try {
           console.log("DashboardPage: Checking onboarding status for user", user.id);
-          const response = await apiRequest("GET", "/api/user/onboarding-status", {});
-          console.log("DashboardPage: Onboarding API response:", response);
+          const response = await fetch("/api/user/onboarding-status", { credentials: "include" });
+          
+          if (!response.ok) {
+            console.error("DashboardPage: Error fetching onboarding status", response.status);
+            return;
+          }
+          
+          const data = await response.json();
+          console.log("DashboardPage: Onboarding API response:", data);
           
           // If this is a new user (onboarding not completed), start the tour
-          if (response && !response.completedOnboarding) {
+          if (data && data.completedOnboarding === false) {
             console.log("DashboardPage: Starting tour for new user");
             setTimeout(() => {
               startTour(); // Start the tour with a slight delay to ensure UI is ready
@@ -150,6 +157,16 @@ export default function DashboardPage() {
                       Value: <span className="font-bold">${stats?.totalEarnings || "0.00"}</span>
                     </span>
                   </div>
+                  
+                  {/* Tour Start Button */}
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="ml-4 bg-white/10 text-white hover:bg-white/20 border-white/30"
+                    onClick={() => startTour()}
+                  >
+                    Take a Tour
+                  </Button>
                 </div>
               </div>
             </div>
