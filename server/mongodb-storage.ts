@@ -28,7 +28,20 @@ export class MongoStorage implements IStorage {
   sessionStore: session.Store;
 
   constructor(mongoUri: string) {
-    this.client = new MongoClient(mongoUri);
+    // Set MongoDB connection options for enhanced security
+    const options = {
+      connectTimeoutMS: 30000,         // 30 seconds connection timeout
+      socketTimeoutMS: 45000,          // 45 seconds socket timeout
+      serverSelectionTimeoutMS: 60000, // 1 minute server selection timeout
+      maxPoolSize: 10,                 // Limit connection pool size
+      minPoolSize: 1,                  // Minimum connections maintained
+      retryWrites: true,               // Auto-retry writes if they fail
+      retryReads: true,                // Auto-retry reads if they fail
+      maxIdleTimeMS: 60000,            // Close idle connections after 1 minute
+      tls: true                        // Use TLS for secure connections
+    };
+    
+    this.client = new MongoClient(mongoUri, options);
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000 // 24 hours
     });
@@ -38,7 +51,12 @@ export class MongoStorage implements IStorage {
     try {
       await this.client.connect();
       console.log("Connected to MongoDB");
-      this.db = this.client.db("smartearn");
+      
+      // Use database name from environment variable or fallback to a default
+      const dbName = process.env.DB_NAME || "smartearn";
+      this.db = this.client.db(dbName);
+      
+      console.log(`Using database: ${dbName}`);
       
       // Initialize collections
       this.usersCollection = this.db.collection("users");
@@ -215,24 +233,27 @@ export class MongoStorage implements IStorage {
     // Process referredBy field - ensure it's numeric or null
     let referredBy: number | null = null;
     
-    if (insertUser.referredBy) {
+    if (insertUser.referredBy !== undefined && insertUser.referredBy !== null) {
       console.log(`[STORAGE] Processing referredBy in createUser: ${insertUser.referredBy}, type: ${typeof insertUser.referredBy}`);
       
+      // Handle the case when it's a number
       if (typeof insertUser.referredBy === 'number') {
         referredBy = insertUser.referredBy;
         console.log(`[STORAGE] Using numeric referredBy: ${referredBy}`);
-      } 
-      else if (typeof insertUser.referredBy === 'string' && insertUser.referredBy.trim() !== '') {
-        // We're being given a referral code, need to look up the user ID
-        const refCode = insertUser.referredBy.trim();
-        console.log(`[STORAGE] Looking up user ID for referral code: ${refCode}`);
-        
-        const referrer = await this.getUserByReferralCode(refCode);
-        if (referrer) {
-          referredBy = referrer.id;
-          console.log(`[STORAGE] Found referrer ID: ${referredBy} for code: ${refCode}`);
-        } else {
-          console.log(`[STORAGE] No user found for referral code: ${refCode}`);
+      }
+      // Handle the case when it's a string
+      else if (typeof insertUser.referredBy === 'string') {
+        const refCodeStr = String(insertUser.referredBy).trim();
+        if (refCodeStr !== '') {
+          console.log(`[STORAGE] Looking up user ID for referral code: ${refCodeStr}`);
+          
+          const referrer = await this.getUserByReferralCode(refCodeStr);
+          if (referrer) {
+            referredBy = referrer.id;
+            console.log(`[STORAGE] Found referrer ID: ${referredBy} for code: ${refCodeStr}`);
+          } else {
+            console.log(`[STORAGE] No user found for referral code: ${refCodeStr}`);
+          }
         }
       }
     }

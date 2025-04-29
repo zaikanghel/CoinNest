@@ -132,11 +132,20 @@ export interface IStorage {
 
 // Factory function to create MongoDB storage implementation
 export async function createStorage(): Promise<IStorage> {
-  if (!process.env.MONGODB_URI) {
-    throw new Error('MONGODB_URI environment variable is required');
+  let mongoUri = process.env.MONGODB_URI;
+  
+  // If individual components are provided, construct the URI
+  if (!mongoUri && process.env.MONGODB_USERNAME && process.env.MONGODB_PASSWORD && 
+      process.env.MONGODB_HOST && process.env.MONGODB_DATABASE) {
+    mongoUri = `mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@${process.env.MONGODB_HOST}/${process.env.MONGODB_DATABASE}?retryWrites=true&w=majority&authSource=admin`;
+    console.log('Constructed MongoDB URI from environment variables');
   }
   
-  let mongoStorage = new MongoStorage(process.env.MONGODB_URI);
+  if (!mongoUri) {
+    throw new Error('MongoDB connection information is missing. Please provide either MONGODB_URI or the individual components (MONGODB_USERNAME, MONGODB_PASSWORD, MONGODB_HOST, MONGODB_DATABASE)');
+  }
+  
+  let mongoStorage = new MongoStorage(mongoUri);
   await mongoStorage.connect();
   
   // Implement daily rewards methods
