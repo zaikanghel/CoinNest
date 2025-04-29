@@ -30,7 +30,6 @@ declare namespace Shepherd {
 
 export function TourProvider({ children }: { children: ReactNode }) {
   const [isActive, setIsActive] = useState<boolean>(false);
-  const [isFirstVisit, setIsFirstVisit] = useState<boolean>(false);
   const [location] = useLocation();
   const { user } = useAuth();
   const tourRef = useRef<Shepherd.Tour | null>(null);
@@ -40,7 +39,6 @@ export function TourProvider({ children }: { children: ReactNode }) {
     if (user) {
       try {
         await apiRequest("POST", "/api/user/onboarding-complete", {});
-        setIsFirstVisit(false);
       } catch (error) {
         console.error("Failed to mark onboarding as complete:", error);
       }
@@ -80,30 +78,8 @@ export function TourProvider({ children }: { children: ReactNode }) {
     };
   }, [markOnboardingComplete]);
 
-  // Check if this is the user's first visit after registration
-  useEffect(() => {
-    const checkFirstVisit = async () => {
-      if (user && ["/dashboard", "/games", "/afk", "/wallet"].includes(location)) {
-        try {
-          console.log("Checking onboarding status for user:", user.id, "on location:", location);
-          const response = await apiRequest("GET", "/api/user/onboarding-status", {});
-          console.log("Onboarding status response:", response);
-          const { completedOnboarding } = response as { completedOnboarding: boolean };
-          setIsFirstVisit(!completedOnboarding);
-          
-          // Automatically start the tour for first-time visitors
-          if (!completedOnboarding && tourRef.current) {
-            console.log("Starting tour for first-time visitor");
-            startTour();
-          }
-        } catch (error) {
-          console.error("Failed to check onboarding status:", error);
-        }
-      }
-    };
-
-    checkFirstVisit();
-  }, [user, location]);
+  // Tour start logic is now in the protected-route.tsx component
+  // This avoids duplicate checks and ensures the tour starts on each protected page when needed
 
   // Function to configure tour steps based on current page
   const setupTourSteps = useCallback(() => {
@@ -399,6 +375,37 @@ export function TourProvider({ children }: { children: ReactNode }) {
   const endTour = useCallback(() => {
     if (tourRef.current && tourRef.current.isActive()) {
       tourRef.current.cancel();
+    }
+  }, []);
+  
+  // Mark onboarding as completed when tour is finished or canceled
+  useEffect(() => {
+    if (tourRef.current) {
+      // When tour is completed
+      tourRef.current.on('complete', async () => {
+        console.log('Tour completed, marking onboarding as completed');
+        try {
+          await fetch('/api/user/onboarding-complete', {
+            method: 'POST',
+            credentials: 'include'
+          });
+        } catch (error) {
+          console.error('Error marking onboarding as completed:', error);
+        }
+      });
+      
+      // When tour is canceled
+      tourRef.current.on('cancel', async () => {
+        console.log('Tour canceled, marking onboarding as completed');
+        try {
+          await fetch('/api/user/onboarding-complete', {
+            method: 'POST',
+            credentials: 'include'
+          });
+        } catch (error) {
+          console.error('Error marking onboarding as completed:', error);
+        }
+      });
     }
   }, []);
   

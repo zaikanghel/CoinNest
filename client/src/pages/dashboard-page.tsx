@@ -54,37 +54,7 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const { startTour } = useTour();
   
-  // Check if user is new and start the tour if needed
-  useEffect(() => {
-    if (user) {
-      const checkOnboardingStatus = async () => {
-        try {
-          console.log("DashboardPage: Checking onboarding status for user", user.id);
-          const response = await fetch("/api/user/onboarding-status", { credentials: "include" });
-          
-          if (!response.ok) {
-            console.error("DashboardPage: Error fetching onboarding status", response.status);
-            return;
-          }
-          
-          const data = await response.json();
-          console.log("DashboardPage: Onboarding API response:", data);
-          
-          // If this is a new user (onboarding not completed), start the tour
-          if (data && data.completedOnboarding === false) {
-            console.log("DashboardPage: Starting tour for new user");
-            setTimeout(() => {
-              startTour(); // Start the tour with a slight delay to ensure UI is ready
-            }, 1000);
-          }
-        } catch (error) {
-          console.error("DashboardPage: Error checking onboarding status:", error);
-        }
-      };
-      
-      checkOnboardingStatus();
-    }
-  }, [user, startTour]);
+  // Tour check now handled by the protected route component
   
   // Fetch user stats
   const { data: stats, isLoading: isLoadingStats } = useQuery<StatsResponse>({
