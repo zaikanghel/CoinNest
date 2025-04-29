@@ -94,7 +94,7 @@ export default function DashboardPage() {
         ) : (
           <>
             {/* Welcome Banner */}
-            <div className="relative overflow-hidden bg-gradient-to-r from-primary to-accent rounded-2xl shadow-lg">
+            <div className="dashboard-welcome relative overflow-hidden bg-gradient-to-r from-primary to-accent rounded-2xl shadow-lg">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mt-20 -mr-20 z-0"></div>
               <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -mb-16 -ml-16 z-0"></div>
               

@@ -142,3 +142,185 @@
   }
 }
 
+/* Tour styles */
+.shepherd-button {
+  background: #3b82f6;
+  border: 0;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+  margin-right: 8px;
+  padding: 8px 12px;
+  transition: all 0.2s ease;
+}
+
+.shepherd-button:hover {
+  background: #2563eb;
+}
+
+.shepherd-button-secondary {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+.shepherd-button-secondary:hover {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.shepherd-element {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  opacity: 0;
+  outline: none;
+  transition: opacity 0.3s, visibility 0.3s;
+  visibility: hidden;
+  width: 100%;
+  z-index: 9999;
+}
+
+.shepherd-enabled.shepherd-element {
+  opacity: 1;
+  visibility: visible;
+}
+
+.shepherd-arrow {
+  pointer-events: none;
+}
+
+.shepherd-arrow:before {
+  background: #ffffff;
+}
+
+.shepherd-content {
+  border-radius: 8px;
+  outline: none;
+  padding: 0;
+}
+
+.shepherd-text {
+  color: #374151;
+  font-size: 1rem;
+  line-height: 1.5;
+  padding: 16px;
+}
+
+.shepherd-text h3 {
+  color: #1f2937;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.shepherd-text p {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.shepherd-footer {
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 16px 16px;
+}
+
+.shepherd-header {
+  align-items: center;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  display: flex;
+  justify-content: flex-end;
+  line-height: 2em;
+  padding: 8px 16px 0;
+}
+
+.shepherd-title {
+  color: #1f2937;
+  display: flex;
+  flex: 1 0 auto;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  padding: 0;
+}
+
+.shepherd-cancel-icon {
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  font-size: 1.8rem;
+  font-weight: 400;
+  margin: 0;
+  padding: 0;
+  transition: color 0.2s ease-in-out;
+}
+
+.shepherd-cancel-icon:hover {
+  color: #6b7280;
+}
+
+.shepherd-modal-overlay-container {
+  height: 0;
+  left: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+  transition: all 0.3s ease-out, height 0ms 0.3s, opacity 0.3s 0ms;
+  width: 100vw;
+  z-index: 9998;
+}
+
+.shepherd-modal-overlay-container.shepherd-modal-is-visible {
+  height: 100vh;
+  opacity: 0.5;
+  transition: all 0.3s ease-out, height 0s 0s, opacity 0.3s 0s;
+}
+
+.shepherd-modal-overlay-container.shepherd-modal-is-visible path {
+  pointer-events: all;
+}
+
+/* Dark mode tour styles */
+.dark .shepherd-element {
+  background: #1f2937;
+}
+
+.dark .shepherd-arrow:before {
+  background: #1f2937;
+}
+
+.dark .shepherd-text {
+  color: #e5e7eb;
+}
+
+.dark .shepherd-text h3 {
+  color: #f3f4f6;
+}
+
+.dark .shepherd-button-secondary {
+  background: #374151;
+  color: #f3f4f6;
+}
+
+.dark .shepherd-button-secondary:hover {
+  background: #4b5563;
+}
+
+.dark .shepherd-title {
+  color: #f3f4f6;
+}
+
+.dark .shepherd-cancel-icon {
+  color: #9ca3af;
+}
+
+.dark .shepherd-cancel-icon:hover {
+  color: #d1d5db;
+}
+
