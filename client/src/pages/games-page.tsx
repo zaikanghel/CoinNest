@@ -103,7 +103,7 @@ export default function GamesPage() {
 
   return (
     <MainLayout pageTitle="Games">
-      <div className="space-y-6">
+      <div className="space-y-6 games-header">
         {isLoading ? (
           <div className="flex items-center justify-center h-96">
             <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
@@ -111,7 +111,7 @@ export default function GamesPage() {
         ) : (
           <>
             {/* Daily Limit Card */}
-            <Card className="bg-gradient-to-r from-primary-50/50 to-accent-50/50 dark:from-primary-900/20 dark:to-accent-900/20">
+            <Card className="game-limits bg-gradient-to-r from-primary-50/50 to-accent-50/50 dark:from-primary-900/20 dark:to-accent-900/20">
               <CardContent className="pt-6">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex-1">
@@ -148,7 +148,7 @@ export default function GamesPage() {
                 <CardTitle>Available Games</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 game-cards">
                   {games?.games?.map((game: GameData) => (
                     <div key={game.id} className="bg-white dark:bg-dark-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden group">
                       <div className="relative">
@@ -207,7 +207,7 @@ export default function GamesPage() {
             </Card>
 
             {/* Leaderboards */}
-            <Card>
+            <Card className="game-leaderboards">
               <CardHeader>
                 <CardTitle>Leaderboards</CardTitle>
               </CardHeader>

@@ -83,7 +83,7 @@ export default function DashboardPage() {
 
   return (
     <MainLayout pageTitle="Dashboard">
-      <div className="space-y-8">
+      <div className="space-y-8 dashboard-header">
         {isLoading ? (
           <div className="flex items-center justify-center h-96">
             <div className="flex flex-col items-center">
@@ -125,7 +125,7 @@ export default function DashboardPage() {
             </div>
             
             {/* Stats Row */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 stats-cards">
               <StatsCard
                 title="Total Earnings"
                 value={`$${stats?.totalEarnings || "0.00"}`}
