@@ -25,15 +25,16 @@ export default function AuthPage() {
   const { user, isLoading, loginMutation, registerMutation } = useAuth();
   const { toast } = useToast();
   
-  // Login form - check for saved email from localStorage
+  // Login form - check for saved credentials from localStorage
   const savedEmail = typeof window !== 'undefined' ? localStorage.getItem('savedEmail') || "" : "";
+  const savedPassword = typeof window !== 'undefined' ? localStorage.getItem('savedPassword') || "" : "";
   const autoLogin = typeof window !== 'undefined' ? localStorage.getItem('autoLogin') === 'true' : false;
   
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: savedEmail,
-      password: "",
+      password: savedPassword, // Auto-fill the password if available
       rememberMe: autoLogin, // Pre-check the remember me box if auto-login is enabled
     },
   });
@@ -76,25 +77,28 @@ export default function AuthPage() {
   // Auto-login effect
   useEffect(() => {
     // Only try auto-login if not already logged in and auto-login is enabled
-    if (!user && !isLoading && autoLogin && savedEmail) {
-      const storedPassword = ""; // We don't store passwords for security reasons
-      
+    if (!user && !isLoading && autoLogin && savedEmail && savedPassword) {
       // Show toast message 
       toast({
         title: "Auto-Login",
-        description: "Please enter your password to continue",
+        description: "Credentials loaded from saved login",
         variant: "default",
       });
       
-      // Focus on password field (user needs to enter password manually)
+      // Add login button highlight effect
       setTimeout(() => {
-        const passwordInput = document.querySelector('input[type="password"]') as HTMLInputElement;
-        if (passwordInput) {
-          passwordInput.focus();
+        const loginButton = document.querySelector('button[type="submit"]') as HTMLButtonElement;
+        if (loginButton) {
+          loginButton.classList.add('animate-pulse');
+          loginButton.focus();
+          // Remove animation after 2 seconds
+          setTimeout(() => {
+            loginButton.classList.remove('animate-pulse');
+          }, 2000);
         }
       }, 500);
     }
-  }, [user, isLoading, autoLogin, savedEmail]);
+  }, [user, isLoading, autoLogin, savedEmail, savedPassword]);
 
   // Handle login submit
   const onLoginSubmit = (values: z.infer<typeof loginSchema>) => {

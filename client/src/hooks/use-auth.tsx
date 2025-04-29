@@ -66,12 +66,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // If rememberMe is true, save login credentials to localStorage
       if (variables.rememberMe) {
-        // Store email only (no password) for auto-fill suggestion next time
+        // Store both email and password for auto-fill next time
         localStorage.setItem('savedEmail', variables.email);
+        localStorage.setItem('savedPassword', variables.password);
         localStorage.setItem('autoLogin', 'true');
       } else {
         // Clear any previously stored auto-login data
         localStorage.removeItem('savedEmail');
+        localStorage.removeItem('savedPassword');
         localStorage.removeItem('autoLogin');
       }
       
@@ -137,6 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // Clear auto-login data when logging out
       localStorage.removeItem('savedEmail');
+      localStorage.removeItem('savedPassword');
       localStorage.removeItem('autoLogin');
       
       toast({
