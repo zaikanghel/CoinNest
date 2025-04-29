@@ -100,7 +100,7 @@ export default function WalletPage() {
 
   return (
     <MainLayout pageTitle="Wallet">
-      <div className="space-y-6">
+      <div className="space-y-6 wallet-header">
         {isLoading ? (
           <div className="flex items-center justify-center h-96">
             <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
@@ -108,7 +108,7 @@ export default function WalletPage() {
         ) : (
           <>
             {/* Balance Card */}
-            <Card className="bg-gradient-to-r from-primary to-accent text-white shadow-xl overflow-hidden border-0 relative">
+            <Card className="balance-info-card bg-gradient-to-r from-primary to-accent text-white shadow-xl overflow-hidden border-0 relative">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mt-20 -mr-20"></div>
               <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full -mb-16 -ml-16"></div>
               
@@ -178,7 +178,7 @@ export default function WalletPage() {
             </Card>
 
             {/* Withdrawal History */}
-            <Card className="border-0 shadow-md overflow-hidden">
+            <Card className="withdrawal-history border-0 shadow-md overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-900/50">
                 <div className="flex justify-between items-center">
                   <div>
@@ -364,7 +364,7 @@ export default function WalletPage() {
           
           <div className="p-6">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="withdrawal-form space-y-5">
                 {/* Current Balance Display */}
                 <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg flex flex-col gap-2">
                   <div className="flex justify-between items-center">

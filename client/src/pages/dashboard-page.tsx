@@ -190,13 +190,17 @@ export default function DashboardPage() {
               {/* AFK Earnings */}
               <div className="lg:col-span-1">
                 <AfkProvider>
-                  <AfkCard />
+                  <div className="afk-card">
+                    <AfkCard />
+                  </div>
                 </AfkProvider>
               </div>
               
               {/* Recent Activity */}
               <div className="lg:col-span-2">
-                <ActivityList activities={activities || []} />
+                <div className="activity-list">
+                  <ActivityList activities={activities || []} />
+                </div>
               </div>
             </div>
             
@@ -210,7 +214,9 @@ export default function DashboardPage() {
                   </span>
                 </Link>
               </div>
-              <GamesList games={games?.games || []} />
+              <div className="games-list">
+                <GamesList games={games?.games || []} />
+              </div>
             </div>
           </>
         )}
