@@ -215,7 +215,7 @@ export default function AuthPage() {
               {/* Login Form */}
               <TabsContent value="login">
                 <Form {...loginForm}>
-                  <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4" autoComplete="on">
+                  <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4" autoComplete="on" id="login-form">
                     <FormField
                       control={loginForm.control}
                       name="email"
@@ -236,7 +236,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>Password</FormLabel>
                           <FormControl>
-                            <Input type="password" name="password" autoComplete="current-password" placeholder="Enter your password" {...field} />
+                            <Input type="password" autoComplete="current-password" placeholder="Enter your password" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -326,7 +326,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>Password</FormLabel>
                           <FormControl>
-                            <Input type="password" name="password" autoComplete="new-password" placeholder="Create a password" {...field} />
+                            <Input type="password" autoComplete="new-password" placeholder="Create a password" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
