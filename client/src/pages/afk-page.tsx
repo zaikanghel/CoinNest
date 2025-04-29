@@ -173,7 +173,7 @@ function AfkEarningContent() {
               </>
             )}
             
-            <div className="w-full">
+            <div className="w-full daily-limit-card">
               <div className="flex justify-between text-xs mb-1">
                 <span>Daily limit</span>
                 <span>{dailyEarned}/{dailyLimit}</span>
@@ -300,9 +300,15 @@ function AfkEarningContent() {
 export default function AfkPage() {
   return (
     <MainLayout pageTitle="AFK Earning">
-      <AfkProvider>
-        <AfkEarningContent />
-      </AfkProvider>
+      <div className="afk-header">
+        <AfkProvider>
+          <div className="afk-content">
+            <div className="afk-rate-card">
+              <AfkEarningContent />
+            </div>
+          </div>
+        </AfkProvider>
+      </div>
     </MainLayout>
   );
 }

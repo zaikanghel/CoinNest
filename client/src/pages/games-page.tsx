@@ -207,7 +207,7 @@ export default function GamesPage() {
             </Card>
 
             {/* Leaderboards */}
-            <Card className="game-leaderboards">
+            <Card className="game-leaderboards leaderboard-section">
               <CardHeader>
                 <CardTitle>Leaderboards</CardTitle>
               </CardHeader>

@@ -33,14 +33,14 @@ export function TourProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Check if this is the user's first visit after registration
     const checkFirstVisit = async () => {
-      if (user && location === "/dashboard") {
+      if (user && ['/dashboard', '/games', '/afk', '/wallet'].includes(location)) {
         try {
           const res = await fetch("/api/user/onboarding-status", { credentials: "include" });
           if (res.ok) {
             const data = await res.json();
             setIsFirstVisit(!data.completedOnboarding);
             
-            // Automatically start the tour for first-time visitors to the dashboard
+            // Automatically start the tour for first-time visitors to the valid pages
             if (!data.completedOnboarding) {
               setupTour();
               shepherd.start();

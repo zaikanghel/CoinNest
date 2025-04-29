@@ -34,7 +34,20 @@ function App() {
       <SettingsProvider>
         <PremiumNotificationProvider>
           <AfkProvider>
-            <ShepherdJourneyProvider>
+            <ShepherdJourneyProvider
+              tourOptions={{
+                defaultStepOptions: {
+                  scrollTo: true,
+                  cancelIcon: { enabled: true },
+                  highlightClass: "shepherd-highlighted",
+                  modalOverlayOpeningRadius: 4,
+                  classes: "shadow-md rounded-lg"
+                },
+                useModalOverlay: true,
+                exitOnEsc: true,
+                keyboardNavigation: true
+              }}
+            >
               <TourProvider>
                 <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
                   <Switch>
