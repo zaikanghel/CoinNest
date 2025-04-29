@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2 } from "lucide-react";
+import { Loader2, Check, X } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { loginSchema, registerSchema } from "@shared/schema";
 
@@ -19,6 +19,7 @@ export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<string>("login");
   const [loginError, setLoginError] = useState<string | null>(null);
   const [registerError, setRegisterError] = useState<string | null>(null);
+  const [password, setPassword] = useState<string>("");
   const [, navigate] = useLocation();
   
   // Get authentication context
@@ -343,10 +344,24 @@ export default function AuthPage() {
                           placeholder="Create a password" 
                           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                           value={registerForm.getValues().password}
-                          onChange={(e) => registerForm.setValue('password', e.target.value, { shouldValidate: true })}
+                          onChange={(e) => {
+                            const newPassword = e.target.value;
+                            setPassword(newPassword);
+                            registerForm.setValue('password', newPassword, { shouldValidate: true });
+                          }}
                         />
+                        <div className="mt-2 text-xs text-muted-foreground">
+                          <p>Password must:</p>
+                          <ul className="list-disc pl-5 space-y-1 mt-1">
+                            <li className={password.length >= 8 ? "text-green-500" : ""}>Be at least 8 characters long</li>
+                            <li className={/[A-Z]/.test(password) ? "text-green-500" : ""}>Contain at least one uppercase letter</li>
+                            <li className={/[a-z]/.test(password) ? "text-green-500" : ""}>Contain at least one lowercase letter</li>
+                            <li className={/[0-9]/.test(password) ? "text-green-500" : ""}>Contain at least one number</li>
+                            <li className={/[^A-Za-z0-9]/.test(password) ? "text-green-500" : ""}>Contain at least one special character</li>
+                          </ul>
+                        </div>
                         {registerForm.formState.errors.password && (
-                          <p className="text-sm font-medium text-destructive">{registerForm.formState.errors.password.message}</p>
+                          <p className="text-sm font-medium text-destructive mt-2">{registerForm.formState.errors.password.message}</p>
                         )}
                       </div>
                     </div>
