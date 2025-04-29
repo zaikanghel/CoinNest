@@ -6,6 +6,7 @@ import { setupAfkRoutes } from "./afk";
 import { setupGameRoutes } from "./games";
 import { setupSupportRoutes } from "./support";
 import { setupDailyRewardsRoutes } from "./daily-rewards";
+import { setupOnboardingRoutes } from "./onboarding";
 import { z } from "zod";
 import { withdrawalSchema, User } from "@shared/schema";
 
@@ -24,6 +25,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Setup daily rewards routes
   setupDailyRewardsRoutes(app);
+  
+  // Setup onboarding routes
+  setupOnboardingRoutes(app);
   
   // Wallet and withdrawals routes
   app.get("/api/wallet", async (req, res) => {

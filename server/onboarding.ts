@@ -6,6 +6,8 @@ export function setupOnboardingRoutes(app: Express) {
   // Get the user's onboarding status
   app.get("/api/user/onboarding-status", isAuthenticated, async (req: Request, res: Response) => {
     try {
+      if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+      
       const user = await storage.getUser(req.user.id);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
@@ -23,6 +25,8 @@ export function setupOnboardingRoutes(app: Express) {
   // Mark onboarding as complete
   app.post("/api/user/onboarding-complete", isAuthenticated, async (req: Request, res: Response) => {
     try {
+      if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+      
       const user = await storage.getUser(req.user.id);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
