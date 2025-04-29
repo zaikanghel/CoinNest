@@ -256,7 +256,8 @@ export class MongoStorage implements IStorage {
       referredBy,
       isPremium: false,
       premiumUntil: null,
-      premiumStarted: null
+      premiumStarted: null,
+      onboardingCompleted: false // Explicitly set to false for new users
     };
     
     await this.usersCollection.insertOne(user);

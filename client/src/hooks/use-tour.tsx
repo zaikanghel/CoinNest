@@ -85,11 +85,15 @@ export function TourProvider({ children }: { children: ReactNode }) {
     const checkFirstVisit = async () => {
       if (user && ["/dashboard", "/games", "/afk", "/wallet"].includes(location)) {
         try {
-          const response = await apiRequest<{completedOnboarding: boolean}>("GET", "/api/user/onboarding-status", {});
-          setIsFirstVisit(!response.completedOnboarding);
+          console.log("Checking onboarding status for user:", user.id, "on location:", location);
+          const response = await apiRequest("GET", "/api/user/onboarding-status", {});
+          console.log("Onboarding status response:", response);
+          const { completedOnboarding } = response as { completedOnboarding: boolean };
+          setIsFirstVisit(!completedOnboarding);
           
           // Automatically start the tour for first-time visitors
-          if (!response.completedOnboarding && tourRef.current) {
+          if (!completedOnboarding && tourRef.current) {
+            console.log("Starting tour for first-time visitor");
             startTour();
           }
         } catch (error) {
