@@ -9,8 +9,6 @@ import { AfkProvider } from "@/hooks/use-afk";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { useEffect } from "react";
-import { useTour } from "@/hooks/use-tour";
 import { apiRequest } from "@/lib/queryClient";
 
 interface StatsResponse {
@@ -52,9 +50,6 @@ interface GamesResponse {
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { startTour } = useTour();
-  
-  // Tour check now handled by the protected route component
   
   // Fetch user stats
   const { data: stats, isLoading: isLoadingStats } = useQuery<StatsResponse>({
@@ -127,16 +122,6 @@ export default function DashboardPage() {
                       Value: <span className="font-bold">${stats?.totalEarnings || "0.00"}</span>
                     </span>
                   </div>
-                  
-                  {/* Tour Start Button */}
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="ml-4 bg-white/10 text-white hover:bg-white/20 border-white/30"
-                    onClick={() => startTour()}
-                  >
-                    Take a Tour
-                  </Button>
                 </div>
               </div>
             </div>

@@ -6,14 +6,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import { useTour } from "@/hooks/use-tour";
 import { useLocation } from "wouter";
 
-export function TourButton() {
-  const { startTour } = useTour();
+export function HelpButton() {
   const [location, navigate] = useLocation();
   
-  // For non-protected routes (like landing page), we don't want to show the tour button
+  // For non-protected routes (like landing page), we don't want to show the help button
   const protectedRoutes = [
     "/dashboard",
     "/games",
@@ -35,17 +33,11 @@ export function TourButton() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative" aria-label="Help and Tour">
+        <Button variant="ghost" size="icon" className="relative" aria-label="Help">
           <HelpCircle className="h-5 w-5" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem
-          onClick={() => startTour()}
-          className="cursor-pointer"
-        >
-          Start App Tour
-        </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => navigate("/help")}
           className="cursor-pointer"
