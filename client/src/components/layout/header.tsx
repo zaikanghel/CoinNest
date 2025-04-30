@@ -16,7 +16,6 @@ import {
 import { useTheme } from "next-themes";
 import { getUserInitials, getColorFromString } from "@/lib/utils";
 import { Moon, Sun, Bell, Crown } from "lucide-react";
-import { TourButton } from "@/components/ui/tour-button";
 
 type HeaderProps = {
   toggleSidebar: () => void;
@@ -85,9 +84,6 @@ export default function Header({ toggleSidebar, pageTitle }: HeaderProps) {
         <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
         <span className="sr-only">Toggle theme</span>
       </Button>
-      
-      {/* Tour button */}
-      <TourButton />
 
       {/* User menu */}
       <DropdownMenu>
